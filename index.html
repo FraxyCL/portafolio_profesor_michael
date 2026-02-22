@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Hub Matemático Interactivo</title>
+
+<style>
+/* ----------- ESTILO GENERAL ----------- */
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+    text-align: center;
+}
+
+header {
+    padding: 20px 5px 1px 5px;
+}
+
+h1 {
+    margin-bottom: 10px;
+}
+
+.subtitulo {
+    font-size: 18px;
+    opacity: 0.9;
+}
+
+/* ----------- MENÚ PRINCIPAL ----------- */
+.menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 40px;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.card {
+    background: white;
+    color: #1e3c72;
+    border-radius: 15px;
+    padding: 30px 20px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.3);
+}
+
+/* ----------- CONTENIDO DINÁMICO ----------- */
+#contenido {
+    max-width: 900px;
+    margin: 10px auto 40px auto;
+    padding: 20px;
+}
+
+#contenido h2 {
+    margin-bottom: 15px;
+}
+
+/* ----------- SUBMENÚ (APPLETS) ----------- */
+.submenu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.subcard {
+    background: white;
+    color: #1e3c72;
+    border-radius: 12px;
+    padding: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+}
+
+.subcard:hover {
+    transform: translateY(-4px);
+}
+
+.footer {
+            background: #1f3b66;
+            color: #fff;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-top: 30px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>📚 Hub Matemático Interactivo 📚 </h1>
+    <p class="subtitulo">Repositorio de recursos digitales para la enseñanza de la matemática</p>
+</header>
+
+<!-- MENÚ PRINCIPAL -->
+<section class="menu">
+    <div class="card" onclick="mostrar('numeros')">🔢 Números</div>
+    <div class="card" onclick="mostrar('alg&fun')">🔡 Álgebra y 📈 Funciones</div>
+    <div class="card" onclick="mostrar('geometria')">📐 Geometría</div>
+    <div class="card" onclick="mostrar('prob&est')">🎲 Probabilidad y 📊 Estadística</div>    
+    <div class="card" onclick="mostrar('computacion')">🧠 Pensamiento Computacional</div>
+    <div class="card" onclick="mostrar('calculo')">🧮 Limites, Derivadas e Integrales</div>
+    <div class="card" onclick="mostrar('especiales')">🧪 Proyectos Especiales</div>
+
+    <a class="card" href="https://drive.google.com/drive/folders/1eyM1Q6lqmr2YzdFjFroAIbSanHs77Gwc?usp=drive_link" target="_blank" rel="noopener noreferrer">
+        📁 Drive Carrera PLEMC</a>
+    <a class="card" href="https://drive.google.com/drive/folders/1FcIzt373NnyMUktyVRiY7tUk1m9gAQfL?usp=drive_link" target="_blank" rel="noopener noreferrer">
+        📁 Drive Material PAES</a>
+    <a class="card" href="https://www.curriculumnacional.cl/" target="_blank" rel="noopener noreferrer">
+        📋 Curriculum Nacional</a>
+
+    <div class="card" onclick="mostrar('sobremi')">👨🏻‍🏫 Sobre mi</div>
+
+</section>
+
+<!-- AQUÍ APARECEN LOS SUBMENÚS -->
+<section id="contenido"></section>
+
+<!-- SCRIPT -->
+<script>
+function mostrar(seccion) {
+
+    let html = "";
+
+    if (seccion === "numeros") {
+        html = `
+        <h2>🔢 Números</h2>
+        <div class="submenu">
+            <a class="subcard" href="htmls/Triangulo Zhu Shijie.html" target="_blank" rel="noopener noreferrer">
+                Triángulo de Zhu Shijie | Triángulo de Pascal
+            </a>
+            <a class="subcard" href="https://www.geogebra.org/classic/nsr6whwy" target="_blank" rel="noopener noreferrer">
+                Relación Raíz, Logaritmo y Potencia
+            </a>
+            <a class="subcard" href="https://www.geogebra.org/classic/ry7pegvu" target="_blank" rel="noopener noreferrer">
+                Raices Representación Geométrica
+            </a>
+            <a class="subcard" href="https://www.geogebra.org/classic/n8wtsmem" target="_blank" rel="noopener noreferrer">
+                Ubicar raices en recta númerica
+            </a>
+            <a class="subcard" href="https://www.geogebra.org/classic/krkmfnkj" target="_blank" rel="noopener noreferrer">
+                Comparación Raíz y Potencia
+            </a>
+        </div>`;
+        
+    }
+
+    if (seccion === "alg&fun") {
+        html = `
+        <h2>🔡 Álgebra y 📈 Funciones</h2>
+        <div class="submenu">
+            <a class="subcard" href="https://www.geogebra.org/classic/grpf5jhq" target="_blank" rel="noopener noreferrer">
+                Área y Volumen [Función Potencia]
+            </a>
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                Applet 2 [EN CONSTRUCCIÓN]
+            </a>
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                Applet 3 [EN CONSTRUCCIÓN]
+            </a>
+        </div>`;
+    }
+
+    if (seccion === "geometria") {
+        html = `
+        <h2>📐 Geometría</h2>
+        <div class="submenu">
+            <a class="subcard" href="https://www.geogebra.org/classic/y7jvq8ex" target="_blank" rel="noopener noreferrer">
+                Pirámides y el Volumen
+            </a>
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                Applet 2 [EN CONSTRUCCIÓN]
+            </a>
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                Applet 3 [EN CONSTRUCCIÓN]
+            </a>
+        </div>`;
+    }
+
+    if (seccion === "prob&est") {
+        html = `
+        <h2>🎲 Probabilidad y 📊 Estadística</h2>
+        <div class="submenu">
+            <a class="subcard" href="https://www.mediafire.com/file/beza1jz2les4pj9/MikeTon_APK.apk/file" target="_blank" rel="noopener noreferrer">
+                Tabla de Galton Aplicación [MikeTon📲]
+            </a>
+            <a class="subcard" href="htmls/espacio muestral html.html" target="_blank" rel="noopener noreferrer">
+                Espacios muestrales (2 experimentos)
+            </a>
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                Applet 3 [EN CONSTRUCCIÓN]
+            </a>
+        </div>`;
+    }
+
+    if (seccion === "computacion") {
+        html = `
+        <h2>🧠 Pensamiento Computacional</h2>
+        <div class="submenu">
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                Apps App Inventor [EN CONSTRUCCIÓN]
+            </a>
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                Applet 2 [EN CONSTRUCCIÓN]
+            </a>
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                Applet 3 [EN CONSTRUCCIÓN]
+            </a>
+        </div>`;
+    }
+
+    if (seccion === "calculo") {
+        html = `
+        <h2>🧮 Limites, Derivadas e Integrales</h2>
+        <div class="submenu">
+            <a class="subcard" href="https://www.geogebra.org/classic/dvwds5wv" target="_blank" rel="noopener noreferrer">
+                Logaritmos naturales como áreas
+            </a>
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                Applet 2 [EN CONSTRUCCIÓN]
+            </a>
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                Applet 3 [EN CONSTRUCCIÓN]
+            </a>
+        </div>`;
+    }
+
+    if (seccion === "especiales") {
+        html = `
+        <h2>🧪 Proyectos Especiales</h2>
+        <div class="submenu">
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                [EN CONSTRUCCIÓN]
+            </a>
+        </div>`;
+    }
+
+    if (seccion === "sobremi") {
+        html = `
+        <h2>👨🏻‍🏫 Sobre mi</h2>
+        <div class="submenu">
+            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
+                CV personal [En construcción]
+            </a>
+            <a class="subcard" href="https://fraxycl.github.io/clases_particulares/" target="_blank" rel="noopener noreferrer">
+                Clases Particulares
+            </a>
+        
+        </div>`;
+    }
+
+    document.getElementById("contenido").innerHTML = html;
+}
+</script>
+
+<footer style=" background: #1f3b66; color: #fff; padding: 12px 20px; text-align: center; font-size: 0.9rem; line-height: 1.4; margin-top: 30px;">
+    <p>&copy; 2026 - Profesor Michael Antonio Núñez Núñez 👨🏻‍🏫- PLEMC USACH</p>
+</footer>
+
+</body>
+</html>
