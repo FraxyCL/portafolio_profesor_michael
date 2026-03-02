@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Visual de Combinaciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F5F2;
+    --surface: #FFFFFF;
+    --accent: #3B6EF0;
+    --accent2: #F0863B;
+    --text: #1A1A2E;
+    --muted: #8A8A9A;
+    --border: #E2DFDA;
+    --shadow: 0 4px 24px rgba(59,110,240,0.08);
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  header h1 {
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 900;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+
+  header h1 span { color: var(--accent); }
+
+  header p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--border);
+    padding: 28px;
+    margin-bottom: 24px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .card h2 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  /* Config panel */
+  .config-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .field label {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .field input {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    width: 100%;
+    padding: 12px 16px;
+    border: 2.5px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--text);
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .field input:focus { border-color: var(--accent); }
+
+  .btn {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    padding: 16px 32px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+  .btn:active { transform: translateY(0); }
+
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: var(--accent2); color: white; }
+  .btn-outline {
+    background: transparent;
+    border: 2.5px solid var(--accent);
+    color: var(--accent);
+  }
+
+  .error-msg {
+    color: #E05050;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* Formula */
+  .formula-box {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    line-height: 2;
+  }
+
+  .formula-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .step-num {
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .step-num.orange { background: var(--accent2); }
+
+  .formula-step .formula-text {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .highlight-blue { color: var(--accent); font-weight: 800; }
+  .highlight-orange { color: var(--accent2); font-weight: 800; }
+
+  /* Counters */
+  .counters-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .counter-badge {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 14px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border: 2px solid var(--border);
+  }
+
+  .counter-badge span { font-size: 1.5rem; color: var(--accent); }
+  .counter-badge.orange span { color: var(--accent2); }
+
+  /* Permutation grid */
+  .perm-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 4px;
+  }
+
+  .perm-card {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1.1rem;
+    background: var(--surface);
+    animation: fadeIn 0.3s ease both;
+    cursor: default;
+    transition: transform 0.15s;
+  }
+  .perm-card:hover { transform: scale(1.05); }
+
+  .perm-letter {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  /* Combination groups */
+  .comb-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 480px;
+    overflow-y: auto;
+    padding: 4px;
+  }
+
+  .comb-group {
+    border-radius: 14px;
+    padding: 16px;
+    animation: fadeIn 0.4s ease both;
+  }
+
+  .comb-group-label {
+    font-weight: 800;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .comb-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 900;
+    padding: 4px 12px;
+    border-radius: 8px;
+    color: white;
+  }
+
+  .comb-perms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .group-note {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* Compare mode */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 600px) { .compare-grid { grid-template-columns: 1fr; } }
+
+  .compare-col h3 {
+    font-size: 1rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  /* Toggle switch */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .toggle-label { font-weight: 700; font-size: 1rem; }
+
+  .toggle {
+    position: relative;
+    width: 52px;
+    height: 28px;
+    cursor: pointer;
+  }
+
+  .toggle input { display: none; }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 20px;
+    transition: background 0.2s;
+  }
+
+  .toggle input:checked + .toggle-track { background: var(--accent); }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(24px); }
+
+  /* Questions */
+  .questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .question-item {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 16px 20px;
+    border-left: 4px solid var(--accent);
+    font-size: 1rem;
+    font-weight: 700;
+    animation: fadeIn 0.4s ease both;
+  }
+
+  .question-item.orange { border-left-color: var(--accent2); }
+
+  .question-item .q-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Section visibility */
+  .hidden { display: none !important; }
+
+  .section-divider {
+    text-align: center;
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 8px 0;
+  }
+
+  /* Letter colors palette (soft) */
+  :root {
+    --c0: #DBEAFE; --c1: #FEF9C3; --c2: #DCFCE7; --c3: #FFE4E6;
+    --c4: #EDE9FE; --c5: #FFEDD5; --c6: #CFFAFE; --c7: #FCE7F3;
+  }
+
+  /* Group bg colors */
+  .gbg-0 { background: #EFF6FF; }
+  .gbg-1 { background: #FFFBEB; }
+  .gbg-2 { background: #F0FDF4; }
+  .gbg-3 { background: #FFF1F2; }
+  .gbg-4 { background: #F5F3FF; }
+  .gbg-5 { background: #FFF7ED; }
+  .gbg-6 { background: #ECFEFF; }
+  .gbg-7 { background: #FDF4FF; }
+  .gbg-8 { background: #F0F9FF; }
+  .gbg-9 { background: #FDF2F8; }
+  .gbg-10 { background: #F7FEE7; }
+  .gbg-11 { background: #FEF2F2; }
+
+  .gcol-0 { background: #3B6EF0; }
+  .gcol-1 { background: #D97706; }
+  .gcol-2 { background: #059669; }
+  .gcol-3 { background: #DC2626; }
+  .gcol-4 { background: #7C3AED; }
+  .gcol-5 { background: #EA580C; }
+  .gcol-6 { background: #0891B2; }
+  .gcol-7 { background: #BE185D; }
+  .gcol-8 { background: #1D4ED8; }
+  .gcol-9 { background: #9D174D; }
+  .gcol-10 { background: #4D7C0F; }
+  .gcol-11 { background: #9F1239; }
+
+  .gborder-0 { border: 2px solid #BFDBFE; }
+  .gborder-1 { border: 2px solid #FDE68A; }
+  .gborder-2 { border: 2px solid #A7F3D0; }
+  .gborder-3 { border: 2px solid #FECDD3; }
+  .gborder-4 { border: 2px solid #DDD6FE; }
+  .gborder-5 { border: 2px solid #FED7AA; }
+  .gborder-6 { border: 2px solid #A5F3FC; }
+  .gborder-7 { border: 2px solid #F5D0FE; }
+  .gborder-8 { border: 2px solid #BAE6FD; }
+  .gborder-9 { border: 2px solid #FBCFE8; }
+  .gborder-10 { border: 2px solid #D9F99D; }
+  .gborder-11 { border: 2px solid #FECACA; }
+
+  .action-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Simulador Visual de <span>Combinaciones</span></h1>
+  <p>Explora cómo las permutaciones se agrupan en combinaciones</p>
+</header>
+
+<!-- CONFIG PANEL -->
+<div class="card">
+  <h2>⚙️ Configuración</h2>
+  <div class="config-row">
+    <div class="field">
+      <label>n — Total de elementos</label>
+      <input type="number" id="inp-n" value="4" min="1" max="8">
+    </div>
+    <div class="field">
+      <label>k — Cantidad a elegir</label>
+      <input type="number" id="inp-k" value="2" min="1" max="8">
+    </div>
+    <button class="btn btn-primary" onclick="generate()">▶ Generar</button>
+  </div>
+  <p class="error-msg" id="error-msg">⚠️ Error de validación</p>
+
+  <div class="toggle-row">
+    <label class="toggle" for="toggle-compare">
+      <input type="checkbox" id="toggle-compare" onchange="toggleCompare()">
+      <div class="toggle-track"></div>
+      <div class="toggle-thumb"></div>
+    </label>
+    <span class="toggle-label">Modo comparación</span>
+  </div>
+</div>
+
+<!-- FORMULA -->
+<div class="card hidden" id="section-formula">
+  <h2>📐 Visualización Matemática</h2>
+  <div class="formula-box" id="formula-content"></div>
+</div>
+
+<!-- NORMAL MODE: permutations + combinations -->
+<div id="normal-mode">
+
+  <!-- PERMUTATIONS -->
+  <div class="card hidden" id="section-perms">
+    <h2>🔀 Permutaciones</h2>
+    <div class="counters-row">
+      <div class="counter-badge">P(n,k) = <span id="pnk-val">—</span></div>
+    </div>
+    <div class="perm-grid" id="perm-grid"></div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary" id="btn-combs" onclick="showCombinations()">🎯 Mostrar combinaciones</button>
+    </div>
+  </div>
+
+  <!-- COMBINATIONS -->
+  <div class="card hidden" id="section-combs">
+    <h2>✨ Combinaciones agrupadas</h2>
+    <div class="counters-row">
+      <div class="counter-badge">P(n,k) = <span id="pnk-val2">—</span></div>
+      <div class="counter-badge orange">C(n,k) = <span id="cnk-val">—</span></div>
+    </div>
+    <div class="comb-groups" id="comb-groups"></div>
+  </div>
+
+</div>
+
+<!-- COMPARE MODE -->
+<div class="card hidden" id="compare-mode">
+  <h2>↔️ Modo Comparación</h2>
+  <div class="counters-row">
+    <div class="counter-badge">P(n,k) = <span id="pnk-cmp">—</span></div>
+    <div class="counter-badge orange">C(n,k) = <span id="cnk-cmp">—</span></div>
+  </div>
+  <div class="compare-grid">
+    <div class="compare-col">
+      <h3>🔀 Permutaciones — ordenadas</h3>
+      <div class="perm-grid" id="perm-grid-cmp"></div>
+    </div>
+    <div class="compare-col">
+      <h3>✨ Combinaciones — sin orden</h3>
+      <div class="comb-groups" id="comb-groups-cmp" style="max-height:340px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- QUESTIONS -->
+<div class="card hidden" id="section-questions">
+  <h2>🤔 Reflexiona</h2>
+  <div class="questions-list" id="questions-list"></div>
+</div>
+
+<script>
+  const LETTERS = 'ABCDEFGH';
+  const LETTER_COLORS = ['#DBEAFE','#FEF9C3','#DCFCE7','#FFE4E6','#EDE9FE','#FFEDD5','#CFFAFE','#FCE7F3'];
+
+  let state = { n: 0, k: 0, perms: [], combGroups: [], compareMode: false };
+
+  function factorial(x) {
+    if (x <= 1) return 1;
+    let r = 1;
+    for (let i = 2; i <= x; i++) r *= i;
+    return r;
+  }
+
+  function permutations(arr, k) {
+    let result = [];
+    function helper(current, remaining) {
+      if (current.length === k) { result.push([...current]); return; }
+      for (let i = 0; i < remaining.length; i++) {
+        current.push(remaining[i]);
+        helper(current, remaining.filter((_, j) => j !== i));
+        current.pop();
+      }
+    }
+    helper([], arr);
+    return result;
+  }
+
+  function groupByCombination(perms) {
+    const map = new Map();
+    perms.forEach(p => {
+      const key = [...p].sort().join(',');
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(p);
+    });
+    return [...map.entries()].map(([key, perms]) => ({ key, perms, label: key.replace(/,/g,' ') }));
+  }
+
+  function validate() {
+    const n = parseInt(document.getElementById('inp-n').value);
+    const k = parseInt(document.getElementById('inp-k').value);
+    const err = document.getElementById('error-msg');
+    if (isNaN(n) || isNaN(k) || n < 1 || k < 1) {
+      err.textContent = '⚠️ Ingresa valores válidos mayores a 0.'; err.style.display='block'; return null;
+    }
+    if (k > n) {
+      err.textContent = `⚠️ k (${k}) no puede ser mayor que n (${n}).`; err.style.display='block'; return null;
+    }
+    if (n > 8) {
+      err.textContent = '⚠️ n máximo recomendado es 8 para evitar sobrecarga visual.'; err.style.display='block'; return null;
+    }
+    err.style.display='none';
+    return { n, k };
+  }
+
+  function generate() {
+    const vals = validate();
+    if (!vals) return;
+    const { n, k } = vals;
+    const elements = Array.from({ length: n }, (_, i) => LETTERS[i]);
+    const perms = permutations(elements, k);
+    const combGroups = groupByCombination(perms);
+    state = { n, k, perms, combGroups, compareMode: state.compareMode };
+
+    renderFormula(n, k, perms.length, combGroups.length);
+
+    if (state.compareMode) {
+      renderCompare();
+    } else {
+      renderPerms();
+      hide('section-combs');
+    }
+
+    renderQuestions(n, k, perms.length, combGroups.length);
+  }
+
+  function renderPermCards(perms, container) {
+    container.innerHTML = '';
+    perms.forEach((p, idx) => {
+      const card = document.createElement('div');
+      card.className = 'perm-card';
+      card.style.animationDelay = (idx * 30) + 'ms';
+      p.forEach(letter => {
+        const el = document.createElement('div');
+        el.className = 'perm-letter';
+        el.textContent = letter;
+        el.style.background = LETTER_COLORS[LETTERS.indexOf(letter)];
+        card.appendChild(el);
+      });
+      container.appendChild(card);
+    });
+  }
+
+  function renderPerms() {
+    show('section-perms');
+    show('section-formula');
+    document.getElementById('pnk-val').textContent = state.perms.length;
+    renderPermCards(state.perms, document.getElementById('perm-grid'));
+    hide('normal-mode'); show('normal-mode');
+  }
+
+  function showCombinations() {
+    show('section-combs');
+    document.getElementById('pnk-val2').textContent = state.perms.length;
+    document.getElementById('cnk-val').textContent = state.combGroups.length;
+    renderCombGroups(state.combGroups, document.getElementById('comb-groups'));
+  }
+
+  function renderCombGroups(groups, container) {
+    container.innerHTML = '';
+    groups.forEach((g, idx) => {
+      const colorIdx = idx % 12;
+      const div = document.createElement('div');
+      div.className = `comb-group gbg-${colorIdx} gborder-${colorIdx}`;
+      div.style.animationDelay = (idx * 50) + 'ms';
+
+      const label = document.createElement('div');
+      label.className = 'comb-group-label';
+      label.innerHTML = `<span class="comb-badge gcol-${colorIdx}">${g.label}</span> Combinación ${idx+1}`;
+      div.appendChild(label);
+
+      const permsRow = document.createElement('div');
+      permsRow.className = 'comb-perms';
+      g.perms.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'perm-card';
+        card.style.background = 'white';
+        p.forEach(letter => {
+          const el = document.createElement('div');
+          el.className = 'perm-letter';
+          el.textContent = letter;
+          el.style.background = LETTER_COLORS[LETTERS.indexOf(letter)];
+          card.appendChild(el);
+        });
+        permsRow.appendChild(card);
+      });
+      div.appendChild(permsRow);
+
+      const note = document.createElement('div');
+      note.className = 'group-note';
+      const kf = factorial(state.k);
+      note.textContent = `Estas ${kf} permutación${kf > 1 ? 'es representan' : ' representa'} la misma combinación.`;
+      div.appendChild(note);
+
+      container.appendChild(div);
+    });
+  }
+
+  function renderCompare() {
+    show('compare-mode');
+    hide('section-perms');
+    hide('section-combs');
+    show('section-formula');
+
+    document.getElementById('pnk-cmp').textContent = state.perms.length;
+    document.getElementById('cnk-cmp').textContent = state.combGroups.length;
+    renderPermCards(state.perms, document.getElementById('perm-grid-cmp'));
+    renderCombGroups(state.combGroups, document.getElementById('comb-groups-cmp'));
+  }
+
+  function renderFormula(n, k, pnk, cnk) {
+    show('section-formula');
+    const kf = factorial(k);
+    const nf = factorial(n);
+    const nmk = n - k;
+    const nmkf = factorial(nmk);
+    const el = document.getElementById('formula-content');
+    el.innerHTML = `
+      <div class="formula-step" style="margin-bottom:12px">
+        <div class="step-num">1</div>
+        <div class="formula-text">
+          P(${n},${k}) = ${n}! / (${n}−${k})! = ${nf} / ${nmkf} = <span class="highlight-blue">${pnk}</span>
+        </div>
+      </div>
+      <div class="formula-step" style="margin-bottom:12px">
+        <div class="step-num">2</div>
+        <div class="formula-text">
+          Cada grupo se repite <span class="highlight-orange">${k}! = ${kf}</span> veces (las formas de ordenar ${k} elementos)
+        </div>
+      </div>
+      <div class="formula-step" style="margin-bottom:12px">
+        <div class="step-num orange">3</div>
+        <div class="formula-text">
+          C(${n},${k}) = P(${n},${k}) / ${k}! = ${pnk} / ${kf} = <span class="highlight-orange">${cnk}</span>
+        </div>
+      </div>
+      <div class="formula-step" style="background:var(--bg);padding:12px 16px;border-radius:10px;border:2px solid var(--border)">
+        <div class="formula-text">
+          ∴ C(${n},${k}) = ${n}! / (${k}! × ${nmk}!) = ${nf} / (${kf} × ${nmkf}) = <span class="highlight-orange">${cnk}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderQuestions(n, k, pnk, cnk) {
+    show('section-questions');
+    const kf = factorial(k);
+    const qList = document.getElementById('questions-list');
+    const questions = [
+      { q: '¿Importa el orden en esta situación?', hint: 'En las combinaciones, {A, B} es igual que {B, A}. El orden NO importa.', type: '' },
+      { q: `¿Cuántas veces se repite cada grupo?`, hint: `Cada combinación aparece ${kf} veces como permutación (${k}! = ${kf}), una por cada orden posible de los mismos ${k} elementos.`, type: 'orange' },
+      { q: '¿Por qué se divide por k!?', hint: `Porque cada combinación genera exactamente k! = ${kf} permutaciones distintas. Al dividir P(n,k) = ${pnk} entre ${kf}, eliminamos los duplicados de orden y obtenemos C(n,k) = ${cnk}.`, type: '' },
+    ];
+    qList.innerHTML = '';
+    questions.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = `question-item ${item.type}`;
+      div.style.animationDelay = (i * 120) + 'ms';
+      div.innerHTML = `<div class="q-label">Pregunta ${i+1}</div><strong>${item.q}</strong><br><span style="font-weight:600;color:var(--muted);font-size:0.95rem">${item.hint}</span>`;
+      qList.appendChild(div);
+    });
+  }
+
+  function toggleCompare() {
+    state.compareMode = document.getElementById('toggle-compare').checked;
+    if (state.n > 0) {
+      if (state.compareMode) {
+        renderCompare();
+      } else {
+        hide('compare-mode');
+        renderPerms();
+        showCombinations();
+      }
+    }
+  }
+
+  function show(id) { document.getElementById(id)?.classList.remove('hidden'); }
+  function hide(id) { document.getElementById(id)?.classList.add('hidden'); }
+
+  // Init
+  generate();
+</script>
+</body>
+</html>

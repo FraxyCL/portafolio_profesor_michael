@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Triángulo de Zhu Shijie</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #fafafa;
+      text-align: center;
+      padding: 20px;
+    }
+
+    input, button {
+      font-size: 16px;
+      padding: 5px 10px;
+      margin: 10px;
+    }
+
+    #triangle-container {
+      margin-top: 30px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      margin: 4px 0;
+    }
+
+    .cell {
+      margin: 0 4px;
+      padding: 8px 12px;
+      background: #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .cell:hover {
+      background: #90caf9;
+      transform: scale(1.05);
+    }
+
+    .cell.selected {
+      background: #ffcc80 !important;
+      font-weight: bold;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    #info-panel {
+      margin-top: 30px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      width: 60%;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
+
+  <!-- MathJax para mostrar combinatorios en LaTeX -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+</head>
+<body>
+
+  <h1>Triángulo de Zhu Shijie</h1>
+  <p>Explora los coeficientes binomiales y su significado combinatorio</p>
+
+  <label for="rows">Número de filas:</label>
+  <input type="number" id="rows" min="1" max="20" value="5">
+  <button onclick="generateTriangle()">Generar Triángulo</button>
+  <button onclick="toggleMode()">Cambiar modo de visualización</button>
+
+  <div id="triangle-container"></div>
+  <div id="info-panel"></div>
+
+  <script>
+    let selectedCell = null;
+    let showCombinatorial = false;
+
+    function generateTriangle() {
+      const container = document.getElementById("triangle-container");
+      const rows = parseInt(document.getElementById("rows").value);
+      container.innerHTML = "";
+      selectedCell = null;
+
+      for (let n = 0; n < rows; n++) {
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "row";
+
+        for (let k = 0; k <= n; k++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          const value = binomial(n, k);
+
+          if (showCombinatorial) {
+            cell.innerHTML = `\\( \\binom{${n}}{${k}} \\)`;
+          } else {
+            cell.textContent = value;
+          }
+
+          cell.title = `C(${n}, ${k}) = ${value}`;
+          cell.onclick = () => showInfo(n, k, value, cell);
+          rowDiv.appendChild(cell);
+        }
+
+        container.appendChild(rowDiv);
+      }
+
+      document.getElementById("info-panel").innerHTML = "";
+
+      if (showCombinatorial && window.MathJax) {
+        MathJax.typesetPromise();
+      }
+    }
+
+    function binomial(n, k) {
+      if (k === 0 || k === n) return 1;
+      let res = 1;
+      for (let i = 1; i <= k; i++) {
+        res *= (n - i + 1) / i;
+      }
+      return Math.round(res);
+    }
+
+    function showInfo(n, k, value, cellElement) {
+      if (selectedCell) {
+        selectedCell.classList.remove("selected");
+      }
+
+      cellElement.classList.add("selected");
+      selectedCell = cellElement;
+
+      const panel = document.getElementById("info-panel");
+      panel.innerHTML = `
+        <h3>\\[ \\binom{${n}}{${k}} = ${value} \\]</h3>
+        <p><strong>Fórmula:</strong> \\( \\binom{${n}}{${k}} = \\frac{${n}!}{${k}!(${n - k})!} \\)</p>
+        <p><strong>Binomio:</strong> Coeficiente de \\( a^{${n - k}}b^{${k}} \\) en \\( (a + b)^{${n}} \\)</p>
+        <p><strong>Interpretación:</strong> Número de formas de elegir ${k} elementos de un total de ${n}</p>
+        <p><strong>Autores:</strong> Alvaro Soto, Bastian Vergara, Michael Núñez</p>`;
+
+      if (window.MathJax) {
+        MathJax.typesetPromise();
+      }
+    }
+
+    function toggleMode() {
+      showCombinatorial = !showCombinatorial;
+      generateTriangle();
+    }
+  </script>
+
+</body>
+</html>

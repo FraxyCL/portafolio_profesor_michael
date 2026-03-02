@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explorador de Espacios Muestrales</title>
+  <style>
+    :root {
+      --bg: #f7f9fc;
+      --primary: #1f3c88;
+      --accent: #4caf50;
+      --warn: #ffc107;
+      --error: #f44336;
+      --text: #1a1a1a;
+      --card: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      width: 100%;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+
+    .selectors {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    select {
+      font-size: 1.1rem;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    .builder {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .options, .workspace {
+      flex: 1 1 300px;
+      background: #f1f3f8;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .options h3, .workspace h3 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    .option-btn {
+      margin: 4px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      background: #e0e4f0;
+    }
+
+    .option-btn:hover {
+      background: #d0d6ec;
+    }
+
+    .pair {
+      display: inline-block;
+      margin: 4px;
+      padding: 6px 10px;
+      background: var(--primary);
+      color: white;
+      border-radius: 8px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .views {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toggle {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--primary);
+      background: white;
+      cursor: pointer;
+    }
+
+    .toggle.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .representation {
+      margin-top: 12px;
+      min-height: 120px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    td, th {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+
+    .tree {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+    }
+
+    .branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .branch span {
+      margin: 4px 0;
+    }
+
+    .verify {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .verify button {
+      font-size: 1.1rem;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+    }
+
+    .message {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .ok { color: var(--accent); }
+    .warn { color: var(--warn); }
+    .error { color: var(--error); }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Explorador de Espacios Muestrales</h1>
+
+    <div class="selectors">
+      <select id="exp1"></select>
+      <select id="exp2"></select>
+    </div>
+
+    <div class="builder">
+      <div class="options">
+        <h3>Resultados del experimento 1</h3>
+        <div id="options1"></div>
+        <h3 style="margin-top:12px">Resultados del experimento 2</h3>
+        <div id="options2"></div>
+        <div style="text-align:center; margin-top:12px">
+          <button id="createPair" class="option-btn">Crear resultado</button>
+        </div>
+      </div>
+
+      <div class="workspace">
+        <h3>Espacio muestral construido</h3>
+        <div id="workspace"></div>
+      </div>
+    </div>
+
+    <div class="views">
+      <button class="toggle active" data-view="list">Listado</button>
+      <button class="toggle" data-view="tree">Árbol</button>
+      <button class="toggle" data-view="table">Tabla</button>
+    </div>
+
+    <div class="representation" id="representation"></div>
+
+    <div class="verify">
+      <button id="check">Verificar espacio muestral</button>
+    </div>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    const experiments = {
+      moneda: ["C", "S"],
+      dado: ["1","2","3","4","5","6"],
+      ruleta: ["Rojo","Azul","Verde"]
+    };
+
+    const exp1 = document.getElementById("exp1");
+    const exp2 = document.getElementById("exp2");
+    const optionsDiv1 = document.getElementById("options1");
+    const optionsDiv2 = document.getElementById("options2");
+    const workspaceDiv = document.getElementById("workspace");
+    const representation = document.getElementById("representation");
+    const message = document.getElementById("message");
+
+    let expected = [];
+    let selected1 = null;
+    let selected2 = null;
+    let built = new Set();
+    let currentView = "list";
+
+    function initSelectors() {
+      exp1.innerHTML = `<option value="">Experimento 1</option>` +
+        `<option value="moneda">Moneda</option>` +
+        `<option value="dado">Dado</option>` +
+        `<option value="ruleta">Ruleta 3 colores</option>`;
+
+      exp2.innerHTML = `<option value="">Experimento 2</option>` +
+        `<option value="moneda">Moneda</option>` +
+        `<option value="dado">Dado</option>`;
+    }
+
+    function generateExpected() {
+      built.clear();
+      workspaceDiv.innerHTML = "";
+      optionsDiv1.innerHTML = "";
+      optionsDiv2.innerHTML = "";
+      representation.innerHTML = "";
+      message.textContent = "";
+      selected1 = null;
+      selected2 = null;
+
+      const a = experiments[exp1.value] || [];
+      const b = experiments[exp2.value] || [];
+      expected = [];
+
+      a.forEach(x => b.forEach(y => expected.push(`(${x}, ${y})`)));
+
+      a.forEach(x => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = x;
+        btn.onclick = () => selectValue(1, x, btn);
+        optionsDiv1.appendChild(btn);
+      });
+
+      b.forEach(y => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = y;
+        btn.onclick = () => selectValue(2, y, btn);
+        optionsDiv2.appendChild(btn);
+      });
+    }
+
+
+    function addPair(pair) {
+      if (built.has(pair)) return;
+      built.add(pair);
+      const span = document.createElement("span");
+      span.className = "pair";
+      span.textContent = pair;
+      workspaceDiv.appendChild(span);
+      render();
+    }
+
+    function selectValue(exp, value, btn) {
+      const siblings = btn.parentElement.querySelectorAll('.option-btn');
+      siblings.forEach(b => b.style.background = '#e0e4f0');
+      btn.style.background = '#b3c2f2';
+      if (exp === 1) selected1 = value;
+      if (exp === 2) selected2 = value;
+    }
+
+
+    function render() {
+      representation.innerHTML = "";
+
+      if (currentView === "list") {
+        [...built].sort().forEach(p => {
+          const div = document.createElement("div");
+          div.textContent = p;
+          representation.appendChild(div);
+        });
+      }
+
+      if (currentView === "tree") {
+        const a = experiments[exp1.value] || [];
+        const b = experiments[exp2.value] || [];
+        const tree = document.createElement("div");
+        tree.className = "tree";
+
+        a.forEach(x => {
+          const branch = document.createElement("div");
+          branch.className = "branch";
+          const root = document.createElement("span");
+          root.textContent = x;
+          branch.appendChild(root);
+          b.forEach(y => {
+            const leaf = document.createElement("span");
+            leaf.textContent = `→ (${x}, ${y})`;
+            branch.appendChild(leaf);
+          });
+          tree.appendChild(branch);
+        });
+        representation.appendChild(tree);
+      }
+
+      if (currentView === "table") {
+        const a = experiments[exp1.value] || [];
+        const b = experiments[exp2.value] || [];
+        const table = document.createElement("table");
+        const header = document.createElement("tr");
+        header.innerHTML = `<th></th>` + b.map(x => `<th>${x}</th>`).join("");
+        table.appendChild(header);
+        a.forEach(x => {
+          const row = document.createElement("tr");
+          row.innerHTML = `<th>${x}</th>` + b.map(y => `<td>(${x}, ${y})</td>`).join("");
+          table.appendChild(row);
+        });
+        representation.appendChild(table);
+      }
+    }
+
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentView = btn.dataset.view;
+        render();
+      };
+    });
+
+    document.getElementById("createPair").onclick = () => {
+      if (selected1 && selected2) {
+        addPair(`(${selected1}, ${selected2})`);
+      }
+    };
+
+    document.getElementById("check").onclick = () => {
+      if (built.size === expected.length) {
+        message.textContent = "Espacio muestral completo";
+        message.className = "message ok";
+      } else if (built.size < expected.length) {
+        message.textContent = `Faltan ${expected.length - built.size} resultados`;
+        message.className = "message warn";
+      } else {
+        message.textContent = "Hay resultados repetidos";
+        message.className = "message error";
+      }
+    };
+
+    exp1.onchange = generateExpected;
+    exp2.onchange = generateExpected;
+
+    initSelectors();
+  </script>
+</body>
+</html>

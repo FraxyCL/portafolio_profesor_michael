@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagrama de Árbol</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f8f9fb;
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    color: #1e293b;
+  }
+
+  header {
+    background: #fff;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 1.2rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  header h1 { font-size: 1.4rem; font-weight: 800; color: #1e293b; }
+  header .subtitle { font-size: 0.82rem; color: #94a3b8; font-weight: 600; }
+
+  .config-panel {
+    background: #fff;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 1.2rem 2rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .config-section { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .config-section h3 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #64748b;
+  }
+
+  .sequence-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    min-height: 38px;
+  }
+
+  .seq-step {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #f1f5f9;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #334155;
+  }
+
+  .step-arrow { color: #94a3b8; font-size: 1.1rem; user-select: none; }
+
+  .step-num {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    font-weight: 700;
+    background: #e2e8f0;
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 0 0 4px;
+    transition: color 0.15s;
+    font-family: inherit;
+  }
+  .remove-btn:hover { color: #ef4444; }
+
+  .add-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+
+  .add-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.42rem 1rem;
+    border-radius: 7px;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .add-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+  .add-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+
+  .clear-btn {
+    padding: 0.42rem 0.9rem;
+    border-radius: 7px;
+    border: 2px solid #fca5a5;
+    background: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .clear-btn:hover { background: #fef2f2; }
+
+  .hint-note { font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem; }
+  .empty-hint { font-size: 0.83rem; color: #94a3b8; font-style: italic; }
+
+  .canvas-wrap { padding: 2rem 2rem 4rem; overflow: auto; }
+  #tree-svg { display: block; overflow: visible; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌳 Diagrama de Árbol</h1>
+  <span class="subtitle">Selecciona la secuencia de experimentos que quieres visualizar</span>
+</header>
+
+<div class="config-panel">
+  <div class="config-section" style="flex:1; min-width:260px;">
+    <h3>Secuencia actual</h3>
+    <div class="sequence-row" id="sequence-row">
+      <span class="empty-hint" id="empty-hint">Agrega experimentos con los botones →</span>
+    </div>
+  </div>
+
+  <div class="config-section">
+    <h3>Agregar etapa</h3>
+    <div class="add-btns">
+      <button class="add-btn" id="btn-moneda" onclick="addStep('moneda')">🪙 Moneda</button>
+      <button class="add-btn" id="btn-dado"   onclick="addStep('dado')">🎲 Dado</button>
+      <button class="clear-btn" onclick="clearAll()">✕ Limpiar</button>
+    </div>
+    <div class="hint-note">Máximo 3 etapas</div>
+  </div>
+</div>
+
+<div class="canvas-wrap">
+  <svg id="tree-svg"></svg>
+</div>
+
+<script>
+const EXPERIMENTS = {
+  moneda: {
+    name: 'Moneda', emoji: '🪙',
+    outcomes: [
+      { short: 'C', color: '#6366f1' },
+      { short: 'S', color: '#06b6d4' }
+    ]
+  },
+  dado: {
+    name: 'Dado', emoji: '🎲',
+    outcomes: [
+      { short: '1', color: '#6366f1' },
+      { short: '2', color: '#8b5cf6' },
+      { short: '3', color: '#06b6d4' },
+      { short: '4', color: '#f59e0b' },
+      { short: '5', color: '#22c55e' },
+      { short: '6', color: '#ef4444' }
+    ]
+  }
+};
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+let sequence = [];
+const MAX_STEPS = 3;
+
+function addStep(type) {
+  if (sequence.length >= MAX_STEPS) return;
+  sequence.push(type);
+  renderControls();
+  buildTree();
+}
+
+function removeStep(i) {
+  sequence.splice(i, 1);
+  renderControls();
+  buildTree();
+}
+
+function clearAll() {
+  sequence = [];
+  renderControls();
+  buildTree();
+}
+
+function renderControls() {
+  const row = document.getElementById('sequence-row');
+  row.innerHTML = '';
+
+  if (sequence.length === 0) {
+    const hint = document.createElement('span');
+    hint.className = 'empty-hint';
+    hint.textContent = 'Agrega experimentos con los botones →';
+    row.appendChild(hint);
+  } else {
+    sequence.forEach(function(type, i) {
+      const exp = EXPERIMENTS[type];
+      if (i > 0) {
+        const arr = document.createElement('span');
+        arr.className = 'step-arrow';
+        arr.textContent = '→';
+        row.appendChild(arr);
+      }
+      const chip = document.createElement('div');
+      chip.className = 'seq-step';
+
+      const num = document.createElement('span');
+      num.className = 'step-num';
+      num.textContent = i + 1;
+
+      const lbl = document.createElement('span');
+      lbl.textContent = exp.emoji + ' ' + exp.name;
+
+      const btn = document.createElement('button');
+      btn.className = 'remove-btn';
+      btn.textContent = '✕';
+      btn.title = 'Quitar';
+      btn.setAttribute('data-index', i);
+      btn.addEventListener('click', function() {
+        removeStep(parseInt(this.getAttribute('data-index')));
+      });
+
+      chip.appendChild(num);
+      chip.appendChild(lbl);
+      chip.appendChild(btn);
+      row.appendChild(chip);
+    });
+  }
+
+  const disabled = sequence.length >= MAX_STEPS;
+  document.getElementById('btn-moneda').disabled = disabled;
+  document.getElementById('btn-dado').disabled = disabled;
+}
+
+// ---- Build tree node list ----
+function buildTreeData() {
+  if (!sequence.length) return [];
+  var nodes = [{ id: 0, level: 0, parentId: null, label: 'Inicio', color: '#64748b', path: [] }];
+  var id = 1;
+  var queue = [nodes[0]];
+  while (queue.length) {
+    var parent = queue.shift();
+    if (parent.level >= sequence.length) continue;
+    var outcomes = EXPERIMENTS[sequence[parent.level]].outcomes;
+    for (var i = 0; i < outcomes.length; i++) {
+      var o = outcomes[i];
+      var nd = {
+        id: id++,
+        level: parent.level + 1,
+        parentId: parent.id,
+        label: o.short,
+        color: o.color,
+        path: parent.path.concat([o.short])
+      };
+      nodes.push(nd);
+      queue.push(nd);
+    }
+  }
+  return nodes;
+}
+
+// ---- Layout ----
+function layoutNodes(nodes) {
+  var N = sequence.length;
+  var nodeR = 22;
+  var levelH = 130;
+
+  var byLevel = {};
+  nodes.forEach(function(nd) {
+    if (!byLevel[nd.level]) byLevel[nd.level] = [];
+    byLevel[nd.level].push(nd);
+  });
+
+  var posMap = {};
+  var leaves = byLevel[N] || [];
+
+  // Calcular ancho real de cada hoja y el máximo
+  var leafWidths = leaves.map(function(nd) {
+    var pathStr = nd.path.join(' → ');
+    return Math.max(pathStr.length * 7.8 + 22, 60);
+  });
+  var maxLeafW = leafWidths.length ? Math.max.apply(null, leafWidths) : 60;
+  var minSpacing = maxLeafW + 16; // margen entre cajas
+
+  var totalWidth = Math.max(leaves.length * minSpacing, 300);
+
+  leaves.forEach(function(nd, i) {
+    posMap[nd.id] = { x: (i + 0.5) * (totalWidth / leaves.length), y: nd.level * levelH + nodeR + 40 };
+  });
+
+  for (var lv = N - 1; lv >= 0; lv--) {
+    (byLevel[lv] || []).forEach(function(nd) {
+      var children = nodes.filter(function(c) { return c.parentId === nd.id; });
+      var avgX = children.length
+        ? children.reduce(function(s, c) { return s + posMap[c.id].x; }, 0) / children.length
+        : totalWidth / 2;
+      posMap[nd.id] = { x: avgX, y: nd.level * levelH + nodeR + 40 };
+    });
+  }
+
+  return { posMap: posMap, totalWidth: totalWidth, totalHeight: N * levelH + nodeR * 2 + 80, nodeR: nodeR, levelH: levelH };
+}
+
+// ---- SVG helpers (no classList, no .style) ----
+function svgEl(tag, attrs) {
+  var el = document.createElementNS(SVG_NS, tag);
+  for (var k in attrs) {
+    el.setAttribute(k, attrs[k]);
+  }
+  return el;
+}
+
+function svgText(attrs, content) {
+  var el = svgEl('text', attrs);
+  el.textContent = content;
+  return el;
+}
+
+// ---- Render ----
+function buildTree() {
+  var svg = document.getElementById('tree-svg');
+  // Full clear
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  if (!sequence.length) {
+    svg.setAttribute('width', 520);
+    svg.setAttribute('height', 200);
+    svg.appendChild(svgText({ x: 260, y: 90, 'text-anchor': 'middle', 'font-family': 'Nunito,sans-serif', 'font-size': 52 }, '🌱'));
+    svg.appendChild(svgText({ x: 260, y: 155, 'text-anchor': 'middle', 'font-family': 'Nunito,sans-serif', 'font-size': 15, fill: '#94a3b8', 'font-weight': 700 }, 'Agrega experimentos para construir el árbol'));
+    return;
+  }
+
+  var nodes = buildTreeData();
+  var layout = layoutNodes(nodes);
+  var posMap = layout.posMap;
+  var totalWidth = layout.totalWidth;
+  var totalHeight = layout.totalHeight;
+  var nodeR = layout.nodeR;
+  var levelH = layout.levelH;
+  var PAD = 70;
+
+  svg.setAttribute('width',  totalWidth + PAD * 2);
+  svg.setAttribute('height', totalHeight + 20);
+
+  var edgeG = svgEl('g', {});
+  var nodeG = svgEl('g', {});
+  var lblG  = svgEl('g', {});
+  svg.appendChild(edgeG);
+  svg.appendChild(nodeG);
+  svg.appendChild(lblG);
+
+  // Etiquetas laterales de nivel
+  for (var lv = 1; lv <= sequence.length; lv++) {
+    var ly = lv * levelH + nodeR + 40;
+    lblG.appendChild(svgText({
+      x: PAD - 12, y: ly,
+      'text-anchor': 'end', 'dominant-baseline': 'central',
+      'font-family': 'Nunito,sans-serif', 'font-size': 11, 'font-weight': 700, fill: '#94a3b8'
+    }, EXPERIMENTS[sequence[lv-1]].emoji + ' E' + lv));
+  }
+
+  // Aristas
+  nodes.forEach(function(nd) {
+    if (nd.parentId === null) return;
+    var parent = null;
+    for (var i = 0; i < nodes.length; i++) { if (nodes[i].id === nd.parentId) { parent = nodes[i]; break; } }
+    var p1 = posMap[parent.id], p2 = posMap[nd.id];
+    var x1 = p1.x + PAD, y1 = p1.y + nodeR;
+    var x2 = p2.x + PAD, y2 = p2.y - nodeR;
+    var my = (y1 + y2) / 2;
+
+    var delay = nd.level * 0.07;
+    var path = svgEl('path', {
+      d: 'M ' + x1 + ' ' + y1 + ' C ' + x1 + ' ' + my + ', ' + x2 + ' ' + my + ', ' + x2 + ' ' + y2,
+      stroke: nd.color + 'aa',
+      'stroke-width': 2,
+      fill: 'none',
+      'stroke-linecap': 'round',
+      style: 'animation: fadeIn 0.35s ease ' + delay + 's both'
+    });
+    edgeG.appendChild(path);
+
+    // Etiqueta en la arista
+    var mx = (x1 + x2) / 2;
+    lblG.appendChild(svgText({
+      x: mx + 7, y: my,
+      'font-family': 'Nunito,sans-serif', 'font-size': 12, 'font-weight': 800,
+      fill: nd.color, 'dominant-baseline': 'central',
+      style: 'animation: fadeIn 0.35s ease ' + delay + 's both'
+    }, nd.label));
+  });
+
+  // Nodos
+  nodes.forEach(function(nd) {
+    var pos = posMap[nd.id];
+    var x = pos.x + PAD, y = pos.y;
+    var isRoot = nd.level === 0;
+    var isLeaf = nd.level === sequence.length;
+    var delay = nd.level * 0.09;
+    var animStyle = 'animation: fadeIn 0.3s ease ' + delay + 's both';
+
+    var g = svgEl('g', { transform: 'translate(' + x + ',' + y + ')', style: animStyle });
+
+    if (isRoot) {
+      g.appendChild(svgEl('circle', { r: nodeR, fill: '#fff', stroke: '#cbd5e1', 'stroke-width': 2.5 }));
+      g.appendChild(svgText({ 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-family': 'Nunito,sans-serif', 'font-size': 10, 'font-weight': 800, fill: '#64748b' }, 'Inicio'));
+    } else if (isLeaf) {
+      var pathStr = nd.path.join(' → ');
+      var rw = Math.max(pathStr.length * 7.8 + 22, 60);
+      var rh = 30;
+      g.appendChild(svgEl('rect', { x: -rw/2, y: -rh/2, width: rw, height: rh, rx: 8, fill: nd.color + '1a', stroke: nd.color, 'stroke-width': 2 }));
+      g.appendChild(svgText({ 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-family': 'Nunito,sans-serif', 'font-size': 11, 'font-weight': 800, fill: nd.color }, pathStr));
+    } else {
+      g.appendChild(svgEl('circle', { r: nodeR, fill: nd.color, stroke: '#fff', 'stroke-width': 3 }));
+      g.appendChild(svgText({ 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-family': 'Nunito,sans-serif', 'font-size': 13, 'font-weight': 800, fill: '#fff' }, nd.label));
+    }
+
+    nodeG.appendChild(g);
+  });
+}
+
+renderControls();
+buildTree();
+</script>
+</body>
+</html>

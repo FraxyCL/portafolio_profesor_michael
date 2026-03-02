@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Constructor de Combinaciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F4F2EE;
+    --surface: #FFFFFF;
+    --accent: #3B6EF0;
+    --accent2: #F0863B;
+    --success: #22C55E;
+    --danger: #EF4444;
+    --text: #1A1A2E;
+    --muted: #8A8A9A;
+    --border: #E2DFDA;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(59,110,240,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 80px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  header h1 { font-size: clamp(1.5rem,4vw,2.4rem); font-weight: 900; letter-spacing:-1px; }
+  header h1 span { color: var(--accent); }
+  header p { margin-top:6px; color:var(--muted); font-weight:600; font-size:1rem; }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--border);
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .card-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  /* Config */
+  .config-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field label { font-weight:800; font-size:0.95rem; }
+  .field input[type=number] {
+    font-family:'JetBrains Mono',monospace;
+    font-size:1.8rem;
+    font-weight:700;
+    width:100px;
+    padding:10px 14px;
+    border:2.5px solid var(--border);
+    border-radius:12px;
+    background:var(--bg);
+    color:var(--text);
+    text-align:center;
+    outline:none;
+    -moz-appearance:textfield;
+    transition:border-color 0.2s;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button { -webkit-appearance:none; }
+  .field input:focus { border-color:var(--accent); }
+
+  .btn {
+    font-family:'Nunito',sans-serif;
+    font-size:1rem;
+    font-weight:800;
+    padding:14px 26px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    transition:transform 0.15s,box-shadow 0.15s,opacity 0.15s;
+    white-space:nowrap;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.12); }
+  .btn:active { transform:translateY(0); }
+  .btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+  .btn-primary { background:var(--accent); color:white; }
+  .btn-success { background:var(--success); color:white; }
+  .btn-orange { background:var(--accent2); color:white; }
+  .btn-danger { background:var(--danger); color:white; }
+  .btn-ghost { background:var(--bg); border:2px solid var(--border); color:var(--text); }
+  .btn-sm { font-size:0.85rem; padding:8px 16px; }
+
+  /* Letter palette */
+  .palette-area {
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:8px;
+  }
+
+  .letter-chip {
+    width:56px;
+    height:56px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:1.5rem;
+    font-weight:800;
+    cursor:grab;
+    user-select:none;
+    border:2.5px solid transparent;
+    transition:transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    position:relative;
+    flex-shrink:0;
+  }
+  .letter-chip:hover { transform:scale(1.1); box-shadow:0 4px 16px rgba(0,0,0,0.15); }
+  .letter-chip.dragging { opacity:0.4; transform:scale(0.95); }
+  .letter-chip.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,110,240,0.25);
+    transform:scale(1.08);
+  }
+  .letter-chip.used { opacity:0.35; pointer-events:none; }
+
+  /* Slot zone */
+  .slots-zone {
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    min-height:72px;
+    background:var(--bg);
+    border-radius:14px;
+    border:2.5px dashed var(--border);
+    padding:12px 14px;
+    align-items:center;
+    transition:border-color 0.2s, background 0.2s;
+  }
+  .slots-zone.drag-over {
+    border-color:var(--accent);
+    background:#EEF3FF;
+  }
+  .slots-zone.full { border-color: var(--success); background:#F0FDF4; }
+
+  .slot-chip {
+    width:56px;
+    height:56px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:1.5rem;
+    font-weight:800;
+    cursor:pointer;
+    transition:transform 0.15s, box-shadow 0.15s;
+    border:2.5px solid rgba(255,255,255,0.5);
+    position:relative;
+    animation: popIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275) both;
+  }
+  .slot-chip:hover { transform:scale(1.1); }
+  .slot-chip::after {
+    content:'×';
+    position:absolute;
+    top:-6px; right:-6px;
+    width:18px; height:18px;
+    background:var(--danger);
+    color:white;
+    border-radius:50%;
+    font-size:0.7rem;
+    font-weight:900;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
+  }
+
+  .slot-empty-hint {
+    color:var(--muted);
+    font-size:0.95rem;
+    font-weight:600;
+    padding:4px 8px;
+    pointer-events:none;
+  }
+
+  /* Combination display */
+  .combo-display {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:1.3rem;
+    font-weight:800;
+    background:var(--bg);
+    border-radius:12px;
+    padding:12px 18px;
+    margin-top:16px;
+    flex-wrap:wrap;
+  }
+  .combo-display .combo-label { color:var(--muted); font-size:0.8rem; font-weight:700; text-transform:uppercase; }
+  .combo-chip {
+    width:44px; height:44px;
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem; font-weight:800;
+    border:2px solid rgba(0,0,0,0.05);
+  }
+  .combo-arrow { color:var(--muted); font-size:1rem; }
+
+  /* Built list */
+  .built-list {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    max-height:360px;
+    overflow-y:auto;
+    padding:4px;
+  }
+
+  .built-item {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    border-radius:12px;
+    background:var(--bg);
+    border:1.5px solid var(--border);
+    animation:fadeIn 0.3s ease both;
+    position:relative;
+  }
+  .built-item.duplicate {
+    background:#FEF2F2;
+    border-color:#FECACA;
+    animation:shake 0.4s ease;
+  }
+  .built-item.new-item {
+    background:#F0FDF4;
+    border-color:#A7F3D0;
+  }
+  .built-num {
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:0.85rem;
+    color:var(--muted);
+    width:24px;
+    flex-shrink:0;
+  }
+  .built-chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .built-chip {
+    width:36px; height:36px;
+    border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:1rem; font-weight:800;
+    border:2px solid rgba(0,0,0,0.05);
+  }
+  .built-delete {
+    margin-left:auto;
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--muted);
+    font-size:1.1rem;
+    padding:4px 8px;
+    border-radius:8px;
+    transition:background 0.15s, color 0.15s;
+  }
+  .built-delete:hover { background:#FEE2E2; color:var(--danger); }
+  .dup-badge {
+    font-size:0.75rem;
+    font-weight:800;
+    color:var(--danger);
+    background:#FEE2E2;
+    border-radius:6px;
+    padding:2px 8px;
+    margin-left:auto;
+  }
+
+  /* Progress */
+  .progress-bar-wrap {
+    background: var(--bg);
+    border-radius:999px;
+    height:20px;
+    overflow:hidden;
+    border:2px solid var(--border);
+    margin-top:12px;
+  }
+  .progress-bar-fill {
+    height:100%;
+    border-radius:999px;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+    transition:width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    padding-right:8px;
+    min-width:0;
+  }
+  .progress-label {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+    font-size:0.9rem;
+    font-weight:700;
+  }
+
+  /* Verify result */
+  .verify-box {
+    border-radius:14px;
+    padding:20px 24px;
+    margin-top:16px;
+    animation:fadeIn 0.3s ease;
+  }
+  .verify-box.complete {
+    background:#F0FDF4;
+    border:2px solid #A7F3D0;
+  }
+  .verify-box.incomplete {
+    background:#FFFBEB;
+    border:2px solid #FDE68A;
+  }
+  .verify-box h3 { font-size:1.1rem; font-weight:900; margin-bottom:8px; }
+  .verify-box p { font-size:0.95rem; font-weight:600; color:var(--text); line-height:1.6; }
+  .missing-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .missing-item {
+    display:flex;
+    gap:4px;
+    padding:6px 10px;
+    border-radius:10px;
+    background:white;
+    border:1.5px solid var(--border);
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.85rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:transform 0.15s, border-color 0.15s;
+  }
+  .missing-item:hover { transform:scale(1.05); border-color:var(--accent); }
+  .missing-item .m-chip {
+    width:26px; height:26px; border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.8rem; font-weight:800;
+    border:1.5px solid rgba(0,0,0,0.06);
+  }
+
+  /* Stats bar */
+  .stats-row {
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+  }
+  .stat-badge {
+    background:var(--bg);
+    border-radius:12px;
+    padding:10px 18px;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    border:2px solid var(--border);
+    font-size:0.95rem;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .stat-badge .val { font-size:1.4rem; color:var(--accent); }
+  .stat-badge.orange .val { color:var(--accent2); }
+  .stat-badge.green .val { color:var(--success); }
+
+  /* Toast */
+  .toast {
+    position:fixed;
+    bottom:24px; left:50%;
+    transform:translateX(-50%) translateY(80px);
+    background:var(--text);
+    color:white;
+    padding:14px 28px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:1rem;
+    z-index:999;
+    transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+    opacity:0;
+    pointer-events:none;
+    white-space:nowrap;
+    max-width:90vw;
+    text-align:center;
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+  .toast.success { background:#15803D; }
+  .toast.warning { background:#D97706; }
+  .toast.error { background:#DC2626; }
+
+  /* Misc */
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .hidden { display:none !important; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes popIn { from{opacity:0;transform:scale(0.5)} to{opacity:1;transform:scale(1)} }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)}
+    40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)}
+  }
+  @keyframes confettiBurst {
+    0%{transform:scale(0) rotate(0deg);opacity:1}
+    100%{transform:scale(2.5) rotate(360deg);opacity:0}
+  }
+
+  /* Letter color palette */
+  .lc-0{background:#DBEAFE;color:#1E40AF;}
+  .lc-1{background:#FEF9C3;color:#92400E;}
+  .lc-2{background:#DCFCE7;color:#166534;}
+  .lc-3{background:#FFE4E6;color:#9F1239;}
+  .lc-4{background:#EDE9FE;color:#5B21B6;}
+  .lc-5{background:#FFEDD5;color:#9A3412;}
+  .lc-6{background:#CFFAFE;color:#0E7490;}
+  .lc-7{background:#FCE7F3;color:#9D174D;}
+
+  .confetti-piece {
+    position:fixed;
+    width:10px; height:10px;
+    border-radius:3px;
+    pointer-events:none;
+    z-index:9999;
+    animation:confettiDrop 1s ease-in both;
+  }
+  @keyframes confettiDrop {
+    0%{transform:translateY(0) rotate(0deg);opacity:1}
+    100%{transform:translateY(60vh) rotate(720deg);opacity:0}
+  }
+
+  .divider { border:none; border-top:1.5px solid var(--border); margin:4px 0; }
+
+  /* Instruction hint */
+  .hint-box {
+    background:#EEF3FF;
+    border-radius:10px;
+    padding:10px 16px;
+    font-size:0.9rem;
+    font-weight:700;
+    color:#3B6EF0;
+    margin-top:12px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎲 Constructor de <span>Combinaciones</span></h1>
+  <p>Forma todas las combinaciones posibles arrastrando o tocando las letras</p>
+</header>
+
+<!-- CONFIG -->
+<div class="card">
+  <div class="card-title">⚙️ Configuración</div>
+  <div class="config-row">
+    <div class="field">
+      <label>n — Elementos disponibles</label>
+      <input type="number" id="inp-n" value="4" min="2" max="8">
+    </div>
+    <div class="field">
+      <label>k — Tamaño de cada grupo</label>
+      <input type="number" id="inp-k" value="2" min="1" max="7">
+    </div>
+    <button class="btn btn-primary" onclick="initGame()">▶ Iniciar juego</button>
+    <button class="btn btn-ghost" onclick="resetAll()">🔄 Reiniciar</button>
+  </div>
+  <div id="config-error" style="color:var(--danger);font-weight:700;margin-top:10px;display:none;"></div>
+</div>
+
+<!-- PALETTE + BUILDER -->
+<div class="card" id="builder-card" style="display:none">
+  <div class="card-title">🔡 Elementos disponibles — haz clic para seleccionar</div>
+  <div class="palette-area" id="palette-area"></div>
+  <hr class="divider">
+  <div class="card-title" style="margin-top:16px">🎯 Tu combinación actual <span id="slot-counter" style="color:var(--accent);font-family:'JetBrains Mono',monospace;"></span></div>
+  <div class="slots-zone" id="slots-zone" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+    <span class="slot-empty-hint" id="slot-hint">Haz clic en las letras de arriba para agregarlas aquí…</span>
+  </div>
+  <div class="row" style="margin-top:16px;gap:10px">
+    <button class="btn btn-success" id="btn-add" onclick="addCombination()" disabled>✅ Agregar combinación</button>
+    <button class="btn btn-ghost btn-sm" onclick="clearSlots()">🗑 Limpiar selección</button>
+  </div>
+  <div class="hint-box" id="order-hint" style="display:none"></div>
+</div>
+
+<!-- PROGRESS + BUILT LIST -->
+<div class="card" id="progress-card" style="display:none">
+  <div class="card-title">📋 Combinaciones encontradas</div>
+
+  <div class="stats-row">
+    <div class="stat-badge"><span>C(n,k)</span><span class="val" id="total-cnk">—</span></div>
+    <div class="stat-badge green"><span>✓ Encontradas</span><span class="val" id="found-count">0</span></div>
+    <div class="stat-badge orange"><span>⏳ Faltan</span><span class="val" id="missing-count">—</span></div>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="progress-label">
+    <span id="progress-text">0 de — combinaciones</span>
+    <span id="progress-pct" style="color:var(--accent);font-weight:800">0%</span>
+  </div>
+
+  <hr class="divider" style="margin:16px 0">
+
+  <div class="built-list" id="built-list">
+    <div style="color:var(--muted);font-weight:600;font-size:0.95rem;text-align:center;padding:16px">
+      Aún no has agregado ninguna combinación.
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:16px;gap:10px">
+    <button class="btn btn-orange" onclick="verifyCombinations()">🔍 Verificar progreso</button>
+    <button class="btn btn-ghost btn-sm" onclick="clearAll()">🗑 Borrar todo</button>
+  </div>
+
+  <div id="verify-result"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const LETTERS = 'ABCDEFGH';
+  const LETTER_COLORS = ['lc-0','lc-1','lc-2','lc-3','lc-4','lc-5','lc-6','lc-7'];
+
+  let state = {
+    n: 4, k: 2,
+    elements: [],
+    currentSlots: [],
+    builtCombos: [],
+    allCombos: [],
+    dragLetter: null
+  };
+
+  function lc(letter) {
+    return LETTER_COLORS[LETTERS.indexOf(letter)];
+  }
+
+  function factorial(x) {
+    if (x <= 1) return 1;
+    let r = 1; for (let i=2;i<=x;i++) r*=i; return r;
+  }
+
+  function cnk(n, k) {
+    return Math.round(factorial(n) / (factorial(k) * factorial(n - k)));
+  }
+
+  function allCombinations(elements, k) {
+    const result = [];
+    function helper(start, current) {
+      if (current.length === k) { result.push([...current]); return; }
+      for (let i = start; i < elements.length; i++) {
+        current.push(elements[i]);
+        helper(i + 1, current);
+        current.pop();
+      }
+    }
+    helper(0, []);
+    return result;
+  }
+
+  function validateConfig() {
+    const n = parseInt(document.getElementById('inp-n').value);
+    const k = parseInt(document.getElementById('inp-k').value);
+    const err = document.getElementById('config-error');
+    if (isNaN(n)||isNaN(k)||n<2||k<1) { err.textContent='⚠️ Ingresa valores válidos.'; err.style.display='block'; return null; }
+    if (k > n) { err.textContent=`⚠️ k (${k}) no puede ser mayor que n (${n}).`; err.style.display='block'; return null; }
+    if (n > 8) { err.textContent='⚠️ Máximo 8 elementos.'; err.style.display='block'; return null; }
+    if (k >= n) { /* allow */ }
+    err.style.display = 'none';
+    return { n, k };
+  }
+
+  function initGame() {
+    const vals = validateConfig();
+    if (!vals) return;
+    state.n = vals.n;
+    state.k = vals.k;
+    state.elements = Array.from({length: vals.n}, (_,i) => LETTERS[i]);
+    state.currentSlots = [];
+    state.builtCombos = [];
+    state.allCombos = allCombinations(state.elements, vals.k);
+
+    document.getElementById('builder-card').style.display = '';
+    document.getElementById('progress-card').style.display = '';
+    document.getElementById('verify-result').innerHTML = '';
+
+    renderPalette();
+    renderSlots();
+    renderBuiltList();
+    updateStats();
+  }
+
+  function resetAll() {
+    state.currentSlots = [];
+    state.builtCombos = [];
+    document.getElementById('verify-result').innerHTML = '';
+    renderPalette();
+    renderSlots();
+    renderBuiltList();
+    updateStats();
+  }
+
+  /* ---- PALETTE ---- */
+  function renderPalette() {
+    const area = document.getElementById('palette-area');
+    area.innerHTML = '';
+    state.elements.forEach(letter => {
+      const chip = document.createElement('div');
+      chip.className = `letter-chip ${lc(letter)}`;
+      chip.id = `chip-${letter}`;
+      chip.textContent = letter;
+      chip.draggable = true;
+      chip.setAttribute('data-letter', letter);
+      chip.addEventListener('click', () => clickLetter(letter));
+      chip.addEventListener('dragstart', e => onDragStart(e, letter));
+      chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+      area.appendChild(chip);
+    });
+    refreshPaletteState();
+  }
+
+  function refreshPaletteState() {
+    state.elements.forEach(letter => {
+      const chip = document.getElementById(`chip-${letter}`);
+      if (!chip) return;
+      const inSlot = state.currentSlots.includes(letter);
+      chip.classList.toggle('selected', inSlot);
+      chip.classList.toggle('used', inSlot);
+    });
+  }
+
+  /* ---- CLICK LETTER ---- */
+  function clickLetter(letter) {
+    if (state.currentSlots.includes(letter)) {
+      // remove
+      state.currentSlots = state.currentSlots.filter(l => l !== letter);
+    } else {
+      if (state.currentSlots.length >= state.k) {
+        showToast(`Solo puedes elegir ${state.k} elemento${state.k>1?'s':''}`, 'warning');
+        return;
+      }
+      state.currentSlots.push(letter);
+    }
+    refreshPaletteState();
+    renderSlots();
+    document.getElementById('btn-add').disabled = (state.currentSlots.length !== state.k);
+
+    // Order hint
+    const hint = document.getElementById('order-hint');
+    if (state.currentSlots.length > 1) {
+      const sorted = [...state.currentSlots].sort().join(', ');
+      hint.textContent = `💡 Recuerda: el orden no importa. {${sorted}} es la misma combinación sin importar cómo las eligiste.`;
+      hint.style.display = 'block';
+    } else {
+      hint.style.display = 'none';
+    }
+  }
+
+  /* ---- SLOTS ---- */
+  function renderSlots() {
+    const zone = document.getElementById('slots-zone');
+    const hint = document.getElementById('slot-hint');
+    const counter = document.getElementById('slot-counter');
+    zone.innerHTML = '';
+
+    if (state.currentSlots.length === 0) {
+      zone.appendChild(Object.assign(document.createElement('span'), {
+        className: 'slot-empty-hint',
+        textContent: `Haz clic en las letras de arriba para agregarlas aquí… (necesitas ${state.k})`
+      }));
+      zone.classList.remove('full');
+    } else {
+      state.currentSlots.forEach(letter => {
+        const chip = document.createElement('div');
+        chip.className = `slot-chip ${lc(letter)}`;
+        chip.textContent = letter;
+        chip.title = `Clic para quitar ${letter}`;
+        chip.onclick = () => {
+          state.currentSlots = state.currentSlots.filter(l => l !== letter);
+          refreshPaletteState();
+          renderSlots();
+          document.getElementById('btn-add').disabled = (state.currentSlots.length !== state.k);
+          const h = document.getElementById('order-hint');
+          if (state.currentSlots.length <= 1) h.style.display = 'none';
+        };
+        zone.appendChild(chip);
+      });
+      zone.classList.toggle('full', state.currentSlots.length === state.k);
+    }
+    counter.textContent = `(${state.currentSlots.length}/${state.k})`;
+  }
+
+  /* ---- DRAG ---- */
+  function onDragStart(e, letter) {
+    state.dragLetter = letter;
+    e.dataTransfer.effectAllowed = 'copy';
+    document.getElementById(`chip-${letter}`).classList.add('dragging');
+  }
+  function onDragOver(e) {
+    e.preventDefault();
+    document.getElementById('slots-zone').classList.add('drag-over');
+  }
+  function onDragLeave() {
+    document.getElementById('slots-zone').classList.remove('drag-over');
+  }
+  function onDrop(e) {
+    e.preventDefault();
+    document.getElementById('slots-zone').classList.remove('drag-over');
+    if (state.dragLetter) clickLetter(state.dragLetter);
+    state.dragLetter = null;
+  }
+
+  /* ---- ADD COMBINATION ---- */
+  function addCombination() {
+    if (state.currentSlots.length !== state.k) return;
+    const key = [...state.currentSlots].sort().join(',');
+
+    // Check duplicate
+    if (state.builtCombos.some(c => c.key === key)) {
+      showToast('⚠️ ¡Ya agregaste esa combinación!', 'warning');
+      // flash the duplicate
+      const dupeEl = document.getElementById(`built-${key.replace(/,/g,'-')}`);
+      if (dupeEl) {
+        dupeEl.classList.add('duplicate');
+        setTimeout(() => dupeEl.classList.remove('duplicate'), 800);
+      }
+      return;
+    }
+
+    state.builtCombos.push({ key, letters: [...state.currentSlots].sort() });
+    state.currentSlots = [];
+    refreshPaletteState();
+    renderSlots();
+    document.getElementById('btn-add').disabled = true;
+    document.getElementById('order-hint').style.display = 'none';
+    renderBuiltList();
+    updateStats();
+
+    // Check win
+    if (state.builtCombos.length === state.allCombos.length) {
+      setTimeout(() => winAnimation(), 300);
+    } else {
+      showToast('✅ ¡Combinación agregada!', 'success');
+    }
+  }
+
+  function clearSlots() {
+    state.currentSlots = [];
+    refreshPaletteState();
+    renderSlots();
+    document.getElementById('btn-add').disabled = true;
+    document.getElementById('order-hint').style.display = 'none';
+  }
+
+  /* ---- BUILT LIST ---- */
+  function renderBuiltList() {
+    const list = document.getElementById('built-list');
+    if (state.builtCombos.length === 0) {
+      list.innerHTML = `<div style="color:var(--muted);font-weight:600;font-size:0.95rem;text-align:center;padding:16px">Aún no has agregado ninguna combinación.</div>`;
+      return;
+    }
+    list.innerHTML = '';
+    state.builtCombos.forEach((combo, idx) => {
+      const id = `built-${combo.key.replace(/,/g,'-')}`;
+      const item = document.createElement('div');
+      item.className = 'built-item';
+      item.id = id;
+
+      const num = document.createElement('div');
+      num.className = 'built-num';
+      num.textContent = `#${idx+1}`;
+
+      const chips = document.createElement('div');
+      chips.className = 'built-chips';
+      combo.letters.forEach(l => {
+        const c = document.createElement('div');
+        c.className = `built-chip ${lc(l)}`;
+        c.textContent = l;
+        chips.appendChild(c);
+      });
+
+      const del = document.createElement('button');
+      del.className = 'built-delete';
+      del.textContent = '🗑';
+      del.title = 'Eliminar';
+      del.onclick = () => {
+        state.builtCombos = state.builtCombos.filter(c => c.key !== combo.key);
+        renderBuiltList();
+        updateStats();
+        document.getElementById('verify-result').innerHTML = '';
+      };
+
+      item.appendChild(num);
+      item.appendChild(chips);
+      item.appendChild(del);
+      list.appendChild(item);
+
+      // animate new item
+      if (idx === state.builtCombos.length - 1) item.classList.add('new-item');
+    });
+  }
+
+  /* ---- STATS ---- */
+  function updateStats() {
+    const total = state.allCombos.length;
+    const found = state.builtCombos.length;
+    const missing = total - found;
+    const pct = total > 0 ? Math.round((found / total) * 100) : 0;
+
+    document.getElementById('total-cnk').textContent = total;
+    document.getElementById('found-count').textContent = found;
+    document.getElementById('missing-count').textContent = missing;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = `${found} de ${total} combinaciones`;
+    document.getElementById('progress-pct').textContent = pct + '%';
+  }
+
+  /* ---- VERIFY ---- */
+  function verifyCombinations() {
+    const total = state.allCombos.length;
+    const found = state.builtCombos.length;
+    const foundKeys = new Set(state.builtCombos.map(c => c.key));
+    const missing = state.allCombos.filter(c => !foundKeys.has(c.join(',')));
+    const box = document.getElementById('verify-result');
+
+    if (missing.length === 0) {
+      box.innerHTML = `
+        <div class="verify-box complete">
+          <h3>🎉 ¡Lo lograste! Encontraste las ${total} combinaciones.</h3>
+          <p>C(${state.n},${state.k}) = ${total}. Cada grupo es único y no importó el orden al formarlo.</p>
+        </div>`;
+    } else {
+      const missingHTML = missing.map(combo => {
+        const chips = combo.map(l => `<div class="m-chip ${lc(l)}">${l}</div>`).join('');
+        const key = combo.join(',');
+        return `<div class="missing-item" title="Clic para cargar esta combinación" onclick="loadMissing('${key}')">
+          ${chips}
+        </div>`;
+      }).join('');
+
+      box.innerHTML = `
+        <div class="verify-box incomplete">
+          <h3>⏳ Te faltan ${missing.length} combinación${missing.length>1?'es':''} de ${total}.</h3>
+          <p>Llevas ${found} encontradas. Haz clic en cualquier combinación faltante para cargarla y agregarla:</p>
+          <div class="missing-chips">${missingHTML}</div>
+        </div>`;
+      showToast(`Te faltan ${missing.length} combinaciones`, 'warning');
+    }
+    box.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  function loadMissing(key) {
+    const letters = key.split(',');
+    state.currentSlots = letters;
+    refreshPaletteState();
+    renderSlots();
+    document.getElementById('btn-add').disabled = (state.currentSlots.length !== state.k);
+    document.getElementById('builder-card').scrollIntoView({ behavior:'smooth', block:'nearest' });
+    showToast('Combinación cargada — presiona "Agregar"', 'success');
+  }
+
+  function clearAll() {
+    state.builtCombos = [];
+    renderBuiltList();
+    updateStats();
+    document.getElementById('verify-result').innerHTML = '';
+    showToast('Lista borrada', 'warning');
+  }
+
+  /* ---- WIN ---- */
+  function winAnimation() {
+    showToast('🎉 ¡Completaste todas las combinaciones!', 'success');
+    // confetti burst
+    const colors = ['#3B6EF0','#F0863B','#22C55E','#EF4444','#8B5CF6','#F59E0B'];
+    for (let i = 0; i < 40; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = `
+        left:${Math.random()*100}vw;
+        top:${Math.random()*40}vh;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        animation-delay:${Math.random()*0.5}s;
+        animation-duration:${0.8+Math.random()*0.6}s;
+        width:${6+Math.random()*10}px;
+        height:${6+Math.random()*10}px;
+        border-radius:${Math.random()>0.5?'50%':'3px'};
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2000);
+    }
+    verifyCombinations();
+  }
+
+  /* ---- TOAST ---- */
+  let toastTimer;
+  function showToast(msg, type='') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = 'toast'; }, 2800);
+  }
+
+  // Auto-init on load
+  window.addEventListener('DOMContentLoaded', () => initGame());
+</script>
+</body>
+</html>
