@@ -2,295 +2,549 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Hub Matemático Interactivo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub Matemático · Prof. Núñez</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-/* ----------- ESTILO GENERAL ----------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:        #f5f3ee;
+    --surface:   #ffffff;
+    --surface2:  #eeeae2;
+    --border:    #ddd9d0;
+    --text:      #1e1c18;
+    --muted:     #7a7568;
+    --accent:    #2d6a4f;
+    --accent2:   #d4500a;
+    --accent3:   #1a5276;
+    --ink:       #2c2a24;
+
+    /* color por categoría */
+    --c-numeros:     #1a5276;
+    --c-algebra:     #6b3fa0;
+    --c-geometria:   #c0392b;
+    --c-prob:        #2d7a4f;
+    --c-comp:        #d4500a;
+    --c-calculo:     #1a5276;
+    --c-especiales:  #7a6010;
+    --c-drive:       #2d7a4f;
+    --c-battle:      #c0392b;
+    --c-sobremi:     #6b3fa0;
+}
+
+html { scroll-behavior: smooth; }
+
 body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    color: white;
-    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
 }
 
+/* ── TEXTURA FONDO ── */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23c8c3b8' fill-opacity='0.22'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ── HEADER ── */
 header {
-    padding: 20px 5px 1px 5px;
+    position: relative;
+    z-index: 10;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 48px 48px 36px;
 }
 
-h1 {
-    margin-bottom: 10px;
+.header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.subtitulo {
-    font-size: 18px;
-    opacity: 0.9;
+.header-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
 }
 
-/* ----------- MENÚ PRINCIPAL ----------- */
-.menu {
+.header-eyebrow::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 2px;
+    background: var(--accent2);
+    border-radius: 2px;
+}
+
+header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 400;
+    line-height: 1.05;
+    color: var(--ink);
+    letter-spacing: -1px;
+}
+
+header h1 em {
+    font-style: italic;
+    color: var(--accent2);
+}
+
+.header-sub {
+    font-size: 1.05rem;
+    color: var(--muted);
+    font-weight: 400;
+    max-width: 520px;
+    line-height: 1.6;
+    margin-top: 4px;
+}
+
+/* ── MAIN GRID ── */
+.main-grid {
+    position: relative;
+    z-index: 10;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    padding: 40px;
-    max-width: 1000px;
-    margin: auto;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+    padding: 40px 48px;
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
+/* ── CARD ── */
 .card {
-    background: white;
-    color: #1e3c72;
-    border-radius: 15px;
-    padding: 30px 20px;
+    position: relative;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 26px 24px;
+    cursor: pointer;
     text-decoration: none;
-    font-weight: bold;
-    font-size: 18px;
-    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-    transition: transform 0.2s, box-shadow 0.2s;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 20px rgba(0,0,0,0.3);
-}
-
-/* ----------- CONTENIDO DINÁMICO ----------- */
-#contenido {
-    max-width: 900px;
-    margin: 10px auto 40px auto;
-    padding: 20px;
-}
-
-#contenido h2 {
-    margin-bottom: 15px;
-}
-
-/* ----------- SUBMENÚ (APPLETS) ----------- */
-.submenu {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 15px;
-}
-
-.subcard {
-    background: white;
-    color: #1e3c72;
-    border-radius: 12px;
-    padding: 20px;
-    font-weight: bold;
-    text-decoration: none;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-    transition: transform 0.2s;
-}
-
-.subcard:hover {
     transform: translateY(-4px);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.10);
+    border-color: var(--cc, var(--accent));
 }
 
-.footer {
-            background: #1f3b66;
-            color: #fff;
-            padding: 12px 20px;
-            text-align: center;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            margin-top: 30px;
+/* línea de color superior */
+.card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 3px;
+    border-radius: 0 0 4px 4px;
+    background: var(--cc, var(--accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+}
+.card:hover::after { transform: scaleX(1); }
+
+.card-icon {
+    font-size: 2.1rem;
+    line-height: 1;
+    display: block;
+    margin-bottom: 4px;
 }
 
+.card-label {
+    font-size: 1.08rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.card-meta {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.card-meta::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cc, var(--accent));
+    opacity: 0.7;
+}
+
+/* ── PANEL DESPLEGABLE ── */
+#panel {
+    position: relative;
+    z-index: 10;
+    max-width: 1100px;
+    margin: -8px auto 0;
+    padding: 0 48px 48px;
+    display: none;
+}
+
+#panel.visible { display: block; }
+
+.panel-inner {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-top: 4px solid var(--panel-accent, var(--accent));
+    border-radius: 14px;
+    overflow: hidden;
+    animation: openPanel 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+
+@keyframes openPanel {
+    from { opacity: 0; transform: translateY(-14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 28px;
+    border-bottom: 1.5px solid var(--border);
+    background: var(--surface2);
+}
+
+.panel-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: var(--ink);
+}
+
+.panel-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--muted);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.panel-close:hover {
+    background: var(--text);
+    color: var(--surface);
+    border-color: var(--text);
+}
+
+/* ── GRID DE APPLETS ── */
+.applets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    padding: 24px 28px;
+}
+
+.applet {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 20px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 0.97rem;
+    font-weight: 500;
+    line-height: 1.4;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.applet:hover {
+    background: var(--surface);
+    border-color: var(--panel-accent, var(--accent));
+    transform: translateX(4px);
+}
+
+.applet-num {
+    flex-shrink: 0;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    color: var(--panel-accent, var(--accent));
+    opacity: 0.5;
+    line-height: 1;
+    margin-top: 1px;
+}
+
+.applet.wip {
+    opacity: 0.4;
+    pointer-events: none;
+    background: transparent;
+}
+
+.wip-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--muted);
+    margin-top: 3px;
+    letter-spacing: 0.5px;
+}
+
+/* ── FOOTER ── */
+footer {
+    position: relative;
+    z-index: 10;
+    background: var(--ink);
+    color: rgba(255,255,255,0.55);
+    text-align: center;
+    padding: 22px;
+    font-size: 0.88rem;
+    letter-spacing: 0.3px;
+    margin-top: 20px;
+}
+
+footer strong { color: rgba(255,255,255,0.9); font-weight: 500; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+    header, .main-grid, #panel { padding-left: 20px; padding-right: 20px; }
+    .applets-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
-
 <body>
 
 <header>
-    <h1>📚 Hub Matemático Interactivo 📚 </h1>
-    <p class="subtitulo">Repositorio de recursos digitales para la enseñanza de la matemática</p>
+    <div class="header-inner">
+        <div class="header-eyebrow">Repositorio Digital · 2026</div>
+        <h1>Hub Matemático <em>Interactivo</em></h1>
+        <p class="header-sub">Recursos digitales para la enseñanza de la matemática
+        <br> Michael Núñez · PLEMC USACH </p>
+    </div>
 </header>
 
-<!-- MENÚ PRINCIPAL -->
-<section class="menu">
-    <div class="card" onclick="mostrar('numeros')">🔢 Números</div>
-    <div class="card" onclick="mostrar('alg&fun')">🔡 Álgebra y 📈 Funciones</div>
-    <div class="card" onclick="mostrar('geometria')">📐 Geometría</div>
-    <div class="card" onclick="mostrar('prob&est')">🎲 Probabilidad y 📊 Estadística</div>    
-    <div class="card" onclick="mostrar('computacion')">🧠 Pensamiento Computacional</div>
-    <div class="card" onclick="mostrar('calculo')">🧮 Limites, Derivadas e Integrales</div>
-    <div class="card" onclick="mostrar('especiales')">🧪 Proyectos Especiales</div>
+<!-- GRILLA PRINCIPAL -->
+<div class="main-grid">
 
-    <a class="card" href="https://drive.google.com/drive/folders/1eyM1Q6lqmr2YzdFjFroAIbSanHs77Gwc?usp=drive_link" target="_blank" rel="noopener noreferrer">
-        📁 Drive Carrera PLEMC</a>
-    <a class="card" href="https://drive.google.com/drive/folders/1FcIzt373NnyMUktyVRiY7tUk1m9gAQfL?usp=drive_link" target="_blank" rel="noopener noreferrer">
-        📁 Drive Material PAES</a>
-    <a class="card" href="https://www.curriculumnacional.cl/" target="_blank" rel="noopener noreferrer">
-        📋 Curriculum Nacional</a>
+    <div class="card" style="--cc: var(--c-numeros)" onclick="mostrar('numeros')">
+        <span class="card-icon">🔢</span>
+        <span class="card-label">Números</span>
+        <span class="card-meta">5 recursos disponibles</span>
+    </div>
 
-    <div class="card" onclick="mostrar('sobremi')">👨🏻‍🏫 Sobre mi</div>
+    <div class="card" style="--cc: var(--c-algebra)" onclick="mostrar('algebra')">
+        <span class="card-icon">🔡</span>
+        <span class="card-label">Álgebra y Funciones</span>
+        <span class="card-meta">3 recursos disponibles</span>
+    </div>
 
-    <a class="card" href="https://fraxycl.github.io/math_battle_arena/" target="_blank" rel="noopener noreferrer">
-        🎮 Math Battle Arena</a>
+    <div class="card" style="--cc: var(--c-geometria)" onclick="mostrar('geometria')">
+        <span class="card-icon">📐</span>
+        <span class="card-label">Geometría</span>
+        <span class="card-meta">1 recurso disponible</span>
+    </div>
 
-</section>
+    <div class="card" style="--cc: var(--c-prob)" onclick="mostrar('prob')">
+        <span class="card-icon">🎲</span>
+        <span class="card-label">Probabilidad y Estadística</span>
+        <span class="card-meta">6 recursos disponibles</span>
+    </div>
 
-<!-- AQUÍ APARECEN LOS SUBMENÚS -->
-<section id="contenido"></section>
+    <div class="card" style="--cc: var(--c-comp)" onclick="mostrar('computacion')">
+        <span class="card-icon">🧠</span>
+        <span class="card-label">Pensamiento Computacional</span>
+        <span class="card-meta">En construcción</span>
+    </div>
 
-<!-- SCRIPT -->
-<script>
-function mostrar(seccion) {
+    <div class="card" style="--cc: var(--c-calculo)" onclick="mostrar('calculo')">
+        <span class="card-icon">🧮</span>
+        <span class="card-label">Límites, Derivadas e Integrales</span>
+        <span class="card-meta">1 recurso disponible</span>
+    </div>
 
-    let html = "";
+    <div class="card" style="--cc: var(--c-especiales)" onclick="mostrar('especiales')">
+        <span class="card-icon">🧪</span>
+        <span class="card-label">Proyectos Especiales</span>
+        <span class="card-meta">Próximamente</span>
+    </div>
 
-    if (seccion === "numeros") {
-        html = `
-        <h2>🔢 Números</h2>
-        <div class="submenu">
-            <a class="subcard" href="htmls/Num/Triangulo Zhu Shijie.html" target="_blank" rel="noopener noreferrer">
-                Triángulo de Zhu Shijie | Triángulo de Pascal
-            </a>
-            <a class="subcard" href="https://www.geogebra.org/classic/nsr6whwy" target="_blank" rel="noopener noreferrer">
-                Relación Raíz, Logaritmo y Potencia
-            </a>
-            <a class="subcard" href="https://www.geogebra.org/classic/ry7pegvu" target="_blank" rel="noopener noreferrer">
-                Raices Representación Geométrica
-            </a>
-            <a class="subcard" href="https://www.geogebra.org/classic/n8wtsmem" target="_blank" rel="noopener noreferrer">
-                Ubicar raices en recta númerica
-            </a>
-            <a class="subcard" href="https://www.geogebra.org/classic/krkmfnkj" target="_blank" rel="noopener noreferrer">
-                Comparación Raíz y Potencia
-            </a>
-        </div>`;
-        
-    }
+    <a class="card" style="--cc: var(--c-drive)" href="https://drive.google.com/drive/folders/1eyM1Q6lqmr2YzdFjFroAIbSanHs77Gwc?usp=drive_link" target="_blank" rel="noopener noreferrer">
+        <span class="card-icon">📁</span>
+        <span class="card-label">Drive Carrera PLEMC</span>
+        <span class="card-meta">Google Drive ↗</span>
+    </a>
 
-    if (seccion === "alg&fun") {
-        html = `
-        <h2>🔡 Álgebra y 📈 Funciones</h2>
-        <div class="submenu">
-            <a class="subcard" href="https://www.geogebra.org/classic/grpf5jhq" target="_blank" rel="noopener noreferrer">
-                Área y Volumen [Función Potencia]
-            </a>
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                Applet 2 [EN CONSTRUCCIÓN]
-            </a>
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                Applet 3 [EN CONSTRUCCIÓN]
-            </a>
-        </div>`;
-    }
+    <a class="card" style="--cc: var(--c-drive)" href="https://drive.google.com/drive/folders/1FcIzt373NnyMUktyVRiY7tUk1m9gAQfL?usp=drive_link" target="_blank" rel="noopener noreferrer">
+        <span class="card-icon">📁</span>
+        <span class="card-label">Drive Material PAES</span>
+        <span class="card-meta">Google Drive ↗</span>
+    </a>
 
-    if (seccion === "geometria") {
-        html = `
-        <h2>📐 Geometría</h2>
-        <div class="submenu">
-            <a class="subcard" href="https://www.geogebra.org/classic/y7jvq8ex" target="_blank" rel="noopener noreferrer">
-                Pirámides y el Volumen
-            </a>
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                Applet 2 [EN CONSTRUCCIÓN]
-            </a>
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                Applet 3 [EN CONSTRUCCIÓN]
-            </a>
-        </div>`;
-    }
+    <a class="card" style="--cc: var(--c-algebra)" href="https://www.curriculumnacional.cl/" target="_blank" rel="noopener noreferrer">
+        <span class="card-icon">📋</span>
+        <span class="card-label">Curriculum Nacional</span>
+        <span class="card-meta">Enlace externo ↗</span>
+    </a>
 
-    if (seccion === "prob&est") {
-        html = `
-        <h2>🎲 Probabilidad y 📊 Estadística</h2>
-        <div class="submenu">
-            <a class="subcard" href="https://www.mediafire.com/file/beza1jz2les4pj9/MikeTon_APK.apk/file" target="_blank" rel="noopener noreferrer">
-                Tabla de Galton Aplicación [MikeTon📲]
-            </a>
-            <a class="subcard" href="htmls/Prob&Est/espacio muestral html.html" target="_blank" rel="noopener noreferrer">
-                Espacios muestrales (2 experimentos)
-            </a>
-            <a class="subcard" href="htmls/Prob&Est/diagrama de arbol definitivo.html" target="_blank" rel="noopener noreferrer">
-                Diagrama de Árbol (2 experimentos)
-            </a>
+    <a class="card" style="--cc: var(--c-battle)" href="https://fraxycl.github.io/math_battle_arena/" target="_blank" rel="noopener noreferrer">
+        <span class="card-icon">🎮</span>
+        <span class="card-label">Math Battle Arena</span>
+        <span class="card-meta">Juego interactivo ↗</span>
+    </a>
 
-            <a class="subcard" href="htmls/Prob&Est/constructor de combinaciones.html" target="_blank" rel="noopener noreferrer">
-                Constructor de Combinaciones
-            </a>
+    <div class="card" style="--cc: var(--c-sobremi)" onclick="mostrar('sobremi')">
+        <span class="card-icon">👨🏻‍🏫</span>
+        <span class="card-label">Sobre mí</span>
+        <span class="card-meta">Perfil docente</span>
+    </div>
 
-            <a class="subcard" href="htmls/Prob&Est/calculador de combinaciones.html" target="_blank" rel="noopener noreferrer">
-                Calculador de Combinaciones
-            </a>
+</div>
 
-            <a class="subcard" href="htmls/Prob&Est/simulador_probabilidad.html" target="_blank" rel="noopener noreferrer">
-                Simulador de Probabilidades
-            </a>
+<!-- PANEL DESPLEGABLE -->
+<div id="panel">
+    <div class="panel-inner">
+        <div class="panel-header">
+            <div class="panel-title" id="panel-title"></div>
+            <div class="panel-close" onclick="cerrar()">✕</div>
+        </div>
+        <div class="applets-grid" id="applets-grid"></div>
+    </div>
+</div>
 
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                Applet Futuros en construcción
-            </a>
-            
-        </div>`;
-    }
-
-    if (seccion === "computacion") {
-        html = `
-        <h2>🧠 Pensamiento Computacional</h2>
-        <div class="submenu">
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                Apps App Inventor [EN CONSTRUCCIÓN]
-            </a>
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                Applet 2 [EN CONSTRUCCIÓN]
-            </a>
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                Applet 3 [EN CONSTRUCCIÓN]
-            </a>
-        </div>`;
-    }
-
-    if (seccion === "calculo") {
-        html = `
-        <h2>🧮 Limites, Derivadas e Integrales</h2>
-        <div class="submenu">
-            <a class="subcard" href="https://www.geogebra.org/classic/dvwds5wv" target="_blank" rel="noopener noreferrer">
-                Logaritmos naturales como áreas
-            </a>
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                Applet 2 [EN CONSTRUCCIÓN]
-            </a>
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                Applet 3 [EN CONSTRUCCIÓN]
-            </a>
-        </div>`;
-    }
-
-    if (seccion === "especiales") {
-        html = `
-        <h2>🧪 Proyectos Especiales</h2>
-        <div class="submenu">
-            <a class="subcard" href="#" target="_blank" rel="noopener noreferrer">
-                [EN CONSTRUCCIÓN]
-            </a>
-        </div>`;
-    }
-
-    if (seccion === "sobremi") {
-        html = `
-        <h2>👨🏻‍🏫 Sobre mi</h2>
-        <div class="submenu">
-            <a class="subcard" href="pdfs/Curriculum 2026 (febrero).pdf" target="_blank" rel="noopener noreferrer">
-                CV personal
-            </a>
-            <a class="subcard" href="https://fraxycl.github.io/clases_particulares/" target="_blank" rel="noopener noreferrer">
-                Clases Particulares
-            </a>
-        
-        </div>`;
-    }
-
-    document.getElementById("contenido").innerHTML = html;
-}
-</script>
-
-<footer style=" background: #1f3b66; color: #fff; padding: 12px 20px; text-align: center; font-size: 0.9rem; line-height: 1.4; margin-top: 30px;">
-    <p>&copy; 2026 - Profesor Michael Antonio Núñez Núñez 👨🏻‍🏫- PLEMC USACH</p>
+<footer>
+    &copy; 2026 · <strong>Profesor Michael Antonio Núñez Núñez</strong> · PLEMC USACH
 </footer>
 
+<script>
+const secciones = {
+    numeros: {
+        titulo: '🔢 Números',
+        color: 'var(--c-numeros)',
+        items: [
+            { label: 'Triángulo de Zhu Shijie | Triángulo de Pascal', href: 'htmls/Num/Triangulo Zhu Shijie.html' },
+            { label: 'Relación Raíz, Logaritmo y Potencia', href: 'https://www.geogebra.org/classic/nsr6whwy' },
+            { label: 'Raíces: Representación Geométrica', href: 'https://www.geogebra.org/classic/ry7pegvu' },
+            { label: 'Ubicar raíces en recta numérica', href: 'https://www.geogebra.org/classic/n8wtsmem' },
+            { label: 'Comparación Raíz y Potencia', href: 'https://www.geogebra.org/classic/krkmfnkj' },
+        ]
+    },
+    algebra: {
+        titulo: '🔡 Álgebra y Funciones',
+        color: 'var(--c-algebra)',
+        items: [
+            { label: 'Área y Volumen — Función Potencia', href: 'https://www.geogebra.org/classic/grpf5jhq' },
+            { label: 'Applet 2', href: '#', wip: true },
+            { label: 'Applet 3', href: '#', wip: true },
+        ]
+    },
+    geometria: {
+        titulo: '📐 Geometría',
+        color: 'var(--c-geometria)',
+        items: [
+            { label: 'Pirámides y el Volumen', href: 'https://www.geogebra.org/classic/y7jvq8ex' },
+            { label: 'Applet 2', href: '#', wip: true },
+            { label: 'Applet 3', href: '#', wip: true },
+        ]
+    },
+    prob: {
+        titulo: '🎲 Probabilidad y Estadística',
+        color: 'var(--c-prob)',
+        items: [
+            { label: 'Tabla de Galton — Aplicación MikeTon 📲', href: 'https://www.mediafire.com/file/beza1jz2les4pj9/MikeTon_APK.apk/file' },
+            { label: 'Espacios muestrales (2 experimentos)', href: 'htmls/Prob&Est/espacio muestral html.html' },
+            { label: 'Diagrama de Árbol (2 experimentos)', href: 'htmls/Prob&Est/diagrama de arbol definitivo.html' },
+            { label: 'Constructor de Combinaciones', href: 'htmls/Prob&Est/constructor de combinaciones.html' },
+            { label: 'Calculador de Combinaciones', href: 'htmls/Prob&Est/calculador de combinaciones.html' },
+            { label: 'Simulador de Probabilidades', href: 'htmls/Prob&Est/simulador_probabilidad.html' },
+        ]
+    },
+    computacion: {
+        titulo: '🧠 Pensamiento Computacional',
+        color: 'var(--c-comp)',
+        items: [
+            { label: 'Apps App Inventor', href: '#', wip: true },
+            { label: 'Applet 2', href: '#', wip: true },
+            { label: 'Applet 3', href: '#', wip: true },
+        ]
+    },
+    calculo: {
+        titulo: '🧮 Límites, Derivadas e Integrales',
+        color: 'var(--c-calculo)',
+        items: [
+            { label: 'Logaritmos naturales como áreas', href: 'https://www.geogebra.org/classic/dvwds5wv' },
+            { label: 'Applet 2', href: '#', wip: true },
+            { label: 'Applet 3', href: '#', wip: true },
+        ]
+    },
+    especiales: {
+        titulo: '🧪 Proyectos Especiales',
+        color: 'var(--c-especiales)',
+        items: [
+            { label: 'Próximamente...', href: '#', wip: true },
+        ]
+    },
+    sobremi: {
+        titulo: '👨🏻‍🏫 Sobre mí',
+        color: 'var(--c-sobremi)',
+        items: [
+            { label: 'CV Personal', href: 'pdfs/Curriculum 2026 (febrero).pdf' },
+            { label: 'Clases Particulares', href: 'https://fraxycl.github.io/clases_particulares/' },
+        ]
+    }
+};
+
+function mostrar(seccion) {
+    const data = secciones[seccion];
+    if (!data) return;
+
+    // actualiza color del panel
+    document.getElementById('panel').style.setProperty('--panel-accent', data.color);
+    document.querySelector('.panel-inner').style.borderTopColor = `var(--panel-accent)`;
+
+    document.getElementById('panel-title').textContent = data.titulo;
+
+    const grid = document.getElementById('applets-grid');
+    grid.innerHTML = data.items.map((item, i) => {
+        const num = String(i + 1).padStart(2, '0');
+        if (item.wip) return `
+            <div class="applet wip">
+                <span class="applet-num">${num}</span>
+                <span>${item.label}<span class="wip-label">En construcción</span></span>
+            </div>`;
+        return `
+            <a class="applet" href="${item.href}" target="_blank" rel="noopener noreferrer">
+                <span class="applet-num">${num}</span>
+                <span>${item.label}</span>
+            </a>`;
+    }).join('');
+
+    const panel = document.getElementById('panel');
+    panel.classList.add('visible');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cerrar() {
+    document.getElementById('panel').classList.remove('visible');
+}
+</script>
 </body>
 </html>
