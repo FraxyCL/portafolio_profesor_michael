@@ -32,6 +32,7 @@
     --c-drive:       #2d7a4f;
     --c-battle:      #c0392b;
     --c-sobremi:     #6b3fa0;
+    --c-ejemplos:     #15b5dd;
 }
 
 html { scroll-behavior: smooth; }
@@ -417,6 +418,12 @@ footer strong { color: rgba(255,255,255,0.9); font-weight: 500; }
         <span class="card-meta">Perfil docente</span>
     </div>
 
+    <div class="card" style="--cc: var(--c-ejemplos)" onclick="mostrar('ejemplos')">
+        <span class="card-icon">🌐</span>
+        <span class="card-label">Ejemplos Web</span>
+        <span class="card-meta">Páginas ejemplo</span>
+    </div>
+
 </div>
 
 <!-- PANEL DESPLEGABLE -->
@@ -509,7 +516,15 @@ const secciones = {
             { label: 'CV Personal', href: 'pdfs/Curriculum 2026 (febrero).pdf' },
             { label: 'Clases Particulares', href: 'https://fraxycl.github.io/clases_particulares/' },
         ]
-    }
+    },
+    ejemplos: {
+        titulo: 'Páginas Web',
+        color: 'var(--c-ejemplos)',
+        items: [
+            { label: 'Ejemplo 1 Edu Mat Ia Proyecto', href: 'htmls/EjWeb/ejemplo_proyecto_edumatia.html' },
+
+        ]
+    },
 };
 
 function mostrar(seccion) {

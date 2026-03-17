@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plataforma de Modelos Didácticos</title>
+  <meta name="description" content="Modelos de aprendizaje didáctico para profesores de matemáticas. Teoría, interactividad y recursos en un solo lugar." />
+
+  <!-- Fuentes: Fraunces (display) + DM Sans (cuerpo) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =============================================
+       VARIABLES Y RESET
+       Para escalar a múltiples páginas, estas variables
+       pueden exportarse a un archivo _tokens.css separado.
+    ============================================= */
+    :root {
+      --ink:        #0d0e12;
+      --paper:      #f5f2eb;
+      --cream:      #ece8df;
+      --accent:     #c84b31;
+      --accent-dim: #e8896f;
+      --muted:      #7a7670;
+      --border:     #d8d3c8;
+      --card-bg:    #ffffff;
+
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body:    'DM Sans', sans-serif;
+
+      --radius: 4px;
+      --gap:    2rem;
+      --max-w:  1160px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      font-weight: 300;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.65;
+      font-size: 1rem;
+    }
+
+    img { display: block; max-width: 100%; }
+    a   { color: inherit; text-decoration: none; }
+
+    /* =============================================
+       UTILIDADES
+    ============================================= */
+    .container {
+      width: 100%;
+      max-width: var(--max-w);
+      margin-inline: auto;
+      padding-inline: 1.5rem;
+    }
+
+    .section-label {
+      font-family: var(--font-body);
+      font-size: .75rem;
+      font-weight: 500;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: .75rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 4vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--ink);
+    }
+
+    .section-subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 52ch;
+      margin-top: .6rem;
+    }
+
+    /* =============================================
+       NAV
+    ============================================= */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(245, 242, 235, .9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -.01em;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: .875rem;
+      font-weight: 400;
+      color: var(--muted);
+      transition: color .2s;
+    }
+
+    .nav-links a:hover { color: var(--ink); }
+
+    /* =============================================
+       HERO
+       Para cambiar el claim principal: editar el <h1>
+       y el <p class="hero-sub">.
+    ============================================= */
+    .hero {
+      padding: 6rem 0 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decoración geométrica de fondo */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -120px;
+      width: 560px; height: 560px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #e8896f22 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: .75rem;
+      font-weight: 500;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent-dim);
+      border-radius: 2px;
+      padding: .25rem .75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      margin-top: 1.2rem;
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 46ch;
+    }
+
+    .hero-actions {
+      margin-top: 2.2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Botón primario */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .65rem 1.4rem;
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: .875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s, color .2s, transform .15s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--ink);
+      transform: translateY(-1px);
+    }
+
+    /* Estadísticas rápidas del hero */
+    .hero-stats {
+      display: flex;
+      gap: 2.5rem;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .hero-stat-value {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .hero-stat-label {
+      font-size: .8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    /* Panel derecho del hero: previsualización decorativa */
+    .hero-visual {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-visual::after {
+      content: 'f(x)';
+      position: absolute;
+      bottom: -10px; right: 20px;
+      font-family: var(--font-display);
+      font-size: 7rem;
+      font-weight: 700;
+      color: var(--border);
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    /* Mini applet en el hero */
+    #hero-canvas {
+      width: 100%;
+      border-radius: 4px;
+      display: block;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    .hero-visual-label {
+      font-size: .75rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* =============================================
+       SECCIÓN: MODELOS DIDÁCTICOS
+       Para agregar un nuevo modelo:
+         1. Duplicar un bloque <article class="card"> en el HTML.
+         2. Actualizar el data-tag, el título y la descripción.
+         3. Opcionalmente enlazar al modelo con el atributo href del botón.
+    ============================================= */
+    .models {
+      padding: 6rem 0;
+      background: var(--cream);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .models-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 3rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Grid de tarjetas: 3 columnas → responsive hasta 1 */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: box-shadow .25s, transform .25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 0;
+      background: var(--accent);
+      transition: height .3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,.08);
+      transform: translateY(-2px);
+    }
+
+    .card:hover::before { height: 100%; }
+
+    .card-tag {
+      font-size: .7rem;
+      font-weight: 500;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #c84b3112;
+      display: inline-block;
+      padding: .2rem .6rem;
+      border-radius: 2px;
+      width: fit-content;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .card-desc {
+      font-size: .9rem;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .card-meta {
+      font-size: .75rem;
+      color: var(--muted);
+    }
+
+    .btn-card {
+      font-size: .8rem;
+      padding: .45rem 1rem;
+      background: var(--ink);
+      color: var(--paper);
+      border-radius: var(--radius);
+      transition: background .2s;
+    }
+
+    .btn-card:hover { background: var(--accent); }
+
+    /* =============================================
+       SECCIÓN: EXPERIENCIA INTERACTIVA
+       Para integrar un applet externo (ej. GeoGebra):
+         1. Localizar el <div id="applet-container">.
+         2. Reemplazar el canvas por un <iframe> apuntando
+            al applet: <iframe src="URL_DEL_APPLET" ...></iframe>
+         3. Ajustar el height del contenedor según sea necesario.
+       Para integrar JSXGraph, p5.js u otras bibliotecas,
+         añadir el <script> en el <head> y montar en #applet-container.
+    ============================================= */
+    .interactive {
+      padding: 6rem 0;
+    }
+
+    .interactive-inner {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .applet-wrapper {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .applet-toolbar {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .applet-toolbar label {
+      font-size: .85rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .range-group {
+      display: flex;
+      flex-direction: column;
+      gap: .2rem;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .range-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform .15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+    #applet-container {
+      width: 100%;
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    #function-canvas {
+      display: block;
+      width: 100%;
+    }
+
+    .applet-caption {
+      font-size: .78rem;
+      color: var(--muted);
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* Panel de teoría junto al applet */
+    .theory-panel h3 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: .6rem;
+    }
+
+    .theory-formula {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      padding: .8rem 1.2rem;
+      border-radius: var(--radius);
+      margin: 1.2rem 0;
+      display: inline-block;
+    }
+
+    #formula-display {
+      color: var(--accent-dim);
+    }
+
+    .theory-points {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+      margin-top: 1rem;
+    }
+
+    .theory-points li {
+      display: flex;
+      gap: .6rem;
+      font-size: .9rem;
+      color: var(--muted);
+      align-items: flex-start;
+    }
+
+    .theory-points li::before {
+      content: '→';
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: .05em;
+    }
+
+    /* =============================================
+       SECCIÓN: RECURSOS PARA DOCENTES
+       Para agregar una nueva categoría de recursos:
+         1. Duplicar un <div class="resource-item">.
+         2. Actualizar ícono (SVG inline o emoji), título y descripción.
+    ============================================= */
+    .resources {
+      padding: 6rem 0;
+      background: var(--cream);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .resource-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.6rem;
+      transition: box-shadow .25s, transform .25s;
+    }
+
+    .resource-item:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,.07);
+      transform: translateY(-2px);
+    }
+
+    .resource-icon {
+      font-size: 1.8rem;
+      margin-bottom: .8rem;
+      line-height: 1;
+    }
+
+    .resource-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: .4rem;
+    }
+
+    .resource-desc {
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    .resource-link {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      margin-top: .8rem;
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .resource-link:hover { text-decoration: underline; }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    footer {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 3.5rem 0 2rem;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .footer-brand p {
+      font-size: .875rem;
+      color: #aaa;
+      margin-top: .6rem;
+      max-width: 38ch;
+      line-height: 1.6;
+    }
+
+    .footer-brand .nav-logo { color: var(--paper); }
+
+    .footer-col h4 {
+      font-family: var(--font-body);
+      font-size: .75rem;
+      font-weight: 500;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: #777;
+      margin-bottom: 1rem;
+    }
+
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+
+    .footer-col a {
+      font-size: .875rem;
+      color: #aaa;
+      transition: color .2s;
+    }
+
+    .footer-col a:hover { color: var(--paper); }
+
+    .footer-bottom {
+      padding-top: 1.5rem;
+      border-top: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+
+    .footer-bottom p {
+      font-size: .8rem;
+      color: #555;
+    }
+
+    /* =============================================
+       ANIMACIONES DE ENTRADA
+       Para deshabilitar o personalizar, modificar
+       la clase .reveal y el IntersectionObserver en JS.
+    ============================================= */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity .55s ease, transform .55s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 860px) {
+      .hero-grid,
+      .interactive-inner,
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual { display: none; }
+      .nav-links   { display: none; }
+
+      .models-header { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 500px) {
+      .hero-stats { gap: 1.5rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =============================================
+       NAVEGACIÓN PRINCIPAL
+       Para ampliar el menú: añadir <li><a href="#section">...</a></li>
+       Si el sitio crece, considera convertir esto en un componente
+       independente (nav.html) e incluirlo con fetch() + innerHTML.
+  ============================================= -->
+  <header>
+    <nav class="container">
+      <div class="nav-logo">Modelos<span>Didácticos</span></div>
+      <ul class="nav-links" role="list">
+        <li><a href="#modelos">Modelos</a></li>
+        <li><a href="#interactivo">Interactivo</a></li>
+        <li><a href="#recursos">Recursos</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+      <a href="#modelos" class="btn btn-primary" style="font-size:.8rem; padding:.5rem 1.1rem;">
+        Explorar →
+      </a>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- =============================================
+         HERO
+    ============================================= -->
+    <section class="hero" aria-label="Presentación principal">
+      <div class="container">
+        <div class="hero-grid">
+
+          <div class="hero-content">
+            <span class="hero-eyebrow">Innovación Pedagógica · Matemáticas</span>
+            <h1>
+              Modelos<br/>
+              <em>Didácticos</em><br/>
+              para Docentes
+            </h1>
+            <p class="hero-sub">
+              Una plataforma modular que integra teoría pedagógica,
+              applets interactivos y recursos especializados para el
+              profesorado de matemáticas.
+            </p>
+            <div class="hero-actions">
+              <a href="#modelos" class="btn btn-primary">Ver modelos</a>
+              <a href="#interactivo" class="btn btn-outline">Probar applet</a>
+            </div>
+            <div class="hero-stats">
+              <div>
+                <div class="hero-stat-value">6+</div>
+                <div class="hero-stat-label">Modelos activos</div>
+              </div>
+              <div>
+                <div class="hero-stat-value">∞</div>
+                <div class="hero-stat-label">Configuraciones</div>
+              </div>
+              <div>
+                <div class="hero-stat-value">100%</div>
+                <div class="hero-stat-label">Código abierto</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mini applet decorativo en el hero -->
+          <div class="hero-visual" aria-hidden="true">
+            <canvas id="hero-canvas" height="200"></canvas>
+            <p class="hero-visual-label">Visualización en tiempo real · desliza para interactuar</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================
+         MODELOS DIDÁCTICOS
+         ▸ Para agregar un modelo nuevo:
+           1. Copiar un bloque <article class="card">.
+           2. Cambiar data-tag, título, descripción y enlace.
+           3. Si tienes muchos modelos, considera cargarlos
+              desde un archivo modelos.json con fetch().
+    ============================================= -->
+    <section id="modelos" class="models" aria-labelledby="models-heading">
+      <div class="container">
+        <div class="models-header">
+          <div>
+            <p class="section-label">Catálogo</p>
+            <h2 class="section-title" id="models-heading">Modelos Didácticos</h2>
+            <p class="section-subtitle">
+              Cada modelo integra fundamento teórico, ejemplos y applets
+              interactivos para facilitar la transposición didáctica.
+            </p>
+          </div>
+          <a href="#" class="btn btn-outline" style="white-space:nowrap;">Ver todos →</a>
+        </div>
+
+        <!-- ── Tarjetas de modelos ── -->
+        <div class="cards-grid">
+
+          <article class="card reveal" data-tag="Constructivismo">
+            <span class="card-tag">Constructivismo</span>
+            <h3 class="card-title">Aprendizaje por Resolución de Problemas</h3>
+            <p class="card-desc">
+              Basado en la propuesta de Pólya, este modelo orienta al estudiante
+              a construir su propio camino hacia la solución mediante preguntas guía
+              y trabajo colaborativo.
+            </p>
+            <div class="card-footer">
+              <span class="card-meta">Nivel: Secundaria / Universidad</span>
+              <a href="#" class="btn-card">Ver modelo</a>
+            </div>
+          </article>
+
+          <article class="card reveal" data-tag="Visualización">
+            <span class="card-tag">Visualización</span>
+            <h3 class="card-title">Representación Múltiple de Funciones</h3>
+            <p class="card-desc">
+              Conecta las representaciones algebraica, gráfica, tabular y
+              verbal de una función para fortalecer la comprensión profunda
+              del concepto.
+            </p>
+            <div class="card-footer">
+              <span class="card-meta">Nivel: Secundaria</span>
+              <a href="#" class="btn-card">Ver modelo</a>
+            </div>
+          </article>
+
+          <article class="card reveal" data-tag="Gamificación">
+            <span class="card-tag">Gamificación</span>
+            <h3 class="card-title">Retos Matemáticos con Retroalimentación Inmediata</h3>
+            <p class="card-desc">
+              Diseño de secuencias de aprendizaje basadas en mecánicas de juego
+              que incrementan la motivación y el pensamiento estratégico.
+            </p>
+            <div class="card-footer">
+              <span class="card-meta">Nivel: Primaria / Secundaria</span>
+              <a href="#" class="btn-card">Ver modelo</a>
+            </div>
+          </article>
+
+          <article class="card reveal" data-tag="Modelización">
+            <span class="card-tag">Modelización</span>
+            <h3 class="card-title">Ciclo de Modelización Matemática</h3>
+            <p class="card-desc">
+              Guía al docente a proponer situaciones reales que requieren
+              traducción matemática, solución y reinterpretación del resultado
+              en contexto.
+            </p>
+            <div class="card-footer">
+              <span class="card-meta">Nivel: Universidad</span>
+              <a href="#" class="btn-card">Ver modelo</a>
+            </div>
+          </article>
+
+          <article class="card reveal" data-tag="Investigación">
+            <span class="card-tag">Investigación</span>
+            <h3 class="card-title">Secuencias de Indagación Guiada</h3>
+            <p class="card-desc">
+              Propone actividades abiertas donde el alumno formula conjeturas,
+              busca patrones y construye argumentos matemáticos de manera autónoma.
+            </p>
+            <div class="card-footer">
+              <span class="card-meta">Nivel: Bachillerato</span>
+              <a href="#" class="btn-card">Ver modelo</a>
+            </div>
+          </article>
+
+          <article class="card reveal" data-tag="Tecnología">
+            <span class="card-tag">Tecnología</span>
+            <h3 class="card-title">Integración de GeoGebra en el Aula</h3>
+            <p class="card-desc">
+              Estrategias didácticas para incorporar GeoGebra como mediador
+              semiótico en el aprendizaje de geometría dinámica y cálculo.
+            </p>
+            <div class="card-footer">
+              <span class="card-meta">Nivel: Todos los niveles</span>
+              <a href="#" class="btn-card">Ver modelo</a>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================
+         EXPERIENCIA INTERACTIVA
+         ▸ Applet JavaScript: gráfica de f(x) = a·sin(b·x + c)
+           con deslizadores para a, b y c.
+         ▸ Para reemplazar por un applet externo (ej. GeoGebra):
+           1. Eliminar el <canvas id="function-canvas">.
+           2. Pegar el código embed del proveedor dentro de
+              <div id="applet-container">.
+           3. Eliminar la lógica JS de drawFunction() más abajo.
+    ============================================= -->
+    <section id="interactivo" class="interactive" aria-labelledby="interactive-heading">
+      <div class="container">
+        <div class="interactive-inner">
+
+          <!-- Applet -->
+          <div class="applet-wrapper reveal">
+            <p class="section-label">Applet Interactivo</p>
+
+            <!-- Controles deslizadores -->
+            <div class="applet-toolbar">
+              <div class="range-group">
+                <label for="param-a">Amplitud (a)</label>
+                <input type="range" id="param-a" min="-3" max="3" step="0.1" value="1" />
+                <div class="range-row"><span>−3</span><span id="val-a">1.0</span><span>3</span></div>
+              </div>
+              <div class="range-group">
+                <label for="param-b">Frecuencia (b)</label>
+                <input type="range" id="param-b" min="0.1" max="4" step="0.1" value="1" />
+                <div class="range-row"><span>0.1</span><span id="val-b">1.0</span><span>4</span></div>
+              </div>
+              <div class="range-group">
+                <label for="param-c">Fase (c)</label>
+                <input type="range" id="param-c" min="-3.14" max="3.14" step="0.05" value="0" />
+                <div class="range-row"><span>−π</span><span id="val-c">0.00</span><span>π</span></div>
+              </div>
+            </div>
+
+            <!-- Contenedor del applet -->
+            <div id="applet-container">
+              <canvas id="function-canvas" height="260"></canvas>
+            </div>
+
+            <p class="applet-caption" id="applet-caption">
+              f(x) = 1.0 · sin(1.0x + 0.00)
+            </p>
+          </div>
+
+          <!-- Panel teórico -->
+          <div class="theory-panel reveal">
+            <p class="section-label">Marco Teórico</p>
+            <h2 class="section-title" id="interactive-heading">
+              Función sinusoidal<br/>y sus parámetros
+            </h2>
+            <p style="color:var(--muted); margin-top:.6rem; font-size:.95rem;">
+              La representación dinámica conecta la fórmula con su gráfica
+              de manera inmediata, potenciando la comprensión conceptual.
+            </p>
+
+            <div class="theory-formula">
+              f(x) = <span id="formula-display">a</span> · sin(<span id="formula-b">b</span>x + <span id="formula-c">c</span>)
+            </div>
+
+            <ul class="theory-points">
+              <li><strong>a (amplitud):</strong> determina la altura máxima de la onda. Cambia la escala vertical.</li>
+              <li><strong>b (frecuencia):</strong> controla cuántos ciclos completos hay en 2π unidades horizontales.</li>
+              <li><strong>c (fase):</strong> desplaza la función horizontalmente; equivale al desfase inicial.</li>
+              <li>El período de la función es <em>T = 2π / b</em>.</li>
+            </ul>
+
+            <a href="#" class="btn btn-primary" style="margin-top:1.8rem;">
+              Ver modelo completo →
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================
+         RECURSOS PARA DOCENTES
+         ▸ Para añadir un recurso: duplicar un .resource-item,
+           cambiar el ícono emoji, título, descripción y enlace.
+         ▸ Futura mejora: cargar recursos desde recursos.json
+           para que los docentes puedan contribuir sin tocar HTML.
+    ============================================= -->
+    <section id="recursos" class="resources" aria-labelledby="resources-heading">
+      <div class="container">
+        <p class="section-label">Para el profesorado</p>
+        <h2 class="section-title" id="resources-heading">Recursos Didácticos</h2>
+        <p class="section-subtitle">
+          Material de apoyo curado para enriquecer la práctica docente
+          en el aula de matemáticas.
+        </p>
+
+        <div class="resources-grid">
+
+          <div class="resource-item reveal">
+            <div class="resource-icon">📐</div>
+            <h3 class="resource-title">Guías de Implementación</h3>
+            <p class="resource-desc">Documentos paso a paso para adaptar cada modelo a tu nivel educativo y contexto.</p>
+            <a href="#" class="resource-link">Descargar PDF →</a>
+          </div>
+
+          <div class="resource-item reveal">
+            <div class="resource-icon">📊</div>
+            <h3 class="resource-title">Hojas de Evaluación</h3>
+            <p class="resource-desc">Rúbricas y criterios de evaluación alineados con cada modelo didáctico.</p>
+            <a href="#" class="resource-link">Ver colección →</a>
+          </div>
+
+          <div class="resource-item reveal">
+            <div class="resource-icon">🎬</div>
+            <h3 class="resource-title">Videotutoriales</h3>
+            <p class="resource-desc">Explicaciones en video sobre la base teórica y aplicación práctica de cada modelo.</p>
+            <a href="#" class="resource-link">Ver lista →</a>
+          </div>
+
+          <div class="resource-item reveal">
+            <div class="resource-icon">🔗</div>
+            <h3 class="resource-title">Applets externos</h3>
+            <p class="resource-desc">Colección curada de herramientas GeoGebra, Desmos y PhET listas para usar en clase.</p>
+            <a href="#" class="resource-link">Explorar →</a>
+          </div>
+
+          <div class="resource-item reveal">
+            <div class="resource-icon">📚</div>
+            <h3 class="resource-title">Bibliografía comentada</h3>
+            <p class="resource-desc">Referencias académicas seleccionadas con notas de utilidad para el profesorado.</p>
+            <a href="#" class="resource-link">Ver bibliografía →</a>
+          </div>
+
+          <div class="resource-item reveal">
+            <div class="resource-icon">🤝</div>
+            <h3 class="resource-title">Comunidad Docente</h3>
+            <p class="resource-desc">Espacio colaborativo para compartir experiencias, adaptaciones y secuencias propias.</p>
+            <a href="#" class="resource-link">Unirse →</a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =============================================
+       FOOTER
+       Para escalar: separar en footer.html e incluirlo
+       dinámicamente desde cada página.
+  ============================================= -->
+  <footer id="contacto">
+    <div class="container">
+      <div class="footer-grid">
+
+        <div class="footer-brand">
+          <div class="nav-logo">Modelos<span style="color:var(--accent)">Didácticos</span></div>
+          <p>
+            Plataforma de código abierto dedicada a la innovación pedagógica
+            en la enseñanza de las matemáticas.
+            Desarrollada para y por docentes.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Plataforma</h4>
+          <ul>
+            <li><a href="#modelos">Modelos</a></li>
+            <li><a href="#interactivo">Interactivo</a></li>
+            <li><a href="#recursos">Recursos</a></li>
+            <li><a href="#">Contribuir</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Proyecto</h4>
+          <ul>
+            <li><a href="#">Acerca de</a></li>
+            <li><a href="#">GitHub</a></li>
+            <li><a href="#">Licencia</a></li>
+            <li><a href="#">Contacto</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 Plataforma de Modelos Didácticos · Proyecto educativo abierto</p>
+        <p>Construido con HTML, CSS y JS puro · Compatible con GitHub Pages</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =============================================
+       JAVASCRIPT
+       Organizado en módulos funcionales:
+         1. revealObserver  — animaciones de entrada por scroll
+         2. heroMiniChart   — mini gráfica decorativa en el hero
+         3. functionApplet  — applet principal con deslizadores
+       ──────────────────────────────────────────────
+       Para convertir en sitio más grande:
+         • Mover cada módulo a js/reveal.js, js/applet.js, etc.
+         • Importarlos con <script type="module" src="js/applet.js">
+         • Usar un bundler (Vite) si el proyecto crece significativamente.
+  ============================================= -->
+  <script>
+    /* ── 1. REVEAL ON SCROLL ── */
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          revealObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+
+    /* ── 2. MINI GRÁFICA DEL HERO ──
+       Dibuja una sinusoide animada de fondo como decoración.
+       Para deshabilitar: eliminar este bloque y el <canvas id="hero-canvas">.
+    ── */
+    (function heroMiniChart() {
+      const canvas = document.getElementById('hero-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let t = 0;
+
+      function resize() {
+        canvas.width  = canvas.offsetWidth;
+        canvas.height = 200;
+      }
+
+      function draw() {
+        resize();
+        const { width: W, height: H } = canvas;
+        ctx.clearRect(0, 0, W, H);
+
+        // Ejes
+        ctx.strokeStyle = '#d8d3c8';
+        ctx.lineWidth   = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2);
+        ctx.moveTo(W * .1, 0); ctx.lineTo(W * .1, H);
+        ctx.stroke();
+
+        // Función animada
+        ctx.strokeStyle = '#c84b31';
+        ctx.lineWidth   = 2;
+        ctx.beginPath();
+        for (let x = 0; x <= W; x++) {
+          const xVal = ((x - W * .1) / W) * 4 * Math.PI;
+          const y = H / 2 - Math.sin(xVal + t) * (H * .35);
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        t += 0.025;
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+      window.addEventListener('resize', resize);
+    })();
+
+
+    /* ── 3. APPLET PRINCIPAL ──
+       Dibuja f(x) = a·sin(b·x + c) en el canvas principal.
+       Los deslizadores actualizan los parámetros en tiempo real.
+
+       Para extender:
+         • Añadir un selector de función (sin, cos, tan, exp…)
+         • Mostrar derivada superpuesta en otro color
+         • Exportar la imagen del canvas como PNG
+    ── */
+    (function functionApplet() {
+      const canvas   = document.getElementById('function-canvas');
+      if (!canvas) return;
+      const ctx      = canvas.getContext('2d');
+
+      const sliderA  = document.getElementById('param-a');
+      const sliderB  = document.getElementById('param-b');
+      const sliderC  = document.getElementById('param-c');
+      const valA     = document.getElementById('val-a');
+      const valB     = document.getElementById('val-b');
+      const valC     = document.getElementById('val-c');
+      const caption  = document.getElementById('applet-caption');
+      const fmlA     = document.getElementById('formula-display');
+      const fmlB     = document.getElementById('formula-b');
+      const fmlC     = document.getElementById('formula-c');
+
+      // Parámetros actuales
+      let a = 1, b = 1, c = 0;
+
+      function resize() {
+        canvas.width  = canvas.offsetWidth;
+        canvas.height = 260;
+      }
+
+      function draw() {
+        resize();
+        const W = canvas.width;
+        const H = canvas.height;
+        const cx = W * .12;          // origen X
+        const cy = H / 2;            // origen Y
+        const scaleX = (W * .88) / (4 * Math.PI);
+        const scaleY = H * .38;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Fondo cuadriculado sutil */
+        ctx.strokeStyle = '#f0ece3';
+        ctx.lineWidth   = 1;
+        for (let gx = 0; gx < W; gx += 40) {
+          ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+        }
+        for (let gy = 0; gy < H; gy += 40) {
+          ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+        }
+
+        /* Ejes */
+        ctx.strokeStyle = '#aaa5a0';
+        ctx.lineWidth   = 1.5;
+
+        // Eje X
+        ctx.beginPath();
+        ctx.moveTo(0, cy); ctx.lineTo(W, cy);
+        ctx.stroke();
+
+        // Eje Y
+        ctx.beginPath();
+        ctx.moveTo(cx, 0); ctx.lineTo(cx, H);
+        ctx.stroke();
+
+        // Marcas de π
+        ctx.fillStyle   = '#aaa5a0';
+        ctx.font        = '11px DM Sans, sans-serif';
+        ctx.textAlign   = 'center';
+        const marks = [
+          { x: Math.PI,     label: 'π'  },
+          { x: 2 * Math.PI, label: '2π' },
+          { x: 3 * Math.PI, label: '3π' },
+          { x: 4 * Math.PI, label: '4π' },
+        ];
+        marks.forEach(m => {
+          const px = cx + m.x * scaleX;
+          ctx.beginPath();
+          ctx.moveTo(px, cy - 4); ctx.lineTo(px, cy + 4);
+          ctx.stroke();
+          ctx.fillText(m.label, px, cy + 16);
+        });
+
+        // Etiqueta amplitud
+        if (Math.abs(a) > 0.05) {
+          ctx.fillStyle = '#c84b3199';
+          ctx.font      = '10px DM Sans, sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText(`a = ${a.toFixed(1)}`, cx - 6, cy - a * scaleY - 4);
+        }
+
+        /* Curva f(x) = a·sin(b·x + c) */
+        ctx.strokeStyle = '#c84b31';
+        ctx.lineWidth   = 2.5;
+        ctx.lineJoin    = 'round';
+        ctx.beginPath();
+        let started = false;
+        for (let px = 0; px <= W; px++) {
+          const xVal = (px - cx) / scaleX;
+          const yVal = a * Math.sin(b * xVal + c);
+          const py   = cy - yVal * scaleY;
+
+          if (!started) { ctx.moveTo(px, py); started = true; }
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        /* Punto destacado en x=0 */
+        const y0 = cy - a * Math.sin(c) * scaleY;
+        ctx.beginPath();
+        ctx.arc(cx, y0, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#c84b31';
+        ctx.fill();
+      }
+
+      function updateLabels() {
+        a = parseFloat(sliderA.value);
+        b = parseFloat(sliderB.value);
+        c = parseFloat(sliderC.value);
+
+        valA.textContent = a.toFixed(1);
+        valB.textContent = b.toFixed(1);
+        valC.textContent = c.toFixed(2);
+
+        // Actualizar fórmula del panel teórico
+        fmlA.textContent = a.toFixed(1);
+        fmlB.textContent = b.toFixed(1);
+        fmlC.textContent = c.toFixed(2);
+
+        caption.textContent = `f(x) = ${a.toFixed(1)} · sin(${b.toFixed(1)}x + ${c.toFixed(2)})`;
+
+        draw();
+      }
+
+      /* Vincular deslizadores */
+      [sliderA, sliderB, sliderC].forEach(s => s.addEventListener('input', updateLabels));
+
+      /* Dibujo inicial */
+      updateLabels();
+      window.addEventListener('resize', draw);
+    })();
+  </script>
+
+</body>
+</html>
