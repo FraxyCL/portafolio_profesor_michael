@@ -34,8 +34,12 @@ h1 {
     margin-bottom: 30px;
 }
 
+h2 {
+    margin-top: 0;
+}
+
 .container {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: auto;
 }
 
@@ -55,7 +59,7 @@ h1 {
 
 .input-group {
     flex: 1;
-    min-width: 200px;
+    min-width: 180px;
 }
 
 label {
@@ -108,111 +112,165 @@ th {
 tr:nth-child(even) {
     background-color: rgba(0,0,0,0.05);
 }
+
+.explicacion p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-    <h1>Calculadora Ensayo Tipo PAES</h1>
+<h1>Calculadora Ensayo Tipo PAES</h1>
 
-    <div class="card">
-        <div class="inputs">
-            <div class="input-group">
-                <label>Total de preguntas</label>
-                <input type="number" id="total" value="50" min="1">
-            </div>
+<div class="card">
+<div class="inputs">
+<div class="input-group">
+<label>Total preguntas</label>
+<input type="number" id="total" value="50" min="1">
+</div>
 
-            <div class="input-group">
-                <label>Respuestas correctas</label>
-                <input type="number" id="correctas" value="30" min="0">
-            </div>
+<div class="input-group">
+<label>Correctas</label>
+<input type="number" id="correctas" value="25" min="0">
+</div>
 
-            <div class="input-group">
-                <label>Exigencia (%)</label>
-                <input type="number" id="exigencia" value="60" min="1" max="99">
-            </div>
-        </div>
-    </div>
+<div class="input-group">
+<label>Exigencia (%)</label>
+<input type="number" id="exigencia" value="60" min="1" max="99">
+</div>
 
-    <div class="card resultados">
-        <div>Porcentaje: <span id="porcentaje">0%</span></div>
-        <div>Puntaje PAES: <span id="paes">0</span></div>
-        <div>Nota: <span id="nota">1.0</span></div>
-    </div>
+<div class="input-group">
+<label>Nota mínima</label>
+<input type="number" id="notaMin" value="1.0" step="0.1">
+</div>
 
-    <div class="card table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Correctas</th>
-                    <th>% Logro</th>
-                    <th>Puntaje PAES</th>
-                    <th>Nota</th>
-                </tr>
-            </thead>
-            <tbody id="tabla"></tbody>
-        </table>
-    </div>
+<div class="input-group">
+<label>Nota máxima</label>
+<input type="number" id="notaMax" value="7.0" step="0.1">
+</div>
+</div>
+</div>
+
+<div class="card resultados">
+<div>Porcentaje: <span id="porcentaje">0%</span></div>
+<div>Puntaje PAES: <span id="paes">0</span></div>
+<div>Nota: <span id="nota">1.0</span></div>
+</div>
+
+<div class="card table-container">
+<table>
+<thead>
+<tr>
+<th>Correctas</th>
+<th>% Logro</th>
+<th>Puntaje PAES</th>
+<th>Nota</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
+</div>
+
+<div class="card explicacion">
+<h2>¿Cómo se realizan los cálculos?</h2>
+<p id="textoExplicacion"></p>
+</div>
+
 </div>
 
 <script>
-function calcularNota(porcentaje, exigencia) {
-    if (porcentaje <= exigencia) {
-        return 1 + 2.9 * (porcentaje / exigencia);
+function calcularNota(p, exigencia, notaMin, notaMax) {
+    if (p <= exigencia) {
+        return notaMin + (4 - notaMin) * (p / exigencia);
     } else {
-        return 4 + 3 * ((porcentaje - exigencia) / (1 - exigencia));
+        return 4 + (notaMax - 4) * ((p - exigencia) / (1 - exigencia));
     }
 }
 
 function actualizar() {
-    const total = parseInt(document.getElementById("total").value);
-    let correctas = parseInt(document.getElementById("correctas").value);
-    const exigenciaInput = parseFloat(document.getElementById("exigencia").value);
 
-    if (correctas > total) {
-        correctas = total;
-        document.getElementById("correctas").value = total;
-    }
+let total = Math.max(1, parseInt(totalInput.value));
+let correctas = Math.max(0, parseInt(correctasInput.value));
+let exigencia = Math.min(99, Math.max(1, parseFloat(exigenciaInput.value))) / 100;
+let notaMin = parseFloat(notaMinInput.value);
+let notaMax = parseFloat(notaMaxInput.value);
 
-    const exigencia = exigenciaInput / 100;
-    const porcentaje = correctas / total;
+if (correctas > total) correctas = total;
+if (notaMin >= 4) notaMin = 3.9;
+if (notaMax <= 4) notaMax = 4.1;
 
-    const nota = calcularNota(porcentaje, exigencia);
-    const puntaje = 100 + 900 * porcentaje;
+let porcentaje = correctas / total;
+let nota = calcularNota(porcentaje, exigencia, notaMin, notaMax);
+let puntaje = 100 + 900 * porcentaje;
 
-    document.getElementById("porcentaje").textContent = (porcentaje * 100).toFixed(1) + "%";
-    document.getElementById("nota").textContent = nota.toFixed(1);
-    document.getElementById("paes").textContent = Math.round(puntaje);
+porcentajeSpan.textContent = (porcentaje * 100).toFixed(1) + "%";
+notaSpan.textContent = nota.toFixed(1);
+paesSpan.textContent = Math.round(puntaje);
 
-    generarTabla(total, exigencia);
+generarTabla(total, exigencia, notaMin, notaMax);
+generarExplicacion(total, correctas, porcentaje, exigencia, notaMin, notaMax, nota, puntaje);
+
 }
 
-function generarTabla(total, exigencia) {
-    const tabla = document.getElementById("tabla");
-    tabla.innerHTML = "";
-
-    for (let i = 0; i <= total; i++) {
-        const porcentaje = i / total;
-        const nota = calcularNota(porcentaje, exigencia);
-        const puntaje = 100 + 900 * porcentaje;
-
-        const fila = `
-            <tr>
-                <td>${i}</td>
-                <td>${(porcentaje * 100).toFixed(1)}%</td>
-                <td>${Math.round(puntaje)}</td>
-                <td>${nota.toFixed(1)}</td>
-            </tr>
-        `;
-
-        tabla.innerHTML += fila;
-    }
+function generarTabla(total, exigencia, notaMin, notaMax) {
+tabla.innerHTML = "";
+for (let i = 0; i <= total; i++) {
+let p = i / total;
+let nota = calcularNota(p, exigencia, notaMin, notaMax);
+let puntaje = 100 + 900 * p;
+tabla.innerHTML += `
+<tr>
+<td>${i}</td>
+<td>${(p*100).toFixed(1)}%</td>
+<td>${Math.round(puntaje)}</td>
+<td>${nota.toFixed(1)}</td>
+</tr>`;
+}
 }
 
-document.getElementById("total").addEventListener("input", actualizar);
-document.getElementById("correctas").addEventListener("input", actualizar);
-document.getElementById("exigencia").addEventListener("input", actualizar);
+function generarExplicacion(total, correctas, porcentaje, exigencia, notaMin, notaMax, nota, puntaje) {
+
+let texto = `
+Para calcular la nota, primero se obtiene el porcentaje de logro:
+${correctas} / ${total} = ${(porcentaje*100).toFixed(1)}%.
+
+La exigencia configurada es ${(exigencia*100).toFixed(0)}%, lo que significa que ese porcentaje corresponde a nota 4,0.
+
+Si el porcentaje es menor o igual a la exigencia, la nota se calcula proporcionalmente entre ${notaMin} y 4,0.
+
+Si el porcentaje supera la exigencia, la nota se distribuye proporcionalmente entre 4,0 y ${notaMax}.
+
+En este caso, la nota final obtenida es ${nota.toFixed(1)}.
+
+El puntaje tipo PAES se calcula mediante una transformación lineal:
+
+100 + 900 × porcentaje_logro
+
+Por lo tanto:
+100 + 900 × ${(porcentaje).toFixed(3)} = ${Math.round(puntaje)} puntos.
+`;
+
+document.getElementById("textoExplicacion").textContent = texto;
+
+}
+
+const totalInput = document.getElementById("total");
+const correctasInput = document.getElementById("correctas");
+const exigenciaInput = document.getElementById("exigencia");
+const notaMinInput = document.getElementById("notaMin");
+const notaMaxInput = document.getElementById("notaMax");
+
+const porcentajeSpan = document.getElementById("porcentaje");
+const paesSpan = document.getElementById("paes");
+const notaSpan = document.getElementById("nota");
+const tabla = document.getElementById("tabla");
+
+document.querySelectorAll("input").forEach(i => {
+i.addEventListener("input", actualizar);
+});
 
 actualizar();
 </script>
