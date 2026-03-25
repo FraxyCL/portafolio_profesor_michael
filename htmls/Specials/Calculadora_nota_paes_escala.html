@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Ensayo Tipo PAES</title>
+
+<style>
+:root {
+    --primary: #2563eb;
+    --background: #f3f4f6;
+    --card: #ffffff;
+    --text: #111827;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #111827;
+        --card: #1f2937;
+        --text: #f3f4f6;
+    }
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 30px;
+    background: var(--background);
+    color: var(--text);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+}
+
+.card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.inputs {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.input-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 16px;
+}
+
+.resultados {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border-radius: 12px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th, td {
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: var(--primary);
+    color: white;
+    position: sticky;
+    top: 0;
+}
+
+tr:nth-child(even) {
+    background-color: rgba(0,0,0,0.05);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Calculadora Ensayo Tipo PAES</h1>
+
+    <div class="card">
+        <div class="inputs">
+            <div class="input-group">
+                <label>Total de preguntas</label>
+                <input type="number" id="total" value="50" min="1">
+            </div>
+
+            <div class="input-group">
+                <label>Respuestas correctas</label>
+                <input type="number" id="correctas" value="30" min="0">
+            </div>
+
+            <div class="input-group">
+                <label>Exigencia (%)</label>
+                <input type="number" id="exigencia" value="60" min="1" max="99">
+            </div>
+        </div>
+    </div>
+
+    <div class="card resultados">
+        <div>Porcentaje: <span id="porcentaje">0%</span></div>
+        <div>Puntaje PAES: <span id="paes">0</span></div>
+        <div>Nota: <span id="nota">1.0</span></div>
+    </div>
+
+    <div class="card table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Correctas</th>
+                    <th>% Logro</th>
+                    <th>Puntaje PAES</th>
+                    <th>Nota</th>
+                </tr>
+            </thead>
+            <tbody id="tabla"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function calcularNota(porcentaje, exigencia) {
+    if (porcentaje <= exigencia) {
+        return 1 + 2.9 * (porcentaje / exigencia);
+    } else {
+        return 4 + 3 * ((porcentaje - exigencia) / (1 - exigencia));
+    }
+}
+
+function actualizar() {
+    const total = parseInt(document.getElementById("total").value);
+    let correctas = parseInt(document.getElementById("correctas").value);
+    const exigenciaInput = parseFloat(document.getElementById("exigencia").value);
+
+    if (correctas > total) {
+        correctas = total;
+        document.getElementById("correctas").value = total;
+    }
+
+    const exigencia = exigenciaInput / 100;
+    const porcentaje = correctas / total;
+
+    const nota = calcularNota(porcentaje, exigencia);
+    const puntaje = 100 + 900 * porcentaje;
+
+    document.getElementById("porcentaje").textContent = (porcentaje * 100).toFixed(1) + "%";
+    document.getElementById("nota").textContent = nota.toFixed(1);
+    document.getElementById("paes").textContent = Math.round(puntaje);
+
+    generarTabla(total, exigencia);
+}
+
+function generarTabla(total, exigencia) {
+    const tabla = document.getElementById("tabla");
+    tabla.innerHTML = "";
+
+    for (let i = 0; i <= total; i++) {
+        const porcentaje = i / total;
+        const nota = calcularNota(porcentaje, exigencia);
+        const puntaje = 100 + 900 * porcentaje;
+
+        const fila = `
+            <tr>
+                <td>${i}</td>
+                <td>${(porcentaje * 100).toFixed(1)}%</td>
+                <td>${Math.round(puntaje)}</td>
+                <td>${nota.toFixed(1)}</td>
+            </tr>
+        `;
+
+        tabla.innerHTML += fila;
+    }
+}
+
+document.getElementById("total").addEventListener("input", actualizar);
+document.getElementById("correctas").addEventListener("input", actualizar);
+document.getElementById("exigencia").addEventListener("input", actualizar);
+
+actualizar();
+</script>
+
+</body>
+</html>
