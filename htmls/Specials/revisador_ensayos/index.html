@@ -2,30 +2,30 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>OMR · Matemática M1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Corrector M1 · Matemática</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════
-     SIDEBAR NAV
-═══════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════
+     SIDEBAR
+═══════════════════════════════════════════ -->
 <nav id="sidebar">
   <div class="sidebar-logo">
     <span class="logo-mark">M1</span>
-    <span class="logo-text">OMR<br><small>Scanner</small></span>
+    <span class="logo-text">Corrector<br><small>Matemática</small></span>
   </div>
   <div class="sidebar-nav">
     <button class="nav-btn active" data-tab="config" onclick="showTab('config')">
       <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       Configurar
     </button>
-    <button class="nav-btn" data-tab="scanner" onclick="showTab('scanner')">
-      <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-      Escanear
+    <button class="nav-btn" data-tab="entry" onclick="showTab('entry')">
+      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><line x1="7" y1="8" x2="7" y2="8"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="17" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="7" y2="12"/><line x1="12" y1="12" x2="12" y2="12"/><line x1="17" y1="12" x2="17" y2="12"/></svg>
+      Ingresar
     </button>
     <button class="nav-btn" data-tab="results" onclick="showTab('results')">
       <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -33,26 +33,29 @@
     </button>
   </div>
   <div class="sidebar-info">
-    <span id="scan-count">0 hojas</span>
-    <button id="clear-btn" onclick="clearAllResults()">Limpiar</button>
+    <div class="sidebar-count">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      <span id="scan-count">0 alumnos</span>
+    </div>
+    <button id="clear-btn" onclick="clearAllResults()">Borrar todo</button>
   </div>
 </nav>
 
-<!-- ═══════════════════════════════════════════════════
-     MAIN CONTENT
-═══════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════
+     MAIN
+═══════════════════════════════════════════ -->
 <main id="main-content">
 
-  <!-- ─── TAB: CONFIGURACIÓN ─── -->
+  <!-- ── TAB CONFIGURACIÓN ── -->
   <section id="tab-config" class="tab-section active">
     <div class="section-header">
       <h1>Configuración del Ensayo</h1>
-      <p>Define las respuestas correctas, habilidades y unidades por pregunta</p>
+      <p>Define respuestas correctas, habilidades y unidades por pregunta</p>
     </div>
 
     <div class="config-controls">
       <div class="control-group">
-        <label>Número de preguntas</label>
+        <label>N° de preguntas</label>
         <div class="toggle-group">
           <button class="toggle-btn active" data-val="65" onclick="setNumQuestions(65)">65</button>
           <button class="toggle-btn" data-val="85" onclick="setNumQuestions(85)">85</button>
@@ -61,189 +64,164 @@
       <div class="control-group">
         <button class="btn-primary" onclick="saveConfig()">
           <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Guardar configuración
+          Guardar
         </button>
         <button class="btn-secondary" onclick="loadConfig()">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Cargar guardada
         </button>
-        <button class="btn-ghost" onclick="fillSampleConfig()">
-          Demo rápida
-        </button>
+        <button class="btn-ghost" onclick="fillSampleConfig()">Demo rápida</button>
       </div>
     </div>
 
-    <!-- Tabla de configuración -->
     <div class="table-wrapper">
       <table id="config-table">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Respuesta</th>
-            <th>Pilotaje</th>
-            <th>Habilidad</th>
-            <th>Unidad</th>
+            <th>#</th><th>Respuesta</th><th>Pilotaje</th><th>Habilidad</th><th>Unidad</th>
           </tr>
         </thead>
         <tbody id="config-body"></tbody>
       </table>
     </div>
-
     <div class="config-status" id="config-status"></div>
   </section>
 
-  <!-- ─── TAB: ESCANEO ─── -->
-  <section id="tab-scanner" class="tab-section">
+  <!-- ── TAB INGRESO RÁPIDO ── -->
+  <section id="tab-entry" class="tab-section">
     <div class="section-header">
-      <h1>Escanear Hojas</h1>
-      <p>Usa la cámara en tiempo real o sube fotos ya tomadas</p>
+      <h1>Ingreso Rápido por Teclado</h1>
+      <p>Teclea <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>D</kbd> para cada respuesta · <kbd>Espacio</kbd> omitida · <kbd>⌫</kbd> deshace</p>
     </div>
 
-    <!-- Mode switcher -->
-    <div class="mode-switcher">
-      <button class="mode-btn active" id="mode-btn-camera" onclick="switchScanMode('camera')">
-        <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-        Cámara en vivo
-      </button>
-      <button class="mode-btn" id="mode-btn-batch" onclick="switchScanMode('batch')">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Subir fotos
-        <span class="mode-badge">LOTE</span>
-      </button>
-    </div>
+    <div class="entry-layout">
 
-    <!-- ══════════ MODO CÁMARA ══════════ -->
-    <div id="mode-camera" class="scan-mode active">
-      <div class="scanner-layout">
-        <!-- Cámara -->
-        <div class="camera-container" id="camera-container">
-          <video id="video" autoplay playsinline muted></video>
-          <canvas id="overlay-canvas"></canvas>
-          <div class="corner-guide tl"></div>
-          <div class="corner-guide tr"></div>
-          <div class="corner-guide bl"></div>
-          <div class="corner-guide br"></div>
-          <div class="scan-line" id="scan-line"></div>
-          <div class="camera-status" id="camera-status">Iniciando cámara...</div>
-        </div>
+      <!-- ── Panel izquierdo ── -->
+      <div class="entry-sidebar">
 
-        <!-- Controles cámara -->
-        <div class="scanner-controls">
-          <div class="scanner-info-box">
-            <div class="info-icon">📋</div>
-            <p>Asegúrate de que la hoja esté bien iluminada y los 4 marcadores negros estén visibles</p>
-          </div>
-          <div class="control-btns">
-            <button class="btn-capture" id="capture-btn" onclick="captureAndProcess()">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-              Capturar y Procesar
-            </button>
-            <button class="btn-secondary" id="toggle-camera" onclick="toggleCamera()">
-              <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-              Activar Cámara
-            </button>
-          </div>
-          <!-- Preview de procesamiento (cámara) -->
-          <div class="process-preview" id="process-preview" style="display:none">
-            <h3>Imagen procesada</h3>
-            <canvas id="processed-canvas"></canvas>
-            <div id="process-log" class="process-log"></div>
-          </div>
-          <!-- Identificación del alumno (cámara) -->
-          <div class="student-id-box" id="student-id-box" style="display:none">
-            <label>Identificador del alumno (opcional)</label>
-            <input type="text" id="student-id" placeholder="Nombre o RUT..." />
-            <button class="btn-primary" onclick="confirmResult()">
-              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-              Confirmar y guardar
-            </button>
-          </div>
-        </div>
-      </div>
-      <div id="scan-result-preview" class="scan-result-preview" style="display:none"></div>
-    </div>
-
-    <!-- ══════════ MODO LOTE ══════════ -->
-    <div id="mode-batch" class="scan-mode">
-
-      <!-- Drop zone -->
-      <div class="dropzone" id="dropzone"
-           ondragover="batchDragOver(event)" ondragleave="batchDragLeave(event)" ondrop="batchDrop(event)"
-           onclick="document.getElementById('batch-file-input').click()">
-        <div class="dz-icon">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        </div>
-        <p class="dz-title">Arrastra fotos aquí o haz clic para seleccionar</p>
-        <p class="dz-sub">Acepta JPG, PNG, HEIC · Múltiples archivos a la vez</p>
-        <input type="file" id="batch-file-input" accept="image/*" multiple
-               style="display:none" onchange="batchFilesSelected(event)" />
-      </div>
-
-      <!-- Cola de imágenes -->
-      <div id="batch-queue-section" style="display:none">
-
-        <!-- Barra de progreso global -->
-        <div class="batch-progress-bar" id="batch-progress-bar" style="display:none">
-          <div class="bp-header">
-            <span id="bp-label">Procesando...</span>
-            <span id="bp-count">0 / 0</span>
-          </div>
-          <div class="bp-track">
-            <div class="bp-fill" id="bp-fill"></div>
-          </div>
-        </div>
-
-        <!-- Controles de lote -->
-        <div class="batch-actions">
-          <span id="batch-count-label" class="batch-count-label">0 fotos en cola</span>
-          <div class="batch-btns">
-            <button class="btn-ghost" onclick="batchClearAll()">
-              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-              Limpiar cola
-            </button>
-            <button class="btn-primary" id="batch-process-btn" onclick="batchProcessAll()">
-              <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Procesar todo
-            </button>
-          </div>
-        </div>
-
-        <!-- Grid de tarjetas -->
-        <div class="batch-grid" id="batch-grid"></div>
-
-        <!-- Resumen final lote -->
-        <div class="batch-summary" id="batch-summary" style="display:none">
-          <h3>Procesamiento completado</h3>
-          <div class="bs-stats" id="bs-stats"></div>
-          <div class="bs-errors" id="bs-errors"></div>
-          <button class="btn-primary" onclick="showTab('results')">
-            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            Ver resultados del curso
+        <!-- Caja de nombre -->
+        <div class="entry-student-box" id="entry-student-box">
+          <label>Nombre del alumno</label>
+          <input type="text" id="entry-name" placeholder="Nombre o RUT..."
+                 autocomplete="off" spellcheck="false"
+                 onkeydown="if(event.key==='Enter') startEntry()" />
+          <button class="btn-start" id="btn-start-entry" onclick="startEntry()">
+            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Iniciar ingreso
           </button>
         </div>
-      </div>
 
-    </div><!-- /mode-batch -->
+        <!-- Instrucciones (cuando no hay sesión activa) -->
+        <div class="entry-instructions" id="entry-instructions">
+          <div class="inst-step"><span class="inst-num">1</span><p>Escribe el nombre del alumno</p></div>
+          <div class="inst-step"><span class="inst-num">2</span><p>Presiona <strong>Iniciar</strong> o <kbd>Enter</kbd></p></div>
+          <div class="inst-step"><span class="inst-num">3</span><p>Teclea <kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd> sin usar el mouse</p></div>
+          <div class="inst-step"><span class="inst-num">4</span><p><kbd>Space</kbd> = omitida &nbsp;·&nbsp; <kbd>⌫</kbd> = corregir</p></div>
+        </div>
+
+        <!-- Estado de sesión activa -->
+        <div class="entry-session" id="entry-session" style="display:none">
+
+          <div class="session-who">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span id="session-name-label">—</span>
+          </div>
+
+          <div class="session-progress">
+            <div class="sp-top">
+              <span class="sp-label">Pregunta</span>
+              <span class="sp-frac"><b id="sp-current">1</b> / <span id="sp-total">65</span></span>
+            </div>
+            <div class="sp-bar-track">
+              <div class="sp-bar-fill" id="sp-bar-fill"></div>
+            </div>
+          </div>
+
+          <div class="session-live">
+            <div class="slv green" id="ls-correct"><span>✓</span><strong>0</strong><small>correctas</small></div>
+            <div class="slv red"   id="ls-incorrect"><span>✗</span><strong>0</strong><small>incorrectas</small></div>
+            <div class="slv gray"  id="ls-omit"><span>—</span><strong>0</strong><small>omitidas</small></div>
+          </div>
+
+          <div class="keyboard-visual">
+            <div class="kv-key kv-a" id="kv-A">A</div>
+            <div class="kv-key kv-b" id="kv-B">B</div>
+            <div class="kv-key kv-c" id="kv-C">C</div>
+            <div class="kv-key kv-d" id="kv-D">D</div>
+            <div class="kv-key kv-space" id="kv-SPC">SPC</div>
+          </div>
+
+          <div class="session-btns">
+            <button class="btn-undo" onclick="undoLast()" title="Deshacer última (Backspace)">
+              <svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
+              Deshacer
+            </button>
+            <button class="btn-cancel-entry" onclick="cancelEntry()">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Cancelar
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de alumnos ya guardados -->
+        <div class="entry-done-list" id="entry-done-list" style="display:none">
+          <div class="edl-header">
+            <span id="edl-count">0 guardados</span>
+            <button class="btn-ghost btn-sm" onclick="showTab('results')">Ver resultados →</button>
+          </div>
+          <div id="edl-items" class="edl-items"></div>
+        </div>
+
+      </div><!-- /entry-sidebar -->
+
+      <!-- ── Panel derecho: grilla visual ── -->
+      <div class="entry-grid-panel">
+
+        <div class="egp-topbar">
+          <span class="egp-name" id="egp-name">Esperando alumno…</span>
+          <span class="egp-badge" id="egp-badge">—</span>
+        </div>
+
+        <!-- Grilla de respuestas 5 columnas × 17 filas (o menos) -->
+        <div class="answer-grid" id="answer-grid"></div>
+
+        <!-- Panel de confirmación al completar -->
+        <div class="entry-confirm-box" id="entry-confirm-box" style="display:none">
+          <div class="ecb-score" id="ecb-score"></div>
+          <div class="ecb-breakdown" id="ecb-breakdown"></div>
+          <div class="ecb-actions">
+            <button class="btn-confirm" onclick="confirmEntry()">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Guardar y siguiente
+              <kbd>Enter</kbd>
+            </button>
+            <button class="btn-ghost" onclick="cancelEntry()">Descartar</button>
+          </div>
+        </div>
+
+      </div><!-- /entry-grid-panel -->
+
+    </div><!-- /entry-layout -->
   </section>
 
-  <!-- ─── TAB: RESULTADOS ─── -->
+  <!-- ── TAB RESULTADOS ── -->
   <section id="tab-results" class="tab-section">
     <div class="section-header">
       <h1>Resultados del Curso</h1>
-      <p id="results-summary-text">Sin hojas escaneadas aún</p>
+      <p id="results-summary-text">Sin alumnos ingresados aún</p>
     </div>
 
     <div id="results-empty" class="results-empty">
       <div class="empty-icon">📊</div>
-      <p>Escanea hojas para ver los resultados del curso aquí</p>
+      <p>Ingresa hojas de respuestas para ver los resultados aquí</p>
+      <button class="btn-primary" onclick="showTab('entry')" style="margin-top:18px">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Ir a ingreso
+      </button>
     </div>
 
     <div id="results-content" style="display:none">
-
-      <!-- Tarjetas resumen -->
       <div class="stats-grid" id="stats-grid"></div>
-
-      <!-- Gráficos -->
       <div class="charts-grid">
         <div class="chart-card">
           <h3>Desempeño por Habilidad</h3>
@@ -258,8 +236,6 @@
           <canvas id="chart-distribution"></canvas>
         </div>
       </div>
-
-      <!-- Lista de alumnos -->
       <div class="students-table-wrap">
         <div class="students-header">
           <h3>Detalle por Alumno</h3>
@@ -268,16 +244,11 @@
             Exportar CSV
           </button>
         </div>
-        <table class="students-table" id="students-table">
+        <table class="students-table">
           <thead>
             <tr>
-              <th>Alumno</th>
-              <th>Correctas</th>
-              <th>Incorrectas</th>
-              <th>Omitidas</th>
-              <th>Puntaje</th>
-              <th>%</th>
-              <th>Ver</th>
+              <th>Alumno</th><th>Correctas</th><th>Incorrectas</th>
+              <th>Omitidas</th><th>Puntaje</th><th>%</th><th>Ver</th>
             </tr>
           </thead>
           <tbody id="students-body"></tbody>
@@ -288,74 +259,44 @@
 
 </main>
 
-<!-- ═══════════════════════════════════════════════════
-     MODAL: DETALLE ALUMNO
-═══════════════════════════════════════════════════ -->
+<!-- MODAL DETALLE -->
 <div id="modal-overlay" class="modal-overlay" style="display:none" onclick="closeModal(event)">
-  <div class="modal" id="student-modal">
+  <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div id="modal-content"></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     TOAST
-═══════════════════════════════════════════════════ -->
+<!-- TOAST -->
 <div id="toast" class="toast"></div>
 
-<!-- ═══════════════════════════════════════════════════
-     SCRIPTS
-═══════════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<!-- OpenCV.js (CDN) -->
-<script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()" onerror="onOpenCvError()"></script>
-
 <script src="config.js"></script>
-<script src="scanner.js"></script>
-<script src="batch.js"></script>
+<script src="entry.js"></script>
 <script src="results.js"></script>
 
 <script>
-// ─── Global UI ─────────────────────────────────
 function showTab(name) {
   document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   document.querySelector(`[data-tab="${name}"]`).classList.add('active');
   if (name === 'results') renderResults();
-}
-
-function switchScanMode(mode) {
-  document.querySelectorAll('.scan-mode').forEach(m => m.classList.remove('active'));
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('mode-' + mode).classList.add('active');
-  document.getElementById('mode-btn-' + mode).classList.add('active');
-  // Detener cámara al cambiar a lote
-  if (mode === 'batch' && typeof stopCamera === 'function') stopCamera();
+  if (name === 'entry' && !entryActive)
+    setTimeout(() => document.getElementById('entry-name').focus(), 80);
 }
 
 function showToast(msg, type = 'info') {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show ' + type;
-  setTimeout(() => t.classList.remove('show'), 3500);
+  setTimeout(() => t.classList.remove('show'), 3200);
 }
 
 function closeModal(e) {
-  if (!e || e.target === document.getElementById('modal-overlay')) {
+  if (!e || e.target === document.getElementById('modal-overlay'))
     document.getElementById('modal-overlay').style.display = 'none';
-  }
 }
-
-// Mobile menu toggle
-window.onOpenCvReady = () => {
-  console.log('OpenCV.js listo');
-  document.getElementById('capture-btn').disabled = false;
-  showToast('OpenCV cargado ✓', 'success');
-};
-window.onOpenCvError = () => {
-  console.warn('OpenCV no pudo cargarse, usando procesamiento alternativo');
-};
 </script>
 
 </body>

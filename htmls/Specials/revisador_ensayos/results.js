@@ -24,10 +24,10 @@ function getScanResults() {
 }
 
 function clearAllResults() {
-  if (!confirm('¿Eliminar todos los resultados escaneados?')) return;
+  if (!confirm('¿Eliminar todos los resultados ingresados?')) return;
   scanResults = [];
   localStorage.removeItem('omr_results');
-  document.getElementById('scan-count').textContent = '0 hojas';
+  document.getElementById('scan-count').textContent = '0 alumnos';
   renderResults();
   showToast('Resultados eliminados', 'info');
 }
@@ -42,7 +42,7 @@ function renderResults() {
 
   const summary = computeGlobalSummary(results);
   document.getElementById('results-summary-text').textContent =
-    `${results.length} hojas escaneadas · Promedio: ${summary.avgPct}%`;
+    `${results.length} alumnos ingresados · Promedio: ${summary.avgPct}%`;
 
   renderStatsCards(summary, results);
   renderChartsSkills(summary);
@@ -404,6 +404,6 @@ document.addEventListener('DOMContentLoaded', () => {
   getScanResults();
   const count = scanResults.length;
   if (count > 0) {
-    document.getElementById('scan-count').textContent = `${count} hoja${count !== 1 ? 's' : ''}`;
+    document.getElementById('scan-count').textContent = `${count} alumno${count !== 1 ? 's' : ''}`;
   }
 });
