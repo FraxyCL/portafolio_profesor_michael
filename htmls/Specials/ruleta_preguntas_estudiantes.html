@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruleta de Preguntas</title>
+<style>
+  /* === RESET Y BASE === */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #e8f4fd 0%, #f3e8ff 50%, #e8fdf4 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  /* === CONTENEDOR PRINCIPAL === */
+  .card {
+    background: #ffffff;
+    border-radius: 28px;
+    box-shadow: 0 8px 40px rgba(100, 80, 200, 0.12), 0 2px 8px rgba(0,0,0,0.06);
+    padding: 40px 32px 36px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* === ENCABEZADO === */
+  .emoji-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    line-height: 1;
+  }
+
+  h1 {
+    font-size: clamp(20px, 5vw, 26px);
+    font-weight: 700;
+    color: #3a2e6e;
+    margin-bottom: 8px;
+    line-height: 1.25;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #7c6fa0;
+    margin-bottom: 32px;
+    line-height: 1.5;
+  }
+
+  /* === ÁREA DE LA RULETA === */
+  .ruleta-area {
+    background: linear-gradient(135deg, #f0eaff 0%, #e6f4ff 100%);
+    border-radius: 20px;
+    border: 2px dashed #c4b0f0;
+    min-height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+
+  .ruleta-area.girando {
+    background: linear-gradient(135deg, #ffe8f0 0%, #fff0e8 100%);
+    border-color: #f0b0c8;
+    animation: pulso 0.4s ease-in-out infinite alternate;
+  }
+
+  .ruleta-area.resultado {
+    background: linear-gradient(135deg, #e8fff0 0%, #f0ffe8 100%);
+    border-color: #80d0a0;
+    border-style: solid;
+  }
+
+  @keyframes pulso {
+    from { transform: scale(1); }
+    to { transform: scale(1.01); }
+  }
+
+  /* === TEXTO EN EL ÁREA === */
+  #pregunta-display {
+    font-size: clamp(16px, 4vw, 20px);
+    font-weight: 600;
+    color: #3a2e6e;
+    line-height: 1.4;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  #pregunta-display.oculto {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  #pregunta-display.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .placeholder-text {
+    font-size: 15px;
+    color: #a090c0;
+    font-weight: 500;
+  }
+
+  .girando-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: #c060a0;
+  }
+
+  /* === ETIQUETA DE NÚMERO === */
+  .num-pregunta {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #80d0a0;
+    background: #e8fff0;
+    padding: 3px 8px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.3s;
+  }
+
+  .num-pregunta.visible { opacity: 1; }
+
+  /* === BOTÓN GIRAR === */
+  .btn-girar {
+    width: 100%;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #7c5cfc 0%, #c45cfc 100%);
+    color: #ffffff;
+    font-size: clamp(17px, 4vw, 20px);
+    font-weight: 700;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(124, 92, 252, 0.40);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.3s ease;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-girar:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 28px rgba(124, 92, 252, 0.50);
+  }
+
+  .btn-girar:active:not(:disabled) {
+    transform: translateY(0px) scale(0.98);
+    box-shadow: 0 2px 12px rgba(124, 92, 252, 0.35);
+  }
+
+  .btn-girar:disabled {
+    background: linear-gradient(135deg, #c0b0e0 0%, #d0c0e8 100%);
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.75;
+  }
+
+  .btn-icono {
+    font-size: 22px;
+    display: inline-block;
+    transition: transform 0.3s ease;
+  }
+
+  .btn-girar:not(:disabled):hover .btn-icono {
+    transform: rotate(30deg);
+  }
+
+  /* === CONTADOR DE PREGUNTAS === */
+  .contador {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #a090c0;
+    letter-spacing: 0.5px;
+  }
+
+  .contador span {
+    font-weight: 700;
+    color: #7c5cfc;
+  }
+
+  /* === BARRA DE PROGRESO === */
+  .progreso-wrap {
+    margin-top: 10px;
+    height: 5px;
+    background: #ede8ff;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progreso-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #7c5cfc, #c45cfc);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+    width: 0%;
+  }
+
+  /* === HISTORIAL === */
+  .historial-btn {
+    margin-top: 16px;
+    background: none;
+    border: 1.5px solid #d0c4f0;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-size: 13px;
+    color: #7c5cfc;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .historial-btn:hover { background: #f5f0ff; border-color: #b0a0e0; }
+
+  .historial {
+    display: none;
+    margin-top: 14px;
+    background: #f9f7ff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    text-align: left;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .historial.abierto { display: block; }
+
+  .historial-titulo {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #a090c0;
+    margin-bottom: 8px;
+  }
+
+  .historial-item {
+    font-size: 13px;
+    color: #5a4880;
+    padding: 4px 0;
+    border-bottom: 1px solid #eee8ff;
+    line-height: 1.4;
+  }
+
+  .historial-item:last-child { border-bottom: none; }
+  .historial-item span { font-weight: 700; color: #7c5cfc; margin-right: 6px; }
+
+  /* === RESPONSIVE MÓVIL === */
+  @media (max-width: 400px) {
+    .card { padding: 28px 20px 28px; }
+    .ruleta-area { min-height: 110px; }
+    .btn-girar { padding: 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <span class="emoji-icon">🎡</span>
+  <h1>Ruleta de preguntas<br>para conocernos</h1>
+  <p class="subtitle">Presiona el botón, espera la pregunta<br>y ¡conversen todos en el grupo!</p>
+
+  <!-- Área de la ruleta -->
+  <div class="ruleta-area" id="ruleta-area">
+    <span class="num-pregunta" id="num-pregunta"></span>
+    <div id="pregunta-display">
+      <p class="placeholder-text">🎯 Aquí aparecerá tu pregunta...</p>
+    </div>
+  </div>
+
+  <!-- Botón principal -->
+  <button class="btn-girar" id="btn-girar" onclick="girarRuleta()">
+    <span class="btn-icono">🎲</span>
+    <span id="btn-texto">¡Girar ruleta!</span>
+  </button>
+
+  <!-- Contador -->
+  <p class="contador">Preguntas mostradas: <span id="contador-num">0</span></p>
+  <div class="progreso-wrap">
+    <div class="progreso-bar" id="progreso-bar"></div>
+  </div>
+
+  <!-- Historial -->
+  <button class="historial-btn" id="historial-btn" onclick="toggleHistorial()" style="display:none;">
+    📋 Ver preguntas anteriores
+  </button>
+  <div class="historial" id="historial">
+    <p class="historial-titulo">Preguntas anteriores</p>
+    <div id="historial-lista"></div>
+  </div>
+</div>
+
+<script>
+  // =====================================================
+  // PREGUNTAS — Edita este arreglo para cambiarlas
+  // =====================================================
+  const PREGUNTAS = [
+    "¿Cuál es tu comida favorita y por qué?",
+    "¿Qué te gustaría aprender o mejorar este año?",
+    "¿Tienes algún talento oculto que pocos conocen?",
+    "¿Qué haces normalmente en tu tiempo libre?",
+    "¿Cuál es tu serie o película favorita de todos los tiempos?",
+    "¿Prefieres la playa o la montaña? ¿Por qué?",
+    "¿Qué aplicación usas más en tu celular?",
+    "¿Qué te motivó a estudiar esta carrera o programa?",
+    "¿Qué superpoder te gustaría tener y cómo lo usarías?",
+    "¿Qué género de música escuchas normalmente?",
+    "¿Eres más de la mañana o de la noche?",
+    "¿Qué lugar del mundo te gustaría visitar algún día?",
+    "Si pudieras cenar con cualquier persona (viva o histórica), ¿quién sería?",
+    "¿Cuál ha sido el mejor consejo que te han dado en la vida?",
+    "¿Qué hobby o actividad te gustaría empezar pero no has comenzado?",
+    "¿Prefieres el trabajo en equipo o trabajar solo/a?",
+    "¿Cuál es tu mayor logro hasta ahora del que te sientas orgulloso/a?",
+    "¿Qué haría tu yo de 10 años si te viera hoy?",
+    "¿Cuál es tu recuerdo favorito de tu etapa escolar?",
+    "¿Qué actividad te ayuda más a relajarte cuando estás estresado/a?",
+    "¿Qué habilidad te gustaría dominar completamente?",
+    "¿Qué tipo de clima disfrutas más y por qué?",
+    "¿Qué pequeño detalle del día a día te pone de buen ánimo?",
+    "¿Qué libro o historia te ha marcado de alguna forma?",
+    "¿Qué comida nunca te cansas de comer?",
+    "¿Qué cosa nueva probaste este último año?",
+    "¿Qué te inspira cuando te sientes desmotivado/a?",
+    "¿Qué tradición familiar te gusta mucho?",
+    "¿Qué palabra crees que te describe mejor?",
+    "¿Qué meta personal te gustaría cumplir este año?",
+    "¿Qué cosa sencilla te hace feliz?",
+    "¿Qué te gustaría que las personas recuerden de ti?",
+    "¿Qué materia o tema disfrutas más aprender?",
+    "¿Qué tipo de desafío te motiva más?",
+    "¿Qué costumbre te gustaría mejorar o cambiar?",
+    "¿Qué aplicación o herramienta tecnológica te parece más útil?",
+    "¿Qué harías si tuvieras un día completamente libre sin responsabilidades?",
+    "¿Qué actividad harías si supieras que no puedes fallar?",
+    "¿Qué personaje de ficción sientes que se parece más a ti?",
+    "¿Qué habilidad crees que todos deberían aprender?",
+    "¿Qué momento del día disfrutas más?",
+    "¿Qué experiencia te ha enseñado algo importante?",
+    "¿Qué tres palabras usarías para describirte?",
+    "¿Qué te gustaría aprender fuera de tu área de estudio?",
+    "¿Qué actividad te hace perder la noción del tiempo?",
+    "¿Qué tipo de películas o historias te gustan más y por qué?",
+    "¿Qué cambiarías del mundo si pudieras hacerlo fácilmente?",
+    "¿Qué consejo le darías a alguien que recién empieza esta carrera?",
+  ];
+
+  // =====================================================
+  // ESTADO DE LA APLICACIÓN
+  // =====================================================
+  let historialPreguntas = [];
+  let usadas = new Set();
+  let girando = false;
+  let historialAbierto = false;
+
+  // =====================================================
+  // FUNCIÓN PRINCIPAL: GIRAR LA RULETA
+  // =====================================================
+  function girarRuleta() {
+    if (girando) return;
+
+    // Reiniciar si se usaron todas
+    if (usadas.size >= PREGUNTAS.length) {
+      usadas.clear();
+      document.getElementById('contador-num').textContent = '0';
+      document.getElementById('progreso-bar').style.width = '0%';
+    }
+
+    girando = true;
+    const btn = document.getElementById('btn-girar');
+    const area = document.getElementById('ruleta-area');
+    const display = document.getElementById('pregunta-display');
+    const numLabel = document.getElementById('num-pregunta');
+
+    btn.disabled = true;
+    document.getElementById('btn-texto').textContent = 'Girando...';
+    area.classList.add('girando');
+    area.classList.remove('resultado');
+    numLabel.classList.remove('visible');
+    display.className = 'oculto';
+
+    // Duración y velocidad de animación
+    const duracion = 2600;
+    const velocidadInicial = 80;
+    const velocidadFinal = 350;
+    let elapsed = 0;
+
+    // Seleccionar pregunta final (sin repetir hasta usar todas)
+    const disponibles = PREGUNTAS.filter((_, i) => !usadas.has(i));
+    const idxFinal = disponibles[Math.floor(Math.random() * disponibles.length)];
+    const idxReal = PREGUNTAS.indexOf(idxFinal);
+
+    // Animación de cambio rápido
+    function tick() {
+      if (elapsed >= duracion) {
+        // Mostrar resultado final
+        mostrarResultado(idxReal, display, area, btn, numLabel);
+        return;
+      }
+
+      // Interpolar velocidad: rápido al inicio, lento al final
+      const progreso = elapsed / duracion;
+      const velocidad = velocidadInicial + (velocidadFinal - velocidadInicial) * Math.pow(progreso, 2.5);
+
+      // Mostrar pregunta aleatoria mientras gira
+      const tmpIdx = Math.floor(Math.random() * PREGUNTAS.length);
+      display.innerHTML = `<p class="girando-text">${PREGUNTAS[tmpIdx]}</p>`;
+      display.className = 'visible';
+
+      elapsed += velocidad;
+      setTimeout(tick, velocidad);
+    }
+
+    // Pequeño delay antes de empezar
+    setTimeout(tick, 100);
+  }
+
+  // =====================================================
+  // MOSTRAR RESULTADO FINAL CON ANIMACIÓN
+  // =====================================================
+  function mostrarResultado(idx, display, area, btn, numLabel) {
+    usadas.add(idx);
+    historialPreguntas.unshift({ num: historialPreguntas.length + 1, texto: PREGUNTAS[idx] });
+
+    // Ocultar momentáneamente
+    display.className = 'oculto';
+
+    setTimeout(() => {
+      area.classList.remove('girando');
+      area.classList.add('resultado');
+      display.innerHTML = `<p>${PREGUNTAS[idx]}</p>`;
+      display.className = 'visible';
+
+      // Mostrar etiqueta de número
+      numLabel.textContent = `#${historialPreguntas.length}`;
+      numLabel.classList.add('visible');
+
+      // Actualizar contador y barra
+      document.getElementById('contador-num').textContent = usadas.size;
+      const pct = (usadas.size / PREGUNTAS.length) * 100;
+      document.getElementById('progreso-bar').style.width = pct + '%';
+
+      // Mostrar botón de historial
+      document.getElementById('historial-btn').style.display = 'block';
+
+      // Actualizar historial si está abierto
+      if (historialAbierto) renderHistorial();
+
+      // Reproducir sonido suave (sin archivos externos)
+      reproducirSonido();
+
+      // Rehabilitar botón
+      btn.disabled = false;
+      document.getElementById('btn-texto').textContent = '¡Girar de nuevo!';
+      girando = false;
+    }, 280);
+  }
+
+  // =====================================================
+  // SONIDO GENERADO CON WEB AUDIO API
+  // =====================================================
+  function reproducirSonido() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+      // Nota 1: ding alegre
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.frequency.value = 660;
+      osc1.type = 'sine';
+      gain1.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc1.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 0.35);
+
+      // Nota 2: armonía
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.frequency.value = 880;
+      osc2.type = 'sine';
+      gain2.gain.setValueAtTime(0, ctx.currentTime + 0.1);
+      gain2.gain.setValueAtTime(0.18, ctx.currentTime + 0.15);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+      osc2.start(ctx.currentTime + 0.1);
+      osc2.stop(ctx.currentTime + 0.55);
+    } catch(e) {
+      // Si el navegador no soporta Web Audio, no pasa nada
+    }
+  }
+
+  // =====================================================
+  // HISTORIAL DE PREGUNTAS
+  // =====================================================
+  function toggleHistorial() {
+    historialAbierto = !historialAbierto;
+    const div = document.getElementById('historial');
+    const btn = document.getElementById('historial-btn');
+    if (historialAbierto) {
+      div.classList.add('abierto');
+      btn.textContent = '🔼 Ocultar historial';
+      renderHistorial();
+    } else {
+      div.classList.remove('abierto');
+      btn.textContent = '📋 Ver preguntas anteriores';
+    }
+  }
+
+  function renderHistorial() {
+    const lista = document.getElementById('historial-lista');
+    lista.innerHTML = historialPreguntas.map(p =>
+      `<div class="historial-item"><span>#${p.num}</span>${p.texto}</div>`
+    ).join('');
+  }
+</script>
+
+</body>
+</html>
