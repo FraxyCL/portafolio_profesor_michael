@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratorio de Raíces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$','$'],['\\(','\\)']],
+    displayMath: [['$$','$$'],['\\[','\\]']],
+    packages: {'[+]': ['base','ams']}
+  },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] },
+  startup: { ready() { MathJax.startup.defaultReady(); } }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+<style>
+  :root {
+    --bg:#0d0f14; --bg2:#13151c; --bg3:#1a1d27; --border:#2a2d3e;
+    --accent:#6ee7b7; --accent2:#818cf8; --accent3:#fbbf24; --accent4:#f87171;
+    --text:#e8eaf0; --text2:#8b90a8; --text3:#4a4f6a;
+    --math-size:2.8rem; --step-math-size:1.8rem;
+    --radius:12px; --transition:0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow:hidden;}
+
+  /* ── LAYOUT ── */
+  #app{display:grid;grid-template-rows:auto 1fr auto auto;height:100vh;}
+
+  /* ── TOPBAR ── */
+  #topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+    background:var(--bg2);border-bottom:1px solid var(--border);gap:16px;flex-wrap:wrap;position:relative;z-index:10;}
+  #topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  #app-title{font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--accent);letter-spacing:.02em;white-space:nowrap;}
+  .badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 14px;
+    font-size:.78rem;font-weight:500;letter-spacing:.06em;}
+  #mode-badge{color:var(--accent2);}
+  #level-badge{color:var(--accent3);}
+  #topbar-right{display:flex;align-items:center;gap:14px;}
+
+  /* Contador de progreso prominente */
+  #progress-counter{
+    font-family:'DM Mono',monospace;font-size:.95rem;font-weight:500;
+    color:var(--text2);letter-spacing:.04em;
+    background:var(--bg3);border:1px solid var(--border);border-radius:20px;
+    padding:5px 16px;white-space:nowrap;
+  }
+  #progress-counter span{color:var(--accent);font-weight:700;}
+
+  #timer-display{font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:500;
+    color:var(--text);min-width:80px;text-align:center;letter-spacing:.04em;transition:color .3s;}
+  #timer-display.warning{color:var(--accent3);}
+  #timer-display.danger{color:var(--accent4);animation:pulse .6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar-wrap{height:3px;background:var(--border);}
+  #progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width 1s linear;width:100%;}
+
+  /* ── MAIN ZONE ── */
+  #main-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:36px 60px 16px;overflow-y:auto;position:relative;}
+
+  #exercise-label{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--text3);margin-bottom:20px;font-weight:500;text-align:center;}
+
+  #exercise-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;
+    padding:44px 80px;text-align:center;width:100%;max-width:900px;min-height:150px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    box-shadow:0 8px 60px rgba(0,0,0,.4);transition:all var(--transition);}
+  #exercise-content{font-size:var(--math-size);line-height:1.5;color:var(--text);transition:opacity .4s;}
+
+  #steps-panel{width:100%;max-width:900px;margin-top:16px;display:flex;flex-direction:column;gap:10px;}
+  .step-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px 28px;opacity:0;transform:translateY(16px);
+    transition:opacity .45s ease,transform .45s ease;display:flex;align-items:flex-start;gap:16px;}
+  .step-card.visible{opacity:1;transform:translateY(0);}
+  .step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:.72rem;font-weight:600;flex-shrink:0;margin-top:2px;}
+  .step-card:nth-child(1) .step-num{background:rgba(110,231,183,.15);color:var(--accent);}
+  .step-card:nth-child(2) .step-num{background:rgba(129,140,248,.15);color:var(--accent2);}
+  .step-card:nth-child(3) .step-num{background:rgba(251,191,36,.15);color:var(--accent3);}
+  .step-card.final-step{border-color:var(--accent);background:rgba(110,231,183,.06);}
+  .step-card.final-step .step-num{background:rgba(110,231,183,.25);color:var(--accent);}
+  .step-content{flex:1;font-size:var(--step-math-size);line-height:1.6;color:var(--text);}
+  .step-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);margin-bottom:6px;font-weight:500;}
+
+  .error-badge{display:inline-block;background:rgba(248,113,113,.15);border:1px solid var(--accent4);
+    border-radius:8px;padding:6px 16px;font-size:.8rem;color:var(--accent4);letter-spacing:.06em;margin-bottom:16px;}
+
+  /* ── CONTROLS ── */
+  #controls-wrap{background:var(--bg2);border-top:1px solid var(--border);padding:12px 28px;}
+  #controls-row1{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  #controls-row2{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+  #controls-row2-left{display:flex;gap:8px;flex-wrap:wrap;}
+  #controls-row2-right{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+
+  .btn{padding:9px 18px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);
+    color:var(--text);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;
+    transition:all .2s;white-space:nowrap;letter-spacing:.01em;}
+  .btn:hover{background:var(--border);transform:translateY(-1px);}
+  .btn:active{transform:translateY(0);}
+  .btn:disabled{opacity:.3;cursor:default;transform:none;}
+
+  .btn-primary{background:var(--accent);color:#0d0f14;border-color:var(--accent);font-weight:600;}
+  .btn-primary:hover{background:#4dd4a0;border-color:#4dd4a0;}
+
+  /* Botón anterior */
+  .btn-prev{background:rgba(129,140,248,.1);border-color:rgba(129,140,248,.3);color:var(--accent2);}
+  .btn-prev:hover{background:rgba(129,140,248,.2);}
+  .btn-prev:disabled{opacity:.25;}
+
+  .btn-step{background:rgba(129,140,248,.12);border-color:rgba(129,140,248,.3);color:var(--accent2);}
+  .btn-step:hover{background:rgba(129,140,248,.22);}
+  .btn-step.done{opacity:.4;cursor:default;}
+
+  .btn-danger{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:var(--accent4);}
+  .btn-danger:hover{background:rgba(248,113,113,.2);}
+
+  .btn-size{padding:9px 14px;font-family:'DM Mono',monospace;font-size:1rem;font-weight:500;}
+  .btn-timer{font-family:'DM Mono',monospace;font-size:.78rem;}
+  .btn-timer.active{background:rgba(110,231,183,.15);border-color:var(--accent);color:var(--accent);}
+
+  /* ── MODE SELECTOR ── */
+  #mode-selector{position:fixed;inset:0;background:rgba(13,15,20,.95);
+    display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(8px);}
+  #mode-modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;
+    padding:48px;max-width:820px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,.6);}
+  #mode-modal h1{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent);margin-bottom:8px;}
+  #mode-modal p{color:var(--text2);font-size:.9rem;margin-bottom:32px;}
+  .mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:32px;}
+  .mode-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
+    padding:20px 16px;cursor:pointer;transition:all .2s;text-align:left;}
+  .mode-card:hover{border-color:var(--accent2);background:rgba(129,140,248,.08);}
+  .mode-card.active{border-color:var(--accent);background:rgba(110,231,183,.08);}
+  .mode-card-num{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--text3);margin-bottom:6px;}
+  .mode-card-name{font-weight:600;font-size:.88rem;color:var(--text);margin-bottom:4px;}
+  .mode-card-desc{font-size:.75rem;color:var(--text2);line-height:1.4;}
+  .level-row{display:flex;gap:10px;margin-bottom:28px;align-items:center;}
+  .level-row label{font-size:.82rem;color:var(--text2);margin-right:4px;}
+  .level-btn{padding:7px 20px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);
+    color:var(--text);font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;}
+  .level-btn.active{background:var(--accent3);border-color:var(--accent3);color:#0d0f14;}
+
+  /* ── TIMER ALERT ── */
+  #timer-alert{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);
+    background:var(--bg2);border:2px solid var(--accent3);border-radius:20px;padding:40px 60px;
+    text-align:center;z-index:200;box-shadow:0 20px 80px rgba(0,0,0,.7);animation:popIn .4s ease forwards;}
+  @keyframes popIn{to{transform:translate(-50%,-50%) scale(1);}}
+  #timer-alert h2{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent3);margin-bottom:8px;}
+  #timer-alert p{color:var(--text2);font-size:.9rem;}
+  .btn-close-alert{margin-top:20px;padding:10px 28px;border-radius:8px;border:1px solid var(--accent3);
+    background:rgba(251,191,36,.15);color:var(--accent3);font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;}
+  .btn-close-alert:hover{background:rgba(251,191,36,.25);}
+
+  /* ── FIN BANCO ── */
+  #end-banner{display:none;position:absolute;inset:0;background:rgba(13,15,20,.85);
+    border-radius:20px;align-items:center;justify-content:center;flex-direction:column;gap:12px;
+    backdrop-filter:blur(4px);}
+  #end-banner h2{font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--accent);text-align:center;}
+  #end-banner p{color:var(--text2);font-size:.9rem;text-align:center;}
+
+  body.class-mode #controls-wrap{display:none;}
+  #fullscreen-hint{position:fixed;bottom:20px;right:20px;font-size:.7rem;color:var(--text3);cursor:pointer;z-index:50;}
+  .fade-enter{animation:fadeIn .5s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+  mjx-container{font-size:var(--math-size)!important;}
+  .step-content mjx-container{font-size:var(--step-math-size)!important;}
+  @media(max-width:700px){
+    :root{--math-size:1.8rem;--step-math-size:1.2rem;}
+    #exercise-box{padding:28px 20px;}.mode-grid{grid-template-columns:1fr 1fr;}
+    #controls-row1{gap:5px;}.btn{padding:7px 10px;font-size:.75rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- MODE SELECTOR -->
+<div id="mode-selector">
+  <div id="mode-modal">
+    <h1>Laboratorio de Raíces</h1>
+    <p>Selecciona el modo y el nivel. Los ejercicios se presentarán en orden secuencial.</p>
+    <div class="mode-grid" id="mode-grid"></div>
+    <div class="level-row">
+      <label>Nivel:</label>
+      <button class="level-btn active" data-level="1">Nivel 1</button>
+      <button class="level-btn" data-level="2">Nivel 2</button>
+      <button class="level-btn" data-level="3">Nivel 3</button>
+    </div>
+    <button class="btn btn-primary" id="start-btn" style="width:100%;padding:14px;font-size:1rem;">Iniciar Laboratorio →</button>
+  </div>
+</div>
+
+<!-- TIMER ALERT -->
+<div id="timer-alert">
+  <h2>⏱ ¡Tiempo!</h2>
+  <p>El docente decide cuándo mostrar la solución.</p>
+  <button class="btn-close-alert" onclick="closeTimerAlert()">Continuar</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div id="topbar">
+    <div id="topbar-left">
+      <span id="app-title">√ Laboratorio de Raíces</span>
+      <span class="badge" id="mode-badge">—</span>
+      <span class="badge" id="level-badge">Nivel 1</span>
+    </div>
+    <div id="topbar-right">
+      <span id="progress-counter">— / —</span>
+      <span id="timer-display">—</span>
+    </div>
+  </div>
+  <div id="progress-bar-wrap"><div id="progress-bar-fill"></div></div>
+
+  <div id="main-zone">
+    <div id="exercise-label">EJERCICIO</div>
+    <div id="exercise-box">
+      <div id="end-banner">
+        <h2>✓ ¡Banco completado!</h2>
+        <p>Has recorrido todos los ejercicios de este nivel.<br>Puedes volver al inicio o cambiar de modo.</p>
+        <button class="btn btn-primary" onclick="goToExercise(0)" style="margin-top:8px">↺ Volver al primero</button>
+      </div>
+      <div id="exercise-content">Selecciona un modo para comenzar</div>
+    </div>
+    <div id="steps-panel"></div>
+  </div>
+
+  <div id="controls-wrap">
+    <div id="controls-row1">
+      <button class="btn btn-prev" id="btn-prev" onclick="prevExercise()" title="Ejercicio anterior (←)">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextExercise()" title="Siguiente ejercicio (→ o N)">Siguiente →</button>
+      <button class="btn btn-step" id="btn-step1" onclick="showStep(1)">Paso 1</button>
+      <button class="btn btn-step" id="btn-step2" onclick="showStep(2)">Paso 2</button>
+      <button class="btn btn-step" id="btn-step3" onclick="showStep(3)">Paso 3</button>
+      <button class="btn btn-step" id="btn-solution" onclick="showSolution()"
+        style="border-color:rgba(110,231,183,.4);color:var(--accent);background:rgba(110,231,183,.08)">✓ Solución</button>
+      <button class="btn" onclick="hideSteps()">Ocultar</button>
+      <button class="btn" onclick="resetExercise()">↺ Reiniciar</button>
+    </div>
+    <div id="controls-row2">
+      <div id="controls-row2-left">
+        <button class="btn btn-size" onclick="changeMathSize(1)">A+</button>
+        <button class="btn btn-size" onclick="changeMathSize(-1)">A−</button>
+        <button class="btn" onclick="openModeSelector()">⊞ Modo</button>
+        <button class="btn btn-danger" onclick="toggleClassMode()" id="btn-class-mode">👁 Modo Clase</button>
+        <button class="btn" onclick="toggleFullscreen()">⛶ Pantalla completa</button>
+      </div>
+      <div id="controls-row2-right">
+        <span style="font-size:.78rem;color:var(--text3)">Timer:</span>
+        <button class="btn btn-timer" data-t="0" onclick="setTimer(0)">Sin timer</button>
+        <button class="btn btn-timer" data-t="30" onclick="setTimer(30)">30s</button>
+        <button class="btn btn-timer active" data-t="60" onclick="setTimer(60)">1min</button>
+        <button class="btn btn-timer" data-t="120" onclick="setTimer(120)">2min</button>
+        <button class="btn btn-timer" data-t="-1" onclick="toggleTimer()">▶ Iniciar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="fullscreen-hint" onclick="toggleFullscreen()">F11 · ← → navegar · S solución · T timer</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+const state = {
+  mode: 1, level: 1,
+  currentIndex: 0,       // índice dentro del banco activo
+  stepsShown: 0,
+  mathSizeIndex: 1,
+  timerDuration: 60,
+  timerRemaining: 0,
+  timerRunning: false,
+  timerInterval: null,
+  classMode: false,
+};
+
+const mathSizes = [
+  {main:'2rem',   step:'1.3rem'},
+  {main:'2.8rem', step:'1.8rem'},
+  {main:'3.8rem', step:'2.2rem'},
+  {main:'4.8rem', step:'2.6rem'},
+];
+
+/* ═══════════════════════════════════════════════
+   BANCO DE EJERCICIOS
+═══════════════════════════════════════════════ */
+const exercises = {
+
+/* ──────────────────────────────────────────────
+   MODO 1 · APROXIMACIÓN
+   Nivel 1: índice 2, radicandos pequeños (2–100)
+   Nivel 2: radicandos medianos, introducir índice 3
+   Nivel 3: radicandos grandes, índices 3 y 4
+────────────────────────────────────────────── */
+1: {
+  1: [
+    { expr:'\\sqrt{3}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt{3}$?',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$1^2=1$ y $2^2=4$'},
+        {label:'Desigualdad', math:'$1<3<4 \\implies \\sqrt{1}<\\sqrt{3}<\\sqrt{4}$'},
+        {label:'Resultado', math:'$1 < \\sqrt{3} < 2$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{3}\\approx 1{,}73$'}},
+
+    { expr:'\\sqrt{7}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt{7}$?',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$2^2=4$ y $3^2=9$'},
+        {label:'Desigualdad', math:'$4<7<9 \\implies 2<\\sqrt{7}<3$'},
+        {label:'Resultado', math:'$2 < \\sqrt{7} < 3$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{7}\\approx 2{,}65$'}},
+
+    { expr:'\\sqrt{15}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt{15}$?',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$3^2=9$ y $4^2=16$'},
+        {label:'Desigualdad', math:'$9<15<16 \\implies 3<\\sqrt{15}<4$'},
+        {label:'Resultado', math:'$3 < \\sqrt{15} < 4$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{15}\\approx 3{,}87$'}},
+
+    { expr:'\\sqrt{20}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt{20}$?',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$4^2=16$ y $5^2=25$'},
+        {label:'Desigualdad', math:'$16<20<25 \\implies 4<\\sqrt{20}<5$'},
+        {label:'Resultado', math:'$4 < \\sqrt{20} < 5$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{20}\\approx 4{,}47$'}},
+
+    { expr:'\\sqrt{30}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt{30}$?',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$5^2=25$ y $6^2=36$'},
+        {label:'Desigualdad', math:'$25<30<36 \\implies 5<\\sqrt{30}<6$'},
+        {label:'Resultado', math:'$5 < \\sqrt{30} < 6$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{30}\\approx 5{,}48$'}},
+
+    { expr:'\\sqrt{40}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt{40}$?',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$6^2=36$ y $7^2=49$'},
+        {label:'Desigualdad', math:'$36<40<49 \\implies 6<\\sqrt{40}<7$'},
+        {label:'Resultado', math:'$6 < \\sqrt{40} < 7$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{40}\\approx 6{,}32$'}},
+
+    { expr:'\\sqrt{50}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt{50}$?',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$7^2=49$ y $8^2=64$'},
+        {label:'Desigualdad', math:'$49<50<64 \\implies 7<\\sqrt{50}<8$'},
+        {label:'Resultado', math:'$7 < \\sqrt{50} < 8$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{50}\\approx 7{,}07$'}},
+
+    { expr:'\\sqrt{60}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt{60}$?',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$7^2=49$ y $8^2=64$'},
+        {label:'Desigualdad', math:'$49<60<64 \\implies 7<\\sqrt{60}<8$'},
+        {label:'Resultado', math:'$7 < \\sqrt{60} < 8$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{60}\\approx 7{,}75$'}},
+
+    { expr:'\\sqrt{70}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt{70}$?',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$8^2=64$ y $9^2=81$'},
+        {label:'Desigualdad', math:'$64<70<81 \\implies 8<\\sqrt{70}<9$'},
+        {label:'Resultado', math:'$8 < \\sqrt{70} < 9$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{70}\\approx 8{,}37$'}},
+
+    { expr:'\\sqrt{85}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt{85}$?',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$9^2=81$ y $10^2=100$'},
+        {label:'Desigualdad', math:'$81<85<100 \\implies 9<\\sqrt{85}<10$'},
+        {label:'Resultado', math:'$9 < \\sqrt{85} < 10$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{85}\\approx 9{,}22$'}},
+  ],
+  2: [
+    { expr:'\\sqrt{110}', label:'Acota $\\sqrt{110}$ entre dos enteros consecutivos.',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$10^2=100$ y $11^2=121$'},
+        {label:'Desigualdad', math:'$100<110<121 \\implies 10<\\sqrt{110}<11$'},
+        {label:'Resultado', math:'$10 < \\sqrt{110} < 11$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{110}\\approx 10{,}49$'}},
+
+    { expr:'\\sqrt{130}', label:'Acota $\\sqrt{130}$ entre dos enteros consecutivos.',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$11^2=121$ y $12^2=144$'},
+        {label:'Desigualdad', math:'$121<130<144 \\implies 11<\\sqrt{130}<12$'},
+        {label:'Resultado', math:'$11 < \\sqrt{130} < 12$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{130}\\approx 11{,}40$'}},
+
+    { expr:'\\sqrt{170}', label:'Acota $\\sqrt{170}$ entre dos enteros consecutivos.',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$13^2=169$ y $14^2=196$'},
+        {label:'Desigualdad', math:'$169<170<196 \\implies 13<\\sqrt{170}<14$'},
+        {label:'Resultado', math:'$13 < \\sqrt{170} < 14$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{170}\\approx 13{,}04$'}},
+
+    { expr:'\\sqrt{200}', label:'Acota $\\sqrt{200}$ entre dos enteros consecutivos.',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$14^2=196$ y $15^2=225$'},
+        {label:'Desigualdad', math:'$196<200<225 \\implies 14<\\sqrt{200}<15$'},
+        {label:'Resultado', math:'$14 < \\sqrt{200} < 15$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{200}\\approx 14{,}14$'}},
+
+    { expr:'\\sqrt{250}', label:'Acota $\\sqrt{250}$ entre dos enteros consecutivos.',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$15^2=225$ y $16^2=256$'},
+        {label:'Desigualdad', math:'$225<250<256 \\implies 15<\\sqrt{250}<16$'},
+        {label:'Resultado', math:'$15 < \\sqrt{250} < 16$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{250}\\approx 15{,}81$'}},
+
+    { expr:'\\sqrt[3]{10}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt[3]{10}$?',
+      steps:[
+        {label:'Cubos perfectos cercanos', math:'$2^3=8$ y $3^3=27$'},
+        {label:'Desigualdad', math:'$8<10<27 \\implies 2<\\sqrt[3]{10}<3$'},
+        {label:'Resultado', math:'$2 < \\sqrt[3]{10} < 3$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt[3]{10}\\approx 2{,}15$'}},
+
+    { expr:'\\sqrt[3]{30}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt[3]{30}$?',
+      steps:[
+        {label:'Cubos perfectos cercanos', math:'$3^3=27$ y $4^3=64$'},
+        {label:'Desigualdad', math:'$27<30<64 \\implies 3<\\sqrt[3]{30}<4$'},
+        {label:'Resultado', math:'$3 < \\sqrt[3]{30} < 4$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt[3]{30}\\approx 3{,}11$'}},
+
+    { expr:'\\sqrt[3]{70}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt[3]{70}$?',
+      steps:[
+        {label:'Cubos perfectos cercanos', math:'$4^3=64$ y $5^3=125$'},
+        {label:'Desigualdad', math:'$64<70<125 \\implies 4<\\sqrt[3]{70}<5$'},
+        {label:'Resultado', math:'$4 < \\sqrt[3]{70} < 5$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt[3]{70}\\approx 4{,}12$'}},
+  ],
+  3: [
+    { expr:'\\sqrt{500}', label:'Acota $\\sqrt{500}$ entre dos enteros consecutivos.',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$22^2=484$ y $23^2=529$'},
+        {label:'Desigualdad', math:'$484<500<529 \\implies 22<\\sqrt{500}<23$'},
+        {label:'Resultado', math:'$22 < \\sqrt{500} < 23$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{500}\\approx 22{,}36$'}},
+
+    { expr:'\\sqrt{600}', label:'Acota $\\sqrt{600}$ entre dos enteros consecutivos.',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$24^2=576$ y $25^2=625$'},
+        {label:'Desigualdad', math:'$576<600<625 \\implies 24<\\sqrt{600}<25$'},
+        {label:'Resultado', math:'$24 < \\sqrt{600} < 25$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{600}\\approx 24{,}49$'}},
+
+    { expr:'\\sqrt{999}', label:'Acota $\\sqrt{999}$ entre dos enteros consecutivos.',
+      steps:[
+        {label:'Cuadrados perfectos cercanos', math:'$31^2=961$ y $32^2=1024$'},
+        {label:'Desigualdad', math:'$961<999<1024 \\implies 31<\\sqrt{999}<32$'},
+        {label:'Resultado', math:'$31 < \\sqrt{999} < 32$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt{999}\\approx 31{,}61$'}},
+
+    { expr:'\\sqrt[3]{100}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt[3]{100}$?',
+      steps:[
+        {label:'Cubos perfectos cercanos', math:'$4^3=64$ y $5^3=125$'},
+        {label:'Desigualdad', math:'$64<100<125 \\implies 4<\\sqrt[3]{100}<5$'},
+        {label:'Resultado', math:'$4 < \\sqrt[3]{100} < 5$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt[3]{100}\\approx 4{,}64$'}},
+
+    { expr:'\\sqrt[3]{200}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt[3]{200}$?',
+      steps:[
+        {label:'Cubos perfectos cercanos', math:'$5^3=125$ y $6^3=216$'},
+        {label:'Desigualdad', math:'$125<200<216 \\implies 5<\\sqrt[3]{200}<6$'},
+        {label:'Resultado', math:'$5 < \\sqrt[3]{200} < 6$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt[3]{200}\\approx 5{,}85$'}},
+
+    { expr:'\\sqrt[4]{20}', label:'¿Entre qué enteros consecutivos se encuentra $\\sqrt[4]{20}$?',
+      steps:[
+        {label:'Cuartas potencias cercanas', math:'$2^4=16$ y $3^4=81$'},
+        {label:'Desigualdad', math:'$16<20<81 \\implies 2<\\sqrt[4]{20}<3$'},
+        {label:'Resultado', math:'$2 < \\sqrt[4]{20} < 3$'},
+      ], solution:{label:'Aproximación', math:'$\\sqrt[4]{20}\\approx 2{,}11$'}},
+  ],
+},
+
+/* ──────────────────────────────────────────────
+   MODO 2 · PROPIEDADES
+   P1 Multiplicación · P2 División · P3 Raíz de raíz
+   P4 Potencia de raíz · P5 Factor dentro · P6 Pot. fraccionaria
+────────────────────────────────────────────── */
+2: {
+  1: [
+    // P1 – Multiplicación (igual índice)
+    { expr:'\\sqrt{2}\\cdot\\sqrt{8}',
+      label:'Simplifica usando la propiedad del <strong>producto</strong> de raíces (igual índice).',
+      steps:[
+        {label:'Propiedad', math:'$\\sqrt{a}\\cdot\\sqrt{b}=\\sqrt{a\\cdot b}$'},
+        {label:'Aplicar', math:'$\\sqrt{2}\\cdot\\sqrt{8}=\\sqrt{16}$'},
+        {label:'Simplificar', math:'$\\sqrt{16}=4$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{2}\\cdot\\sqrt{8}=4$'}},
+
+    { expr:'\\sqrt{3}\\cdot\\sqrt{12}',
+      label:'Simplifica usando la propiedad del <strong>producto</strong> de raíces.',
+      steps:[
+        {label:'Propiedad', math:'$\\sqrt{a}\\cdot\\sqrt{b}=\\sqrt{a\\cdot b}$'},
+        {label:'Aplicar', math:'$\\sqrt{3}\\cdot\\sqrt{12}=\\sqrt{36}$'},
+        {label:'Simplificar', math:'$\\sqrt{36}=6$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{3}\\cdot\\sqrt{12}=6$'}},
+
+    { expr:'\\sqrt{5}\\cdot\\sqrt{20}',
+      label:'Simplifica el producto de raíces.',
+      steps:[
+        {label:'Propiedad', math:'$\\sqrt{a}\\cdot\\sqrt{b}=\\sqrt{a\\cdot b}$'},
+        {label:'Aplicar', math:'$\\sqrt{5\\cdot 20}=\\sqrt{100}$'},
+        {label:'Simplificar', math:'$\\sqrt{100}=10$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{5}\\cdot\\sqrt{20}=10$'}},
+
+    // P2 – División (igual índice)
+    { expr:'\\dfrac{\\sqrt{36}}{\\sqrt{4}}',
+      label:'Simplifica usando la propiedad del <strong>cociente</strong> de raíces.',
+      steps:[
+        {label:'Propiedad', math:'$\\dfrac{\\sqrt{a}}{\\sqrt{b}}=\\sqrt{\\dfrac{a}{b}}$'},
+        {label:'Aplicar', math:'$\\sqrt{\\dfrac{36}{4}}=\\sqrt{9}$'},
+        {label:'Simplificar', math:'$\\sqrt{9}=3$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{\\sqrt{36}}{\\sqrt{4}}=3$'}},
+
+    { expr:'\\dfrac{\\sqrt{45}}{\\sqrt{5}}',
+      label:'Simplifica usando la propiedad del <strong>cociente</strong> de raíces.',
+      steps:[
+        {label:'Propiedad', math:'$\\dfrac{\\sqrt{a}}{\\sqrt{b}}=\\sqrt{\\dfrac{a}{b}}$'},
+        {label:'Aplicar', math:'$\\sqrt{\\dfrac{45}{5}}=\\sqrt{9}$'},
+        {label:'Simplificar', math:'$\\sqrt{9}=3$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{\\sqrt{45}}{\\sqrt{5}}=3$'}},
+
+    { expr:'\\dfrac{\\sqrt{75}}{\\sqrt{3}}',
+      label:'Simplifica el cociente de raíces.',
+      steps:[
+        {label:'Propiedad cociente', math:'$\\sqrt{\\dfrac{75}{3}}=\\sqrt{25}$'},
+        {label:'Simplificar', math:'$\\sqrt{25}=5$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{\\sqrt{75}}{\\sqrt{3}}=5$'}},
+
+    // P3 – Raíz de una raíz
+    { expr:'\\sqrt{\\sqrt{16}}',
+      label:'Simplifica la <strong>raíz de una raíz</strong>.',
+      steps:[
+        {label:'Propiedad', math:'$\\sqrt{\\sqrt{a}}=\\sqrt[4]{a}$'},
+        {label:'Reescribir', math:'$\\sqrt[4]{16}=\\sqrt[4]{2^4}$'},
+        {label:'Simplificar', math:'$\\sqrt[4]{2^4}=2$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{\\sqrt{16}}=2$'}},
+
+    { expr:'\\sqrt{\\sqrt{81}}',
+      label:'Simplifica la raíz doble.',
+      steps:[
+        {label:'Propiedad', math:'$\\sqrt{\\sqrt{a}}=\\sqrt[4]{a}$'},
+        {label:'Reescribir', math:'$\\sqrt[4]{81}=\\sqrt[4]{3^4}$'},
+        {label:'Simplificar', math:'$\\sqrt[4]{3^4}=3$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{\\sqrt{81}}=3$'}},
+
+    // P4 – Potencia de una raíz
+    { expr:'\\left(\\sqrt{7}\\right)^2',
+      label:'Simplifica la <strong>potencia de una raíz</strong>.',
+      steps:[
+        {label:'Propiedad', math:'$\\left(\\sqrt{a}\\right)^2=a\\quad(a\\geq0)$'},
+        {label:'Aplicar', math:'$\\left(\\sqrt{7}\\right)^2=7$'},
+      ], solution:{label:'Resultado', math:'$\\left(\\sqrt{7}\\right)^2=7$'}},
+
+    { expr:'\\left(\\sqrt{11}\\right)^2',
+      label:'Simplifica la potencia de raíz cuadrada.',
+      steps:[
+        {label:'Propiedad', math:'$\\left(\\sqrt{a}\\right)^2=a$'},
+        {label:'Aplicar', math:'$\\left(\\sqrt{11}\\right)^2=11$'},
+      ], solution:{label:'Resultado', math:'$\\left(\\sqrt{11}\\right)^2=11$'}},
+
+    // P5 – Ingresar factor dentro de la raíz
+    { expr:'3\\sqrt{2}',
+      label:'Ingresa el factor <strong>dentro</strong> de la raíz cuadrada.',
+      steps:[
+        {label:'Propiedad', math:'$a\\sqrt{b}=\\sqrt{a^2\\cdot b}$'},
+        {label:'Aplicar con a=3', math:'$3\\sqrt{2}=\\sqrt{3^2\\cdot2}=\\sqrt{9\\cdot2}$'},
+        {label:'Resultado', math:'$=\\sqrt{18}$'},
+      ], solution:{label:'Resultado', math:'$3\\sqrt{2}=\\sqrt{18}$'}},
+
+    { expr:'4\\sqrt{3}',
+      label:'Ingresa el factor dentro de la raíz.',
+      steps:[
+        {label:'Propiedad', math:'$a\\sqrt{b}=\\sqrt{a^2\\cdot b}$'},
+        {label:'Aplicar con a=4', math:'$4\\sqrt{3}=\\sqrt{16\\cdot3}$'},
+        {label:'Resultado', math:'$=\\sqrt{48}$'},
+      ], solution:{label:'Resultado', math:'$4\\sqrt{3}=\\sqrt{48}$'}},
+
+    // P6 – Raíz como potencia fraccionaria
+    { expr:'\\sqrt{5}',
+      label:'Escribe la raíz como <strong>potencia fraccionaria</strong>.',
+      steps:[
+        {label:'Definición', math:'$\\sqrt[n]{a}=a^{1/n}$'},
+        {label:'Aplicar con n=2', math:'$\\sqrt{5}=5^{1/2}$'},
+        {label:'Verificar', math:'$5^{1/2}=5^{0{,}5}$'},
+      ], solution:{label:'Forma exponencial', math:'$\\sqrt{5}=5^{1/2}$'}},
+
+    { expr:'\\sqrt[3]{8}',
+      label:'Escribe la raíz cúbica como potencia fraccionaria y evalúa.',
+      steps:[
+        {label:'Definición', math:'$\\sqrt[3]{a}=a^{1/3}$'},
+        {label:'Aplicar', math:'$\\sqrt[3]{8}=8^{1/3}$'},
+        {label:'Evaluar: $2^3=8$', math:'$8^{1/3}=2$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt[3]{8}=2$'}},
+  ],
+  2: [
+    // P1
+    { expr:'\\sqrt[3]{4}\\cdot\\sqrt[3]{16}',
+      label:'Multiplica las <strong>raíces cúbicas</strong> (mismo índice).',
+      steps:[
+        {label:'Propiedad producto (índice 3)', math:'$\\sqrt[3]{a}\\cdot\\sqrt[3]{b}=\\sqrt[3]{a\\cdot b}$'},
+        {label:'Aplicar', math:'$\\sqrt[3]{4\\cdot16}=\\sqrt[3]{64}$'},
+        {label:'Simplificar', math:'$\\sqrt[3]{64}=\\sqrt[3]{4^3}=4$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt[3]{4}\\cdot\\sqrt[3]{16}=4$'}},
+
+    { expr:'\\sqrt{2}\\cdot\\sqrt{8}\\cdot\\sqrt{2}',
+      label:'Simplifica el <strong>triple producto</strong> de raíces.',
+      steps:[
+        {label:'Extender la propiedad', math:'$\\sqrt{a}\\cdot\\sqrt{b}\\cdot\\sqrt{c}=\\sqrt{abc}$'},
+        {label:'Calcular', math:'$\\sqrt{2\\cdot8\\cdot2}=\\sqrt{32}$'},
+        {label:'Simplificar', math:'$\\sqrt{32}=\\sqrt{16\\cdot2}=4\\sqrt{2}$'},
+      ], solution:{label:'Resultado', math:'$4\\sqrt{2}$'}},
+
+    { expr:'\\sqrt[3]{3}\\cdot\\sqrt[3]{9}',
+      label:'Multiplica las raíces cúbicas.',
+      steps:[
+        {label:'Propiedad', math:'$\\sqrt[3]{3}\\cdot\\sqrt[3]{9}=\\sqrt[3]{27}$'},
+        {label:'Simplificar', math:'$\\sqrt[3]{27}=\\sqrt[3]{3^3}=3$'},
+      ], solution:{label:'Resultado', math:'$3$'}},
+
+    // P2
+    { expr:'\\dfrac{\\sqrt[3]{54}}{\\sqrt[3]{2}}',
+      label:'Divide raíces cúbicas del mismo índice.',
+      steps:[
+        {label:'Propiedad cociente (índice 3)', math:'$\\dfrac{\\sqrt[3]{a}}{\\sqrt[3]{b}}=\\sqrt[3]{\\dfrac{a}{b}}$'},
+        {label:'Aplicar', math:'$\\sqrt[3]{\\dfrac{54}{2}}=\\sqrt[3]{27}$'},
+        {label:'Simplificar', math:'$\\sqrt[3]{27}=3$'},
+      ], solution:{label:'Resultado', math:'$3$'}},
+
+    { expr:'\\dfrac{\\sqrt{72}}{\\sqrt{2}}',
+      label:'Divide y simplifica.',
+      steps:[
+        {label:'Cociente de raíces', math:'$\\sqrt{\\dfrac{72}{2}}=\\sqrt{36}$'},
+        {label:'Simplificar', math:'$\\sqrt{36}=6$'},
+      ], solution:{label:'Resultado', math:'$6$'}},
+
+    { expr:'\\dfrac{\\sqrt{98}}{\\sqrt{2}}',
+      label:'Divide y simplifica.',
+      steps:[
+        {label:'Cociente de raíces', math:'$\\sqrt{\\dfrac{98}{2}}=\\sqrt{49}$'},
+        {label:'Simplificar', math:'$\\sqrt{49}=7$'},
+      ], solution:{label:'Resultado', math:'$7$'}},
+
+    // P3
+    { expr:'\\sqrt[3]{\\sqrt{64}}',
+      label:'Simplifica la <strong>raíz de una raíz</strong> (m=3, n=2).',
+      steps:[
+        {label:'Propiedad general', math:'$\\sqrt[m]{\\sqrt[n]{a}}=\\sqrt[mn]{a}$'},
+        {label:'Índice combinado: $3\\cdot2=6$', math:'$\\sqrt[6]{64}=\\sqrt[6]{2^6}$'},
+        {label:'Simplificar', math:'$2^{6/6}=2$'},
+      ], solution:{label:'Resultado', math:'$2$'}},
+
+    { expr:'\\sqrt{\\sqrt[3]{729}}',
+      label:'Simplifica combinando índices.',
+      steps:[
+        {label:'Propiedad raíz de raíz', math:'$\\sqrt{\\sqrt[3]{a}}=\\sqrt[2\\cdot3]{a}=\\sqrt[6]{a}$'},
+        {label:'Aplicar', math:'$\\sqrt[6]{729}=\\sqrt[6]{3^6}$'},
+        {label:'Simplificar', math:'$3^{6/6}=3$'},
+      ], solution:{label:'Resultado', math:'$3$'}},
+
+    // P4
+    { expr:'\\left(\\sqrt{3}\\right)^4',
+      label:'Simplifica la <strong>potencia de raíz</strong> con m ≠ n.',
+      steps:[
+        {label:'Reescribir', math:'$\\left(\\sqrt{3}\\right)^4=\\left(3^{1/2}\\right)^4=3^{4/2}$'},
+        {label:'Simplificar el exponente', math:'$3^{4/2}=3^2$'},
+        {label:'Calcular', math:'$3^2=9$'},
+      ], solution:{label:'Resultado', math:'$9$'}},
+
+    { expr:'\\left(\\sqrt[3]{5}\\right)^3',
+      label:'Simplifica la potencia de raíz cúbica (m=n).',
+      steps:[
+        {label:'Propiedad: cuando m=n', math:'$\\left(\\sqrt[n]{a}\\right)^n=a$'},
+        {label:'Aplicar', math:'$\\left(\\sqrt[3]{5}\\right)^3=5$'},
+      ], solution:{label:'Resultado', math:'$5$'}},
+
+    { expr:'\\left(\\sqrt{2}\\right)^6',
+      label:'Simplifica la potencia de raíz.',
+      steps:[
+        {label:'Reescribir', math:'$\\left(2^{1/2}\\right)^6=2^{6/2}=2^3$'},
+        {label:'Calcular', math:'$2^3=8$'},
+      ], solution:{label:'Resultado', math:'$8$'}},
+
+    // P5
+    { expr:'2\\sqrt[3]{5}',
+      label:'Ingresa el factor dentro de la <strong>raíz cúbica</strong>.',
+      steps:[
+        {label:'Propiedad (índice 3)', math:'$a\\sqrt[3]{b}=\\sqrt[3]{a^3\\cdot b}$'},
+        {label:'Aplicar con a=2', math:'$2\\sqrt[3]{5}=\\sqrt[3]{8\\cdot5}$'},
+        {label:'Resultado', math:'$=\\sqrt[3]{40}$'},
+      ], solution:{label:'Resultado', math:'$2\\sqrt[3]{5}=\\sqrt[3]{40}$'}},
+
+    { expr:'5\\sqrt{3}',
+      label:'Ingresa el factor dentro de la raíz.',
+      steps:[
+        {label:'Propiedad', math:'$a\\sqrt{b}=\\sqrt{a^2 b}$'},
+        {label:'Aplicar con a=5', math:'$5\\sqrt{3}=\\sqrt{25\\cdot3}$'},
+        {label:'Resultado', math:'$=\\sqrt{75}$'},
+      ], solution:{label:'Resultado', math:'$5\\sqrt{3}=\\sqrt{75}$'}},
+
+    // P6
+    { expr:'\\sqrt[4]{16}',
+      label:'Escribe como potencia fraccionaria y evalúa.',
+      steps:[
+        {label:'Definición', math:'$\\sqrt[4]{a}=a^{1/4}$'},
+        {label:'Aplicar', math:'$16^{1/4}=(2^4)^{1/4}$'},
+        {label:'Simplificar', math:'$=2^{4\\cdot(1/4)}=2$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt[4]{16}=2$'}},
+
+    { expr:'27^{2/3}',
+      label:'Evalúa la <strong>potencia fraccionaria</strong>.',
+      steps:[
+        {label:'Reescribir', math:'$a^{m/n}=\\left(\\sqrt[n]{a}\\right)^m$'},
+        {label:'Raíz cúbica de 27', math:'$\\sqrt[3]{27}=3$'},
+        {label:'Elevar al cuadrado', math:'$3^2=9$'},
+      ], solution:{label:'Resultado', math:'$27^{2/3}=9$'}},
+  ],
+  3: [
+    // P1
+    { expr:'\\sqrt[4]{3}\\cdot\\sqrt[4]{27}',
+      label:'Multiplica raíces del mismo índice (índice 4).',
+      steps:[
+        {label:'Propiedad', math:'$\\sqrt[4]{a}\\cdot\\sqrt[4]{b}=\\sqrt[4]{ab}$'},
+        {label:'Aplicar', math:'$\\sqrt[4]{3\\cdot27}=\\sqrt[4]{81}$'},
+        {label:'Simplificar', math:'$\\sqrt[4]{81}=\\sqrt[4]{3^4}=3$'},
+      ], solution:{label:'Resultado', math:'$3$'}},
+
+    { expr:'\\sqrt{6}\\cdot\\sqrt{6}\\cdot\\sqrt{6}',
+      label:'Simplifica el triple producto.',
+      steps:[
+        {label:'Agrupar primero dos factores', math:'$\\sqrt{6}\\cdot\\sqrt{6}=6$'},
+        {label:'Multiplicar por el tercero', math:'$6\\cdot\\sqrt{6}$'},
+        {label:'Resultado', math:'$6\\sqrt{6}$'},
+      ], solution:{label:'Resultado', math:'$6\\sqrt{6}$'}},
+
+    // P2
+    { expr:'\\dfrac{\\sqrt[4]{162}}{\\sqrt[4]{2}}',
+      label:'Divide raíces del mismo índice (índice 4).',
+      steps:[
+        {label:'Cociente de raíces', math:'$\\sqrt[4]{\\dfrac{162}{2}}=\\sqrt[4]{81}$'},
+        {label:'Simplificar', math:'$\\sqrt[4]{81}=\\sqrt[4]{3^4}=3$'},
+      ], solution:{label:'Resultado', math:'$3$'}},
+
+    { expr:'\\dfrac{\\sqrt[3]{-250}}{\\sqrt[3]{-2}}',
+      label:'Divide raíces cúbicas con radicandos negativos.',
+      steps:[
+        {label:'Ambos negativos: el cociente es positivo', math:'$\\dfrac{\\sqrt[3]{-250}}{\\sqrt[3]{-2}}=\\sqrt[3]{\\dfrac{-250}{-2}}=\\sqrt[3]{125}$'},
+        {label:'Simplificar', math:'$\\sqrt[3]{125}=5$'},
+      ], solution:{label:'Resultado', math:'$5$'}},
+
+    // P3
+    { expr:'\\sqrt[2]{\\sqrt[4]{a^8}}',
+      label:'Simplifica la raíz compuesta (usa variable).',
+      steps:[
+        {label:'Índice total: $2\\cdot4=8$', math:'$\\sqrt[8]{a^8}$'},
+        {label:'Aplicar propiedad', math:'$a^{8/8}=a^1$'},
+        {label:'Resultado (para $a\\geq0$)', math:'$a$'},
+      ], solution:{label:'Resultado', math:'$a\\quad(a\\geq0)$'}},
+
+    { expr:'\\sqrt[3]{\\sqrt[3]{512}}',
+      label:'Simplifica la raíz cúbica de una raíz cúbica.',
+      steps:[
+        {label:'Índice combinado: $3\\cdot3=9$', math:'$\\sqrt[9]{512}=\\sqrt[9]{2^9}$'},
+        {label:'Simplificar', math:'$2^{9/9}=2$'},
+      ], solution:{label:'Resultado', math:'$2$'}},
+
+    // P4
+    { expr:'\\left(\\sqrt[4]{2}\\right)^2',
+      label:'Simplifica: potencia de raíz con m < n.',
+      steps:[
+        {label:'Reescribir como potencia', math:'$\\left(2^{1/4}\\right)^2=2^{2/4}=2^{1/2}$'},
+        {label:'Convertir', math:'$2^{1/2}=\\sqrt{2}$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{2}$'}},
+
+    { expr:'\\left(\\sqrt[3]{4}\\right)^6',
+      label:'Simplifica la potencia de raíz cúbica.',
+      steps:[
+        {label:'Reescribir', math:'$\\left(4^{1/3}\\right)^6=4^{6/3}=4^2$'},
+        {label:'Calcular', math:'$4^2=16$'},
+      ], solution:{label:'Resultado', math:'$16$'}},
+
+    // P5
+    { expr:'\\dfrac{2}{3}\\sqrt{6}',
+      label:'Ingresa el coeficiente fraccionario dentro de la raíz.',
+      steps:[
+        {label:'Propiedad con fracción', math:'$\\dfrac{a}{b}\\sqrt{c}=\\sqrt{\\dfrac{a^2}{b^2}\\cdot c}$'},
+        {label:'Aplicar', math:'$\\sqrt{\\dfrac{4}{9}\\cdot6}=\\sqrt{\\dfrac{24}{9}}$'},
+        {label:'Simplificar', math:'$=\\sqrt{\\dfrac{8}{3}}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{2}{3}\\sqrt{6}=\\sqrt{\\dfrac{8}{3}}$'}},
+
+    { expr:'3\\sqrt[4]{2}',
+      label:'Ingresa el factor dentro de la raíz (índice 4).',
+      steps:[
+        {label:'Propiedad (índice 4)', math:'$a\\sqrt[4]{b}=\\sqrt[4]{a^4\\cdot b}$'},
+        {label:'Aplicar con a=3', math:'$\\sqrt[4]{81\\cdot2}$'},
+        {label:'Resultado', math:'$=\\sqrt[4]{162}$'},
+      ], solution:{label:'Resultado', math:'$3\\sqrt[4]{2}=\\sqrt[4]{162}$'}},
+
+    // P6
+    { expr:'8^{2/3}', label:'Evalúa $8^{2/3}$ usando raíces.',
+      steps:[
+        {label:'Reescribir', math:'$8^{2/3}=\\left(\\sqrt[3]{8}\\right)^2$'},
+        {label:'Raíz cúbica', math:'$\\sqrt[3]{8}=2$'},
+        {label:'Elevar al cuadrado', math:'$2^2=4$'},
+      ], solution:{label:'Resultado', math:'$8^{2/3}=4$'}},
+
+    { expr:'32^{3/5}', label:'Evalúa $32^{3/5}$ usando raíces.',
+      steps:[
+        {label:'Reescribir', math:'$32^{3/5}=\\left(\\sqrt[5]{32}\\right)^3$'},
+        {label:'Quinta raíz de 32: $2^5=32$', math:'$\\sqrt[5]{32}=2$'},
+        {label:'Elevar al cubo', math:'$2^3=8$'},
+      ], solution:{label:'Resultado', math:'$32^{3/5}=8$'}},
+
+    { expr:'16^{3/4}', label:'Evalúa $16^{3/4}$ usando raíces.',
+      steps:[
+        {label:'Reescribir', math:'$16^{3/4}=\\left(\\sqrt[4]{16}\\right)^3$'},
+        {label:'Cuarta raíz de 16', math:'$\\sqrt[4]{16}=2$'},
+        {label:'Elevar al cubo', math:'$2^3=8$'},
+      ], solution:{label:'Resultado', math:'$16^{3/4}=8$'}},
+  ],
+},
+
+/* ──────────────────────────────────────────────
+   MODO 3 · DESCOMPOSICIÓN
+────────────────────────────────────────────── */
+3: {
+  1: [
+    { expr:'\\sqrt{18}', label:'Simplifica descomponiendo en factores primos.',
+      steps:[
+        {label:'Factorización', math:'$18=2\\cdot3^2$'},
+        {label:'Reescribir', math:'$\\sqrt{2\\cdot3^2}$'},
+        {label:'Extraer cuadrado', math:'$=3\\sqrt{2}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{18}=3\\sqrt{2}$'}},
+
+    { expr:'\\sqrt{32}', label:'Simplifica descomponiendo en factores primos.',
+      steps:[
+        {label:'Factorización', math:'$32=2^5=2^4\\cdot2$'},
+        {label:'Reescribir', math:'$\\sqrt{2^4\\cdot2}$'},
+        {label:'Extraer', math:'$=4\\sqrt{2}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{32}=4\\sqrt{2}$'}},
+
+    { expr:'\\sqrt{45}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$45=3^2\\cdot5$'},
+        {label:'Reescribir', math:'$\\sqrt{3^2\\cdot5}$'},
+        {label:'Extraer', math:'$=3\\sqrt{5}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{45}=3\\sqrt{5}$'}},
+
+    { expr:'\\sqrt{48}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$48=2^4\\cdot3$'},
+        {label:'Reescribir', math:'$\\sqrt{2^4\\cdot3}$'},
+        {label:'Extraer', math:'$=4\\sqrt{3}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{48}=4\\sqrt{3}$'}},
+
+    { expr:'\\sqrt{50}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$50=2\\cdot5^2$'},
+        {label:'Reescribir', math:'$\\sqrt{2\\cdot5^2}$'},
+        {label:'Extraer', math:'$=5\\sqrt{2}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{50}=5\\sqrt{2}$'}},
+
+    { expr:'\\sqrt{72}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$72=2^3\\cdot3^2$'},
+        {label:'Reescribir', math:'$\\sqrt{2^2\\cdot2\\cdot3^2}$'},
+        {label:'Extraer cuadrados', math:'$=2\\cdot3\\sqrt{2}=6\\sqrt{2}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{72}=6\\sqrt{2}$'}},
+
+    { expr:'\\sqrt{75}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$75=3\\cdot5^2$'},
+        {label:'Reescribir', math:'$\\sqrt{3\\cdot5^2}$'},
+        {label:'Extraer', math:'$=5\\sqrt{3}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{75}=5\\sqrt{3}$'}},
+
+    { expr:'\\sqrt{98}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$98=2\\cdot7^2$'},
+        {label:'Reescribir', math:'$\\sqrt{2\\cdot7^2}$'},
+        {label:'Extraer', math:'$=7\\sqrt{2}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{98}=7\\sqrt{2}$'}},
+
+    { expr:'\\sqrt{108}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$108=2^2\\cdot3^3=2^2\\cdot3^2\\cdot3$'},
+        {label:'Reescribir', math:'$\\sqrt{2^2\\cdot3^2\\cdot3}$'},
+        {label:'Extraer', math:'$=6\\sqrt{3}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{108}=6\\sqrt{3}$'}},
+  ],
+  2: [
+    { expr:'\\sqrt{180}', label:'Simplifica descomponiendo en factores primos.',
+      steps:[
+        {label:'Factorización', math:'$180=2^2\\cdot3^2\\cdot5$'},
+        {label:'Reescribir', math:'$\\sqrt{2^2\\cdot3^2\\cdot5}$'},
+        {label:'Extraer', math:'$=2\\cdot3\\sqrt{5}=6\\sqrt{5}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{180}=6\\sqrt{5}$'}},
+
+    { expr:'\\sqrt{200}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$200=2^3\\cdot5^2$'},
+        {label:'Reescribir', math:'$\\sqrt{2^2\\cdot2\\cdot5^2}$'},
+        {label:'Extraer', math:'$=10\\sqrt{2}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{200}=10\\sqrt{2}$'}},
+
+    { expr:'\\sqrt{147}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$147=3\\cdot7^2$'},
+        {label:'Reescribir', math:'$\\sqrt{3\\cdot7^2}$'},
+        {label:'Extraer', math:'$=7\\sqrt{3}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{147}=7\\sqrt{3}$'}},
+
+    { expr:'\\sqrt[3]{54}', label:'Simplifica la raíz cúbica.',
+      steps:[
+        {label:'Factorización', math:'$54=2\\cdot3^3$'},
+        {label:'Reescribir', math:'$\\sqrt[3]{2\\cdot3^3}$'},
+        {label:'Extraer cubo', math:'$=3\\sqrt[3]{2}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt[3]{54}=3\\sqrt[3]{2}$'}},
+
+    { expr:'\\sqrt[3]{128}', label:'Simplifica la raíz cúbica.',
+      steps:[
+        {label:'Factorización', math:'$128=2^7=2^6\\cdot2$'},
+        {label:'Reescribir', math:'$\\sqrt[3]{(2^2)^3\\cdot2}$'},
+        {label:'Extraer', math:'$=4\\sqrt[3]{2}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt[3]{128}=4\\sqrt[3]{2}$'}},
+
+    { expr:'\\sqrt{288}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$288=2^5\\cdot3^2$'},
+        {label:'Reescribir', math:'$\\sqrt{2^4\\cdot2\\cdot3^2}$'},
+        {label:'Extraer', math:'$=4\\cdot3\\sqrt{2}=12\\sqrt{2}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{288}=12\\sqrt{2}$'}},
+
+    { expr:'\\sqrt[3]{250}', label:'Simplifica la raíz cúbica.',
+      steps:[
+        {label:'Factorización', math:'$250=2\\cdot5^3$'},
+        {label:'Reescribir', math:'$\\sqrt[3]{2\\cdot5^3}$'},
+        {label:'Extraer', math:'$=5\\sqrt[3]{2}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt[3]{250}=5\\sqrt[3]{2}$'}},
+  ],
+  3: [
+    { expr:'\\sqrt{432}', label:'Simplifica descomponiendo en factores primos.',
+      steps:[
+        {label:'Factorización', math:'$432=2^4\\cdot3^3$'},
+        {label:'Reescribir', math:'$\\sqrt{2^4\\cdot3^2\\cdot3}$'},
+        {label:'Extraer', math:'$=4\\cdot3\\sqrt{3}=12\\sqrt{3}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{432}=12\\sqrt{3}$'}},
+
+    { expr:'\\sqrt{1620}', label:'Simplifica descomponiendo.',
+      steps:[
+        {label:'Factorización', math:'$1620=2^2\\cdot3^4\\cdot5$'},
+        {label:'Reescribir', math:'$\\sqrt{2^2\\cdot3^4\\cdot5}$'},
+        {label:'Extraer', math:'$=2\\cdot9\\sqrt{5}=18\\sqrt{5}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt{1620}=18\\sqrt{5}$'}},
+
+    { expr:'\\sqrt[3]{1080}', label:'Simplifica la raíz cúbica.',
+      steps:[
+        {label:'Factorización', math:'$1080=2^3\\cdot3^3\\cdot5$'},
+        {label:'Reescribir', math:'$\\sqrt[3]{2^3\\cdot3^3\\cdot5}$'},
+        {label:'Extraer', math:'$=2\\cdot3\\sqrt[3]{5}=6\\sqrt[3]{5}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt[3]{1080}=6\\sqrt[3]{5}$'}},
+
+    { expr:'\\sqrt[3]{-192}', label:'Simplifica la raíz cúbica (índice impar).',
+      steps:[
+        {label:'El índice es impar: acepta negativos', math:'$\\sqrt[3]{-192}=-\\sqrt[3]{192}$'},
+        {label:'Factorización de 192', math:'$192=2^6\\cdot3$'},
+        {label:'Extraer', math:'$-\\sqrt[3]{(2^2)^3\\cdot3}=-4\\sqrt[3]{3}$'},
+      ], solution:{label:'Forma simplificada', math:'$\\sqrt[3]{-192}=-4\\sqrt[3]{3}$'}},
+
+    { expr:'\\sqrt{2^8\\cdot3^3\\cdot5}', label:'Simplifica la expresión.',
+      steps:[
+        {label:'Identificar cuadrados perfectos', math:'$2^8=(2^4)^2,\\quad 3^3=3^2\\cdot3$'},
+        {label:'Reescribir', math:'$\\sqrt{(2^4)^2\\cdot3^2\\cdot3\\cdot5}$'},
+        {label:'Extraer', math:'$=16\\cdot3\\sqrt{15}=48\\sqrt{15}$'},
+      ], solution:{label:'Forma simplificada', math:'$48\\sqrt{15}$'}},
+  ],
+},
+
+/* ──────────────────────────────────────────────
+   MODO 4 · RACIONALIZACIÓN SIMPLE
+────────────────────────────────────────────── */
+4: {
+  1: [
+    { expr:'\\dfrac{1}{\\sqrt{2}}', label:'Racionaliza el denominador.',
+      steps:[
+        {label:'Multiplicar por $\\sqrt{2}/\\sqrt{2}$', math:'$\\dfrac{1}{\\sqrt{2}}\\cdot\\dfrac{\\sqrt{2}}{\\sqrt{2}}$'},
+        {label:'Desarrollar', math:'$=\\dfrac{\\sqrt{2}}{2}$'},
+        {label:'Denominador racional', math:'$\\dfrac{\\sqrt{2}}{2}\\checkmark$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{\\sqrt{2}}{2}$'}},
+
+    { expr:'\\dfrac{1}{\\sqrt{3}}', label:'Racionaliza el denominador.',
+      steps:[
+        {label:'Multiplicar', math:'$\\dfrac{1}{\\sqrt{3}}\\cdot\\dfrac{\\sqrt{3}}{\\sqrt{3}}$'},
+        {label:'Desarrollar', math:'$=\\dfrac{\\sqrt{3}}{3}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{\\sqrt{3}}{3}$'}},
+
+    { expr:'\\dfrac{3}{\\sqrt{5}}', label:'Racionaliza el denominador.',
+      steps:[
+        {label:'Multiplicar', math:'$\\dfrac{3}{\\sqrt{5}}\\cdot\\dfrac{\\sqrt{5}}{\\sqrt{5}}$'},
+        {label:'Desarrollar', math:'$=\\dfrac{3\\sqrt{5}}{5}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{3\\sqrt{5}}{5}$'}},
+
+    { expr:'\\dfrac{4}{\\sqrt{3}}', label:'Racionaliza el denominador.',
+      steps:[
+        {label:'Multiplicar', math:'$\\dfrac{4}{\\sqrt{3}}\\cdot\\dfrac{\\sqrt{3}}{\\sqrt{3}}$'},
+        {label:'Desarrollar', math:'$=\\dfrac{4\\sqrt{3}}{3}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{4\\sqrt{3}}{3}$'}},
+
+    { expr:'\\dfrac{6}{\\sqrt{2}}', label:'Racionaliza y simplifica.',
+      steps:[
+        {label:'Multiplicar', math:'$\\dfrac{6}{\\sqrt{2}}\\cdot\\dfrac{\\sqrt{2}}{\\sqrt{2}}$'},
+        {label:'Desarrollar', math:'$=\\dfrac{6\\sqrt{2}}{2}$'},
+        {label:'Simplificar', math:'$=3\\sqrt{2}$'},
+      ], solution:{label:'Resultado', math:'$3\\sqrt{2}$'}},
+
+    { expr:'\\dfrac{7}{\\sqrt{7}}', label:'Racionaliza y simplifica.',
+      steps:[
+        {label:'Multiplicar', math:'$\\dfrac{7}{\\sqrt{7}}\\cdot\\dfrac{\\sqrt{7}}{\\sqrt{7}}$'},
+        {label:'Desarrollar', math:'$=\\dfrac{7\\sqrt{7}}{7}$'},
+        {label:'Simplificar', math:'$=\\sqrt{7}$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{7}$'}},
+
+    { expr:'\\dfrac{10}{\\sqrt{5}}', label:'Racionaliza y simplifica.',
+      steps:[
+        {label:'Multiplicar', math:'$\\dfrac{10}{\\sqrt{5}}\\cdot\\dfrac{\\sqrt{5}}{\\sqrt{5}}$'},
+        {label:'Desarrollar', math:'$=\\dfrac{10\\sqrt{5}}{5}$'},
+        {label:'Simplificar', math:'$=2\\sqrt{5}$'},
+      ], solution:{label:'Resultado', math:'$2\\sqrt{5}$'}},
+  ],
+  2: [
+    { expr:'\\dfrac{2}{3\\sqrt{7}}', label:'Racionaliza el denominador.',
+      steps:[
+        {label:'Multiplicar', math:'$\\dfrac{2}{3\\sqrt{7}}\\cdot\\dfrac{\\sqrt{7}}{\\sqrt{7}}$'},
+        {label:'Desarrollar', math:'$=\\dfrac{2\\sqrt{7}}{21}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{2\\sqrt{7}}{21}$'}},
+
+    { expr:'\\dfrac{\\sqrt{3}}{\\sqrt{12}}', label:'Simplifica y racionaliza.',
+      steps:[
+        {label:'Cociente de raíces', math:'$\\sqrt{\\dfrac{3}{12}}=\\sqrt{\\dfrac{1}{4}}$'},
+        {label:'Simplificar', math:'$=\\dfrac{1}{2}$'},
+        {label:'Denominador ya racional', math:'$\\dfrac{1}{2}\\checkmark$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{1}{2}$'}},
+
+    { expr:'\\dfrac{4}{\\sqrt{8}}', label:'Racionaliza y simplifica.',
+      steps:[
+        {label:'Multiplicar', math:'$\\dfrac{4}{\\sqrt{8}}\\cdot\\dfrac{\\sqrt{8}}{\\sqrt{8}}=\\dfrac{4\\sqrt{8}}{8}$'},
+        {label:'Simplificar', math:'$=\\dfrac{\\sqrt{8}}{2}$'},
+        {label:'Simplificar raíz', math:'$=\\dfrac{2\\sqrt{2}}{2}=\\sqrt{2}$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{2}$'}},
+
+    { expr:'\\dfrac{3}{\\sqrt{27}}', label:'Racionaliza y simplifica.',
+      steps:[
+        {label:'Simplificar denominador primero', math:'$\\sqrt{27}=3\\sqrt{3}$'},
+        {label:'Reescribir', math:'$\\dfrac{3}{3\\sqrt{3}}=\\dfrac{1}{\\sqrt{3}}$'},
+        {label:'Racionalizar', math:'$\\dfrac{\\sqrt{3}}{3}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{\\sqrt{3}}{3}$'}},
+
+    { expr:'\\dfrac{\\sqrt{2}}{\\sqrt{50}}', label:'Simplifica el cociente.',
+      steps:[
+        {label:'Cociente de raíces', math:'$\\sqrt{\\dfrac{2}{50}}=\\sqrt{\\dfrac{1}{25}}$'},
+        {label:'Simplificar', math:'$=\\dfrac{1}{5}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{1}{5}$'}},
+
+    { expr:'\\dfrac{5}{2\\sqrt{3}}', label:'Racionaliza el denominador.',
+      steps:[
+        {label:'Multiplicar por $\\sqrt{3}/\\sqrt{3}$', math:'$\\dfrac{5\\sqrt{3}}{2\\cdot3}$'},
+        {label:'Simplificar', math:'$=\\dfrac{5\\sqrt{3}}{6}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{5\\sqrt{3}}{6}$'}},
+  ],
+  3: [
+    { expr:'\\dfrac{\\sqrt{6}}{\\sqrt{10}}', label:'Simplifica y racionaliza.',
+      steps:[
+        {label:'Cociente', math:'$\\sqrt{\\dfrac{6}{10}}=\\sqrt{\\dfrac{3}{5}}$'},
+        {label:'Racionalizar', math:'$\\dfrac{\\sqrt{3}}{\\sqrt{5}}\\cdot\\dfrac{\\sqrt{5}}{\\sqrt{5}}=\\dfrac{\\sqrt{15}}{5}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{\\sqrt{15}}{5}$'}},
+
+    { expr:'\\dfrac{\\sqrt{5}}{\\sqrt[3]{5}}', label:'Racionaliza expresión mixta.',
+      steps:[
+        {label:'Convertir a potencias', math:'$\\dfrac{5^{1/2}}{5^{1/3}}=5^{1/2-1/3}=5^{1/6}$'},
+        {label:'Convertir a raíz', math:'$5^{1/6}=\\sqrt[6]{5}$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt[6]{5}$'}},
+
+    { expr:'\\dfrac{1}{\\sqrt[3]{4}}', label:'Racionaliza el denominador (raíz cúbica).',
+      steps:[
+        {label:'Necesitamos completar $4^3$: multiplicar por $\\sqrt[3]{2}/\\sqrt[3]{2}$', math:'$\\dfrac{1}{\\sqrt[3]{4}}\\cdot\\dfrac{\\sqrt[3]{2}}{\\sqrt[3]{2}}$'},
+        {label:'Denominador: $\\sqrt[3]{4}\\cdot\\sqrt[3]{2}=\\sqrt[3]{8}=2$', math:'$=\\dfrac{\\sqrt[3]{2}}{2}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{\\sqrt[3]{2}}{2}$'}},
+
+    { expr:'\\dfrac{2}{\\sqrt[3]{9}}', label:'Racionaliza el denominador (raíz cúbica).',
+      steps:[
+        {label:'Para $\\sqrt[3]{9}=\\sqrt[3]{3^2}$ necesitamos un $\\sqrt[3]{3}$ más', math:'$\\dfrac{2}{\\sqrt[3]{9}}\\cdot\\dfrac{\\sqrt[3]{3}}{\\sqrt[3]{3}}$'},
+        {label:'Denominador: $\\sqrt[3]{27}=3$', math:'$=\\dfrac{2\\sqrt[3]{3}}{3}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{2\\sqrt[3]{3}}{3}$'}},
+  ],
+},
+
+/* ──────────────────────────────────────────────
+   MODO 5 · RACIONALIZACIÓN CON CONJUGADOS
+────────────────────────────────────────────── */
+5: {
+  1: [
+    { expr:'\\dfrac{1}{\\sqrt{2}-1}', label:'Racionaliza usando el <strong>conjugado</strong>.',
+      steps:[
+        {label:'Conjugado de $(\\sqrt{2}-1)$', math:'$(\\sqrt{2}+1)$'},
+        {label:'Multiplicar', math:'$\\dfrac{\\sqrt{2}+1}{(\\sqrt{2})^2-1^2}=\\dfrac{\\sqrt{2}+1}{1}$'},
+        {label:'Resultado', math:'$\\sqrt{2}+1$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{2}+1$'}},
+
+    { expr:'\\dfrac{1}{\\sqrt{3}+1}', label:'Racionaliza usando el conjugado.',
+      steps:[
+        {label:'Conjugado de $(\\sqrt{3}+1)$', math:'$(\\sqrt{3}-1)$'},
+        {label:'Multiplicar', math:'$\\dfrac{\\sqrt{3}-1}{3-1}=\\dfrac{\\sqrt{3}-1}{2}$'},
+        {label:'Resultado', math:'$\\dfrac{\\sqrt{3}-1}{2}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{\\sqrt{3}-1}{2}$'}},
+
+    { expr:'\\dfrac{2}{\\sqrt{5}-2}', label:'Racionaliza usando el conjugado.',
+      steps:[
+        {label:'Conjugado de $(\\sqrt{5}-2)$', math:'$(\\sqrt{5}+2)$'},
+        {label:'Multiplicar', math:'$\\dfrac{2(\\sqrt{5}+2)}{5-4}=2(\\sqrt{5}+2)$'},
+        {label:'Resultado', math:'$2\\sqrt{5}+4$'},
+      ], solution:{label:'Resultado', math:'$2\\sqrt{5}+4$'}},
+
+    { expr:'\\dfrac{4}{\\sqrt{3}+1}', label:'Racionaliza usando el conjugado.',
+      steps:[
+        {label:'Conjugado', math:'$(\\sqrt{3}-1)$'},
+        {label:'Multiplicar', math:'$\\dfrac{4(\\sqrt{3}-1)}{3-1}=\\dfrac{4(\\sqrt{3}-1)}{2}$'},
+        {label:'Simplificar', math:'$=2(\\sqrt{3}-1)=2\\sqrt{3}-2$'},
+      ], solution:{label:'Resultado', math:'$2\\sqrt{3}-2$'}},
+
+    { expr:'\\dfrac{3}{\\sqrt{7}-2}', label:'Racionaliza usando el conjugado.',
+      steps:[
+        {label:'Conjugado', math:'$(\\sqrt{7}+2)$'},
+        {label:'Multiplicar', math:'$\\dfrac{3(\\sqrt{7}+2)}{7-4}=\\dfrac{3(\\sqrt{7}+2)}{3}$'},
+        {label:'Simplificar', math:'$=\\sqrt{7}+2$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{7}+2$'}},
+
+    { expr:'\\dfrac{6}{\\sqrt{5}+1}', label:'Racionaliza usando el conjugado.',
+      steps:[
+        {label:'Conjugado', math:'$(\\sqrt{5}-1)$'},
+        {label:'Multiplicar', math:'$\\dfrac{6(\\sqrt{5}-1)}{5-1}=\\dfrac{6(\\sqrt{5}-1)}{4}$'},
+        {label:'Simplificar', math:'$=\\dfrac{3(\\sqrt{5}-1)}{2}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{3\\sqrt{5}-3}{2}$'}},
+  ],
+  2: [
+    { expr:'\\dfrac{3}{\\sqrt{7}+\\sqrt{2}}', label:'Racionaliza con conjugado binomio irracional.',
+      steps:[
+        {label:'Conjugado', math:'$(\\sqrt{7}-\\sqrt{2})$'},
+        {label:'Multiplicar', math:'$\\dfrac{3(\\sqrt{7}-\\sqrt{2})}{7-2}=\\dfrac{3(\\sqrt{7}-\\sqrt{2})}{5}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{3\\sqrt{7}-3\\sqrt{2}}{5}$'}},
+
+    { expr:'\\dfrac{\\sqrt{2}}{\\sqrt{5}+\\sqrt{3}}', label:'Racionaliza el denominador.',
+      steps:[
+        {label:'Conjugado', math:'$(\\sqrt{5}-\\sqrt{3})$'},
+        {label:'Multiplicar', math:'$\\dfrac{\\sqrt{2}(\\sqrt{5}-\\sqrt{3})}{5-3}=\\dfrac{\\sqrt{10}-\\sqrt{6}}{2}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{\\sqrt{10}-\\sqrt{6}}{2}$'}},
+
+    { expr:'\\dfrac{5}{\\sqrt{6}-1}', label:'Racionaliza usando el conjugado.',
+      steps:[
+        {label:'Conjugado', math:'$(\\sqrt{6}+1)$'},
+        {label:'Multiplicar', math:'$\\dfrac{5(\\sqrt{6}+1)}{6-1}=\\dfrac{5(\\sqrt{6}+1)}{5}$'},
+        {label:'Simplificar', math:'$=\\sqrt{6}+1$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{6}+1$'}},
+
+    { expr:'\\dfrac{\\sqrt{3}+1}{\\sqrt{3}-1}', label:'Racionaliza la expresión.',
+      steps:[
+        {label:'Conjugado del denominador', math:'$(\\sqrt{3}+1)$'},
+        {label:'Multiplicar', math:'$\\dfrac{(\\sqrt{3}+1)^2}{3-1}=\\dfrac{3+2\\sqrt{3}+1}{2}$'},
+        {label:'Simplificar', math:'$=\\dfrac{4+2\\sqrt{3}}{2}=2+\\sqrt{3}$'},
+      ], solution:{label:'Resultado', math:'$2+\\sqrt{3}$'}},
+
+    { expr:'\\dfrac{4}{\\sqrt{11}-\\sqrt{7}}', label:'Racionaliza el denominador.',
+      steps:[
+        {label:'Conjugado', math:'$(\\sqrt{11}+\\sqrt{7})$'},
+        {label:'Multiplicar', math:'$\\dfrac{4(\\sqrt{11}+\\sqrt{7})}{11-7}=\\dfrac{4(\\sqrt{11}+\\sqrt{7})}{4}$'},
+        {label:'Simplificar', math:'$=\\sqrt{11}+\\sqrt{7}$'},
+      ], solution:{label:'Resultado', math:'$\\sqrt{11}+\\sqrt{7}$'}},
+  ],
+  3: [
+    { expr:'\\dfrac{\\sqrt{5}+\\sqrt{3}}{\\sqrt{5}-\\sqrt{3}}', label:'Racionaliza la expresión.',
+      steps:[
+        {label:'Conjugado', math:'$(\\sqrt{5}+\\sqrt{3})$'},
+        {label:'Multiplicar', math:'$\\dfrac{(\\sqrt{5}+\\sqrt{3})^2}{5-3}=\\dfrac{8+2\\sqrt{15}}{2}$'},
+        {label:'Simplificar', math:'$=4+\\sqrt{15}$'},
+      ], solution:{label:'Resultado', math:'$4+\\sqrt{15}$'}},
+
+    { expr:'\\dfrac{\\sqrt{7}-\\sqrt{2}}{\\sqrt{7}+\\sqrt{2}}', label:'Racionaliza la expresión.',
+      steps:[
+        {label:'Conjugado', math:'$(\\sqrt{7}-\\sqrt{2})$'},
+        {label:'Multiplicar', math:'$\\dfrac{(\\sqrt{7}-\\sqrt{2})^2}{7-2}=\\dfrac{9-2\\sqrt{14}}{5}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{9-2\\sqrt{14}}{5}$'}},
+
+    { expr:'\\dfrac{3+\\sqrt{2}}{2-\\sqrt{2}}', label:'Racionaliza la expresión.',
+      steps:[
+        {label:'Conjugado de $(2-\\sqrt{2})$', math:'$(2+\\sqrt{2})$'},
+        {label:'Multiplicar', math:'$\\dfrac{(3+\\sqrt{2})(2+\\sqrt{2})}{4-2}=\\dfrac{6+5\\sqrt{2}+2}{2}$'},
+        {label:'Simplificar', math:'$=\\dfrac{8+5\\sqrt{2}}{2}$'},
+      ], solution:{label:'Resultado', math:'$\\dfrac{8+5\\sqrt{2}}{2}$'}},
+
+    { expr:'\\dfrac{\\sqrt{6}+\\sqrt{2}}{\\sqrt{6}-\\sqrt{2}}', label:'Racionaliza la expresión.',
+      steps:[
+        {label:'Conjugado', math:'$(\\sqrt{6}+\\sqrt{2})$'},
+        {label:'Multiplicar', math:'$\\dfrac{(\\sqrt{6}+\\sqrt{2})^2}{6-2}=\\dfrac{8+2\\sqrt{12}}{4}$'},
+        {label:'Simplificar', math:'$=\\dfrac{8+4\\sqrt{3}}{4}=2+\\sqrt{3}$'},
+      ], solution:{label:'Resultado', math:'$2+\\sqrt{3}$'}},
+  ],
+},
+
+/* ──────────────────────────────────────────────
+   MODO 6 · ERROR FRECUENTE
+────────────────────────────────────────────── */
+6: {
+  1: [
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'\\sqrt{12}=\\sqrt{6}',
+      label:'Un estudiante afirma que $\\sqrt{12}=\\sqrt{6}$. ¿Qué error cometió?',
+      steps:[
+        {label:'El error: "cancelar" el 2 dentro y fuera', math:'$\\sqrt{12}\\overset{?}{=}\\sqrt{12/2}=\\sqrt{6}$ ← INCORRECTO'},
+        {label:'Las raíces no se simplifican dividiendo el radicando libremente', math:'$\\sqrt{12}\\neq\\sqrt{6}$'},
+        {label:'Corrección', math:'$\\sqrt{12}=\\sqrt{4\\cdot3}=2\\sqrt{3}\\approx3{,}46$'},
+      ], solution:{label:'Correcto', math:'$\\sqrt{12}=2\\sqrt{3}$'}},
+
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'\\sqrt{a+b}=\\sqrt{a}+\\sqrt{b}',
+      label:'¿Es correcto distribuir la raíz en una suma?',
+      steps:[
+        {label:'Probar con a=9, b=16', math:'$\\sqrt{25}=5$'},
+        {label:'Lado derecho', math:'$\\sqrt{9}+\\sqrt{16}=3+4=7\\neq5$'},
+        {label:'Conclusión', math:'$\\sqrt{a+b}\\neq\\sqrt{a}+\\sqrt{b}$'},
+      ], solution:{label:'Conclusión', math:'$\\sqrt{a+b}\\neq\\sqrt{a}+\\sqrt{b}$ en general'}},
+
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'(\\sqrt{3})^2=9',
+      label:'Un estudiante dice que $(\\sqrt{3})^2=9$.',
+      steps:[
+        {label:'Propiedad correcta', math:'$(\\sqrt{a})^2=a$'},
+        {label:'Aplicar', math:'$(\\sqrt{3})^2=3\\neq9$'},
+        {label:'El error: confundió $\\sqrt{3}$ con $3$', math:'$3^2=9$ pero $(\\sqrt{3})^2=3$'},
+      ], solution:{label:'Correcto', math:'$(\\sqrt{3})^2=3$'}},
+
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'2\\sqrt{3}+3\\sqrt{3}=5\\sqrt{6}',
+      label:'Un estudiante suma los radicandos también. ¿Es correcto?',
+      steps:[
+        {label:'Radicandos iguales: solo se suman coeficientes', math:'$(2+3)\\sqrt{3}=5\\sqrt{3}$'},
+        {label:'El error: sumó también el 3 del radicando', math:'$5\\sqrt{6}$ implica multiplicación, no suma'},
+        {label:'Corrección', math:'$2\\sqrt{3}+3\\sqrt{3}=5\\sqrt{3}$'},
+      ], solution:{label:'Correcto', math:'$5\\sqrt{3}$'}},
+
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'\\sqrt{4+9}=2+3=5',
+      label:'¿Es correcto calcular $\\sqrt{4+9}$ así?',
+      steps:[
+        {label:'Error: aplicó raíz a cada sumando por separado', math:'$\\sqrt{4+9}\\overset{?}{=}\\sqrt{4}+\\sqrt{9}=5$ ← INCORRECTO'},
+        {label:'Corrección: primero sumar, luego raíz', math:'$\\sqrt{4+9}=\\sqrt{13}$'},
+        {label:'Verificar', math:'$\\sqrt{13}\\approx3{,}61\\neq5$'},
+      ], solution:{label:'Correcto', math:'$\\sqrt{4+9}=\\sqrt{13}\\approx3{,}61$'}},
+  ],
+  2: [
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'\\sqrt{(-5)^2}=-5',
+      label:'¿Es correcto que $\\sqrt{(-5)^2}=-5$?',
+      steps:[
+        {label:'Calcular $(-5)^2$', math:'$(-5)^2=25$'},
+        {label:'Raíz cuadrada (siempre $\\geq0$)', math:'$\\sqrt{25}=5\\neq-5$'},
+        {label:'Propiedad general', math:'$\\sqrt{x^2}=|x|$'},
+      ], solution:{label:'Correcto', math:'$\\sqrt{(-5)^2}=5$'}},
+
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'\\sqrt{x^2}=x',
+      label:'¿Es siempre cierto que $\\sqrt{x^2}=x$?',
+      steps:[
+        {label:'Probar con $x=-3$', math:'$\\sqrt{(-3)^2}=\\sqrt{9}=3\\neq-3$'},
+        {label:'Propiedad correcta', math:'$\\sqrt{x^2}=|x|$'},
+        {label:'Solo vale si $x\\geq0$', math:'Si $x<0$: $\\sqrt{x^2}=-x$'},
+      ], solution:{label:'Correcto', math:'$\\sqrt{x^2}=|x|$'}},
+
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'\\sqrt[3]{-8}\\text{ no existe}',
+      label:'Un estudiante dice que $\\sqrt[3]{-8}$ no existe.',
+      steps:[
+        {label:'Las raíces de índice impar sí admiten negativos', math:'Busco $x$ tal que $x^3=-8$'},
+        {label:'Resolver', math:'$(-2)^3=-8\\implies\\sqrt[3]{-8}=-2$'},
+        {label:'Solo raíces de índice par de negativos no existen en $\\mathbb{R}$', math:'$\\sqrt[3]{-8}=-2\\checkmark$'},
+      ], solution:{label:'Correcto', math:'$\\sqrt[3]{-8}=-2$ sí existe'}},
+
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'(\\sqrt{a})^2=\\sqrt{a^2}',
+      label:'Un estudiante dice que $(\\sqrt{a})^2=\\sqrt{a^2}$. ¿Son iguales?',
+      steps:[
+        {label:'Lado izquierdo', math:'$(\\sqrt{a})^2=a\\quad(a\\geq0)$'},
+        {label:'Lado derecho', math:'$\\sqrt{a^2}=|a|$'},
+        {label:'Para $a\\geq0$ son iguales; para $a<0$ el lado izquierdo no está definido en $\\mathbb{R}$', math:'La igualdad vale solo para $a\\geq0$'},
+      ], solution:{label:'Conclusión', math:'$(\\sqrt{a})^2=\\sqrt{a^2}=a$ solo para $a\\geq0$'}},
+  ],
+  3: [
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'\\dfrac{\\sqrt{18}}{\\sqrt{3}}=\\sqrt{6}+\\sqrt{3}',
+      label:'Un estudiante obtiene $\\sqrt{6}+\\sqrt{3}$. ¿Es correcto?',
+      steps:[
+        {label:'Propiedad correcta del cociente', math:'$\\dfrac{\\sqrt{18}}{\\sqrt{3}}=\\sqrt{\\dfrac{18}{3}}=\\sqrt{6}$'},
+        {label:'Error: el estudiante separó incorrectamente', math:'$\\sqrt{6}\\approx2{,}45\\neq\\sqrt{6}+\\sqrt{3}\\approx4{,}18$'},
+      ], solution:{label:'Correcto', math:'$\\dfrac{\\sqrt{18}}{\\sqrt{3}}=\\sqrt{6}$'}},
+
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'\\sqrt{a^2+b^2}=a+b',
+      label:'¿Es verdad que $\\sqrt{a^2+b^2}=a+b$?',
+      steps:[
+        {label:'Probar con a=3, b=4', math:'$\\sqrt{9+16}=\\sqrt{25}=5$'},
+        {label:'Lado derecho', math:'$3+4=7\\neq5$'},
+        {label:'Solo si $ab=0$ se podría simplificar en casos especiales', math:'En general $\\sqrt{a^2+b^2}\\neq a+b$'},
+      ], solution:{label:'Conclusión', math:'$\\sqrt{a^2+b^2}\\neq a+b$'}},
+
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'\\left(\\sqrt{2}\\right)^{-2}=2',
+      label:'Un estudiante calcula $(\\sqrt{2})^{-2}=2$.',
+      steps:[
+        {label:'Exponente negativo: recíproco', math:'$(\\sqrt{2})^{-2}=\\dfrac{1}{(\\sqrt{2})^2}$'},
+        {label:'$(\\sqrt{2})^2=2$', math:'$=\\dfrac{1}{2}$'},
+        {label:'Error: olvidó el recíproco', math:'$(\\sqrt{2})^{-2}=\\dfrac{1}{2}\\neq2$'},
+      ], solution:{label:'Correcto', math:'$(\\sqrt{2})^{-2}=\\dfrac{1}{2}$'}},
+
+    { isError:true, errorTitle:'¿Qué está incorrecto?',
+      expr:'\\sqrt[4]{(-3)^4}=-3',
+      label:'Un estudiante calcula $\\sqrt[4]{(-3)^4}=-3$.',
+      steps:[
+        {label:'Calcular $(-3)^4$', math:'$(-3)^4=81$'},
+        {label:'Índice par: raíz siempre $\\geq0$', math:'$\\sqrt[4]{81}=\\sqrt[4]{3^4}=3$'},
+        {label:'Igual que $\\sqrt{x^2}=|x|$, aquí $\\sqrt[4]{x^4}=|x|$', math:'$\\sqrt[4]{(-3)^4}=|-3|=3\\neq-3$'},
+      ], solution:{label:'Correcto', math:'$\\sqrt[4]{(-3)^4}=3$'}},
+  ],
+},
+
+}; // fin exercises
+
+/* ═══════════════════════════════════════════════
+   MODES META
+═══════════════════════════════════════════════ */
+const modes = [
+  {id:1, name:'Aproximación',    desc:'Acota raíces entre enteros consecutivos.'},
+  {id:2, name:'Propiedades',     desc:'Multiplicación, división, raíz de raíz, potencia, factor y potencia fraccionaria.'},
+  {id:3, name:'Descomposición',  desc:'Factorización prima y simplificación.'},
+  {id:4, name:'Racionalización', desc:'Elimina raíces del denominador.'},
+  {id:5, name:'Conjugados',      desc:'Racionalización con el conjugado.'},
+  {id:6, name:'Error Frecuente', desc:'Identifica y corrige errores típicos.'},
+];
+
+/* ═══════════════════════════════════════════════
+   BANK ACCESS — devuelve el array activo
+═══════════════════════════════════════════════ */
+function getBank() {
+  const modeBank = exercises[state.mode];
+  let lvl = state.level;
+  if (!modeBank[lvl] || modeBank[lvl].length === 0) {
+    lvl = Object.keys(modeBank).map(Number)
+      .reduce((a,b) => Math.abs(b-state.level)<Math.abs(a-state.level)?b:a);
+  }
+  return modeBank[lvl];
+}
+
+/* ═══════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════ */
+function goToExercise(idx) {
+  const bank = getBank();
+  // Ocultar banner de fin
+  document.getElementById('end-banner').style.display = 'none';
+  state.currentIndex = Math.max(0, Math.min(idx, bank.length - 1));
+  state.stepsShown = 0;
+  loadExercise(bank[state.currentIndex]);
+  updateNavUI();
+}
+
+function nextExercise() {
+  const bank = getBank();
+  if (state.currentIndex >= bank.length - 1) {
+    // Mostrar banner de fin
+    document.getElementById('end-banner').style.display = 'flex';
+    return;
+  }
+  goToExercise(state.currentIndex + 1);
+}
+
+function prevExercise() {
+  if (state.currentIndex > 0) goToExercise(state.currentIndex - 1);
+}
+
+function loadExercise(ex) {
+  state.currentExercise = ex;
+  clearSteps();
+  renderExercise();
+  updateStepButtons();
+  resetTimer();
+}
+
+function updateNavUI() {
+  const bank = getBank();
+  const total = bank.length;
+  const cur = state.currentIndex + 1;
+
+  // Contador
+  const pc = document.getElementById('progress-counter');
+  pc.innerHTML = `<span>${cur}</span> / ${total}`;
+
+  // Botón anterior
+  document.getElementById('btn-prev').disabled = state.currentIndex === 0;
+
+  // Botón siguiente
+  const btnNext = document.getElementById('btn-next');
+  if (state.currentIndex >= total - 1) {
+    btnNext.textContent = 'Finalizar ✓';
+  } else {
+    btnNext.textContent = 'Siguiente →';
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════ */
+function renderExercise() {
+  const ex = state.currentExercise;
+  if (!ex) return;
+  const box = document.getElementById('exercise-content');
+  let html = '';
+  if (ex.isError) html += `<div class="error-badge">⚠ ${ex.errorTitle}</div><br>`;
+  html += `$$${ex.expr}$$`;
+  box.innerHTML = html;
+  box.classList.add('fade-enter');
+  setTimeout(() => box.classList.remove('fade-enter'), 600);
+
+  const label = document.getElementById('exercise-label');
+  if (ex.label) {
+    label.innerHTML = ex.label;
+    label.style.cssText = 'display:block;color:var(--text2);font-size:.88rem;letter-spacing:.02em;text-transform:none;margin-bottom:20px;text-align:center;';
+  } else {
+    label.textContent = 'EJERCICIO';
+    label.style.cssText = '';
+  }
+  renderMath();
+}
+
+function resetExercise() {
+  state.stepsShown = 0;
+  clearSteps();
+  updateStepButtons();
+  resetTimer();
+}
+
+function clearSteps() {
+  document.getElementById('steps-panel').innerHTML = '';
+}
+
+function showStep(n) {
+  if (!state.currentExercise) return;
+  const steps = state.currentExercise.steps || [];
+  for (let i = 1; i <= n; i++) {
+    if (i <= steps.length) _renderStep(i, steps[i-1], false);
+  }
+  state.stepsShown = Math.max(state.stepsShown, n);
+  updateStepButtons();
+  renderMath();
+}
+
+function showSolution() {
+  if (!state.currentExercise) return;
+  const steps = state.currentExercise.steps || [];
+  steps.forEach((s,i) => _renderStep(i+1, s, false));
+  if (state.currentExercise.solution) _renderStep('sol', state.currentExercise.solution, true);
+  state.stepsShown = 99;
+  updateStepButtons();
+  renderMath();
+}
+
+function _renderStep(n, stepData, isFinal) {
+  const panel = document.getElementById('steps-panel');
+  const id = `step-card-${n}`;
+  if (document.getElementById(id)) return;
+  const card = document.createElement('div');
+  card.className = 'step-card' + (isFinal?' final-step':'');
+  card.id = id;
+  card.innerHTML = `
+    <div class="step-num">${isFinal?'✓':n}</div>
+    <div class="step-content">
+      <div class="step-label">${stepData.label}</div>
+      <div>${stepData.math}</div>
+    </div>`;
+  panel.appendChild(card);
+  requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('visible')));
+}
+
+function hideSteps() {
+  clearSteps();
+  state.stepsShown = 0;
+  updateStepButtons();
+}
+
+function updateStepButtons() {
+  const ex = state.currentExercise;
+  const stepCount = ex ? (ex.steps||[]).length : 3;
+  ['btn-step1','btn-step2','btn-step3'].forEach((id,i) => {
+    const btn = document.getElementById(id);
+    const n = i+1;
+    btn.classList.toggle('done', state.stepsShown >= n);
+    btn.style.display = n<=stepCount ? '' : 'none';
+  });
+  document.getElementById('btn-solution').classList.toggle('done', state.stepsShown >= 99);
+}
+
+function updateBadges() {
+  const m = modes.find(m => m.id === state.mode);
+  document.getElementById('mode-badge').textContent = m ? m.name : '—';
+  document.getElementById('level-badge').textContent = `Nivel ${state.level}`;
+}
+
+/* ═══════════════════════════════════════════════
+   MATH RENDERING
+═══════════════════════════════════════════════ */
+function renderMath() {
+  if (window.MathJax && MathJax.typesetPromise)
+    MathJax.typesetPromise().catch(e => console.log(e));
+}
+
+function changeMathSize(dir) {
+  state.mathSizeIndex = Math.max(0, Math.min(mathSizes.length-1, state.mathSizeIndex+dir));
+  const s = mathSizes[state.mathSizeIndex];
+  document.documentElement.style.setProperty('--math-size', s.main);
+  document.documentElement.style.setProperty('--step-math-size', s.step);
+}
+
+/* ═══════════════════════════════════════════════
+   MODE SELECTOR
+═══════════════════════════════════════════════ */
+function buildModeSelector() {
+  document.getElementById('mode-grid').innerHTML = modes.map(m => `
+    <div class="mode-card ${m.id===state.mode?'active':''}" data-id="${m.id}" onclick="selectMode(${m.id})">
+      <div class="mode-card-num">Modo ${m.id}</div>
+      <div class="mode-card-name">${m.name}</div>
+      <div class="mode-card-desc">${m.desc}</div>
+    </div>`).join('');
+
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.level)===state.level);
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.level = parseInt(btn.dataset.level);
+    });
+  });
+}
+
+function selectMode(id) {
+  state.mode = id;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.mode-card[data-id="${id}"]`).classList.add('active');
+}
+
+function openModeSelector() {
+  buildModeSelector();
+  document.getElementById('mode-selector').style.display = 'flex';
+}
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  document.getElementById('mode-selector').style.display = 'none';
+  state.currentIndex = 0;
+  updateBadges();
+  goToExercise(0);
+});
+
+/* ═══════════════════════════════════════════════
+   TIMER
+═══════════════════════════════════════════════ */
+function setTimer(s) {
+  document.querySelectorAll('.btn-timer[data-t]').forEach(b =>
+    b.classList.toggle('active', parseInt(b.dataset.t)===s));
+  state.timerDuration = s;
+  stopTimer();
+  document.getElementById('timer-display').textContent = s>0 ? `${s}s` : '—';
+  if (s>0) { state.timerRemaining = s; updateTimerDisplay(); }
+}
+function toggleTimer() {
+  if (state.timerRunning) { stopTimer(); document.querySelector('.btn-timer[data-t="-1"]').textContent='▶ Iniciar'; }
+  else { startTimer(); document.querySelector('.btn-timer[data-t="-1"]').textContent='⏸ Pausar'; }
+}
+function startTimer() {
+  if (state.timerDuration===0) return;
+  if (!state.timerRunning) {
+    if (state.timerRemaining<=0) state.timerRemaining=state.timerDuration;
+    state.timerRunning=true;
+    state.timerInterval=setInterval(tickTimer,1000);
+    updateTimerDisplay(); updateProgressBar();
+  }
+}
+function stopTimer() { state.timerRunning=false; clearInterval(state.timerInterval); }
+function resetTimer() {
+  stopTimer();
+  document.querySelector('.btn-timer[data-t="-1"]').textContent='▶ Iniciar';
+  if (state.timerDuration>0) {
+    state.timerRemaining=state.timerDuration; updateTimerDisplay();
+    document.getElementById('progress-bar-fill').style.width='100%';
+  }
+}
+function tickTimer() {
+  state.timerRemaining--;
+  updateTimerDisplay(); updateProgressBar();
+  if (state.timerRemaining<=0) {
+    stopTimer(); showTimerAlert();
+    document.querySelector('.btn-timer[data-t="-1"]').textContent='▶ Iniciar';
+  }
+}
+function updateTimerDisplay() {
+  const el=document.getElementById('timer-display');
+  if (state.timerDuration===0) { el.textContent='—'; return; }
+  const r=state.timerRemaining, m=Math.floor(r/60), s=r%60;
+  el.textContent = m>0 ? `${m}:${String(s).padStart(2,'0')}` : `${s}s`;
+  el.className = r<=10?'danger':r<=20?'warning':'';
+}
+function updateProgressBar() {
+  if (state.timerDuration<=0) return;
+  document.getElementById('progress-bar-fill').style.width = (state.timerRemaining/state.timerDuration*100)+'%';
+}
+function showTimerAlert() {
+  document.getElementById('timer-alert').style.display='block';
+  try {
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator(), gain=ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(660,ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440,ctx.currentTime+0.3);
+    gain.gain.setValueAtTime(0.3,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
+    osc.start(); osc.stop(ctx.currentTime+0.6);
+  } catch(e){}
+}
+function closeTimerAlert() { document.getElementById('timer-alert').style.display='none'; }
+
+/* ═══════════════════════════════════════════════
+   CLASS MODE / FULLSCREEN
+═══════════════════════════════════════════════ */
+function toggleClassMode() {
+  state.classMode=!state.classMode;
+  document.body.classList.toggle('class-mode',state.classMode);
+  document.getElementById('btn-class-mode').textContent=state.classMode?'⊞ Mostrar controles':'👁 Modo Clase';
+}
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen();
+}
+
+/* ═══════════════════════════════════════════════
+   KEYBOARD
+═══════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (document.getElementById('mode-selector').style.display!=='none') return;
+  switch(e.key) {
+    case 'ArrowRight': case 'n': case 'N': nextExercise(); break;
+    case 'ArrowLeft':  case 'p': case 'P': prevExercise(); break;
+    case '1': showStep(1); break;
+    case '2': showStep(2); break;
+    case '3': showStep(3); break;
+    case 's': case 'S': showSolution(); break;
+    case 'h': case 'H': hideSteps(); break;
+    case 't': case 'T': toggleTimer(); break;
+    case '+': changeMathSize(1); break;
+    case '-': changeMathSize(-1); break;
+    case 'F11': e.preventDefault(); toggleFullscreen(); break;
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════ */
+buildModeSelector();
+setTimer(60);
+setTimeout(() => {
+  document.getElementById('fullscreen-hint').textContent = '← → navegar · 1/2/3 pasos · S solución · T timer · ± tamaño';
+}, 2000);
+</script>
+</body>
+</html>
