@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Bacterias</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid #667eea;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid #667eea;
+        }
+
+        input[type="number"] {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .bacteria-count, .value-display {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .timer {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .timer h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .time-display {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+        }
+
+        .time-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .canvas-container {
+            background: #1a1a2e;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas {
+            border-radius: 10px;
+            background: #0f3460;
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-reset {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #ee5a52;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .info {
+            background: #e8f4f8;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .division-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            color: #333;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦠 Simulador de División Bacteriana</h1>
+
+        <div class="timer">
+            <h3>Tiempo simulado</h3>
+            <div class="time-display" id="timeDisplay">00:00:00</div>
+            <div class="time-label">Horas : Minutos : Segundos</div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="bacteriaSlider">Cantidad inicial de bacterias</label>
+                <div class="slider-container">
+                    <input type="range" id="bacteriaSlider" min="1" max="500" value="1" step="1">
+                    <span class="bacteria-count" id="bacteriaCount">1</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="speedSlider">Velocidad de simulación</label>
+                <div class="slider-container">
+                    <input type="range" id="speedSlider" min="0.1" max="2" value="0.5" step="0.1">
+                    <span class="value-display" id="speedValue">0.5x</span>
+                </div>
+            </div>
+
+            <div class="control-group full">
+                <label>Tiempo entre divisiones</label>
+                <div class="input-group">
+                    <div>
+                        <label style="font-size: 12px; color: #888;">Segundos</label>
+                        <input type="number" id="divisionSeconds" min="0" max="59" value="2" step="1">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #888;">Milisegundos</label>
+                        <input type="number" id="divisionMillis" min="0" max="999" value="0" step="50">
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <span class="value-display" id="divisionDisplay" style="font-size: 14px;">2000 ms</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-start" id="startBtn">▶ Iniciar simulación</button>
+            <button class="btn-reset" id="resetBtn">↻ Reiniciar</button>
+        </div>
+
+        <div class="info">
+            <strong>ℹ️ Cómo funciona:</strong> Las bacterias se dividen cada cierto tiempo que tú controlas. El deslizador de cantidad permite elegir cualquier número de bacterias iniciales (1-500). Los campos de tiempo permiten establecer exactamente cuándo se duplican. ⏱️ Ajusta los segundos y milisegundos para ver la animación de mitosis en tiempo real.
+        </div>
+
+        <div class="division-info">
+            <strong>💡 Consejo:</strong> Prueba con 2-3 segundos para ver claramente la animación de división. Usa velocidades entre 0.1x y 2x para ajustar qué tan rápido se mueven las bacterias. La animación de mitosis dura 300 milisegundos.
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Elementos del DOM
+        const bacteriaSlider = document.getElementById('bacteriaSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const divisionSeconds = document.getElementById('divisionSeconds');
+        const divisionMillis = document.getElementById('divisionMillis');
+        const bacteriaCount = document.getElementById('bacteriaCount');
+        const speedValue = document.getElementById('speedValue');
+        const divisionDisplay = document.getElementById('divisionDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const timeDisplay = document.getElementById('timeDisplay');
+
+        // Redimensionar canvas
+        function resizeCanvas() {
+            const container = document.querySelector('.canvas-container');
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 400;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Variables de simulación
+        let bacteria = [];
+        let isRunning = false;
+        let simulatedTime = 0; // en milisegundos
+        let lastFrameTime = 0;
+        let animationFrameId = null;
+        let divisionTime = 2000; // tiempo en ms
+        let initialCount = 1;
+        let simulationSpeed = 0.5;
+
+        // Clase para bacterias
+        class Bacterium {
+            constructor(x, y, size = 8, life = divisionTime) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.life = life;
+                this.maxLife = divisionTime;
+                this.vx = (Math.random() - 0.5) * 1.5;
+                this.vy = (Math.random() - 0.5) * 1.5;
+                this.angle = 0;
+                this.dividing = false;
+                this.divisionProgress = 0;
+            }
+
+            update(deltaTime) {
+                this.life -= deltaTime;
+                
+                // Movimiento
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Rebotar en bordes
+                if (this.x - this.size < 0 || this.x + this.size > canvas.width) {
+                    this.vx *= -1;
+                    this.x = Math.max(this.size, Math.min(canvas.width - this.size, this.x));
+                }
+                if (this.y - this.size < 0 || this.y + this.size > canvas.height) {
+                    this.vy *= -1;
+                    this.y = Math.max(this.size, Math.min(canvas.height - this.size, this.y));
+                }
+
+                // Iniciar división cuando se acerca el final de la vida
+                const divisionStartPoint = Math.min(300, divisionTime * 0.1);
+                if (this.life <= divisionStartPoint && !this.dividing) {
+                    this.dividing = true;
+                    this.divisionProgress = 0;
+                }
+
+                if (this.dividing) {
+                    this.divisionProgress += deltaTime / divisionStartPoint;
+                }
+
+                this.angle += 0.02;
+            }
+
+            isDead() {
+                return this.life <= 0;
+            }
+
+            isReadyToDivide() {
+                return this.dividing && this.divisionProgress >= 1;
+            }
+
+            draw() {
+                const progress = Math.min(this.divisionProgress, 1);
+                const colorValue = Math.floor(100 + progress * 155);
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (!this.dividing) {
+                    // Bacteria normal
+                    ctx.fillStyle = `rgb(102, 126, 234)`;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, this.size + 2, this.size, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Membrana
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, this.size + 2, this.size, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Barra de progreso de vida
+                    const lifePercent = this.life / this.maxLife;
+                    ctx.strokeStyle = `rgba(255, 100, 100, ${0.5 - lifePercent * 0.4})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size + 4, 0, Math.PI * 2 * lifePercent);
+                    ctx.stroke();
+                } else {
+                    // Mitosis - dos células separándose
+                    const separation = progress * this.size * 2;
+                    
+                    // Línea de división (huso mitótico)
+                    ctx.strokeStyle = `rgba(255, 200, 100, ${0.6 - progress * 0.3})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-this.size * 1.5, -separation / 2);
+                    ctx.lineTo(this.size * 1.5, -separation / 2);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(-this.size * 1.5, separation / 2);
+                    ctx.lineTo(this.size * 1.5, separation / 2);
+                    ctx.stroke();
+
+                    // Primera célula hija
+                    ctx.fillStyle = `rgb(${colorValue}, 126, 234)`;
+                    ctx.beginPath();
+                    ctx.ellipse(0, -separation / 2, this.size + 1, this.size * 0.9, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    // Segunda célula hija
+                    ctx.fillStyle = `rgb(${colorValue}, 126, 234)`;
+                    ctx.beginPath();
+                    ctx.ellipse(0, separation / 2, this.size + 1, this.size * 0.9, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Actualizar contador de bacterias
+        bacteriaSlider.addEventListener('input', (e) => {
+            initialCount = parseInt(e.target.value);
+            bacteriaCount.textContent = initialCount;
+        });
+
+        // Actualizar velocidad
+        speedSlider.addEventListener('input', (e) => {
+            simulationSpeed = parseFloat(e.target.value);
+            speedValue.textContent = simulationSpeed.toFixed(1) + 'x';
+        });
+
+        // Actualizar tiempo de división
+        function updateDivisionTime() {
+            const seconds = parseInt(divisionSeconds.value) || 0;
+            const millis = parseInt(divisionMillis.value) || 0;
+            divisionTime = seconds * 1000 + millis;
+            divisionDisplay.textContent = divisionTime + ' ms';
+        }
+
+        divisionSeconds.addEventListener('input', updateDivisionTime);
+        divisionMillis.addEventListener('input', updateDivisionTime);
+
+        // Iniciar simulación
+        startBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                startBtn.textContent = '⏸ Pausar';
+                startBtn.disabled = false;
+                bacteriaSlider.disabled = true;
+                divisionSeconds.disabled = true;
+                divisionMillis.disabled = true;
+                animate();
+            } else {
+                isRunning = false;
+                startBtn.textContent = '▶ Reanudar';
+                cancelAnimationFrame(animationFrameId);
+            }
+        });
+
+        // Reiniciar
+        resetBtn.addEventListener('click', () => {
+            isRunning = false;
+            startBtn.textContent = '▶ Iniciar simulación';
+            startBtn.disabled = false;
+            bacteriaSlider.disabled = false;
+            divisionSeconds.disabled = false;
+            divisionMillis.disabled = false;
+            cancelAnimationFrame(animationFrameId);
+            
+            bacteria = [];
+            simulatedTime = 0;
+            lastFrameTime = 0;
+            
+            // Crear bacterias iniciales
+            for (let i = 0; i < initialCount; i++) {
+                const x = Math.random() * (canvas.width - 60) + 30;
+                const y = Math.random() * (canvas.height - 60) + 30;
+                bacteria.push(new Bacterium(x, y, 8, divisionTime));
+            }
+            
+            draw();
+        });
+
+        function animate() {
+            if (!isRunning) return;
+
+            const now = performance.now();
+            if (lastFrameTime === 0) lastFrameTime = now;
+            
+            const deltaTime = (now - lastFrameTime) * simulationSpeed;
+            lastFrameTime = now;
+
+            simulatedTime += deltaTime;
+
+            // Actualizar bacterias
+            for (let i = bacteria.length - 1; i >= 0; i--) {
+                bacteria[i].update(deltaTime);
+
+                if (bacteria[i].isReadyToDivide()) {
+                    const b = bacteria[i];
+                    const newB1 = new Bacterium(b.x - b.size, b.y, b.size * 0.8, divisionTime);
+                    const newB2 = new Bacterium(b.x + b.size, b.y, b.size * 0.8, divisionTime);
+                    bacteria.push(newB1, newB2);
+                    bacteria.splice(i, 1);
+                } else if (bacteria[i].isDead()) {
+                    bacteria.splice(i, 1);
+                }
+            }
+
+            draw();
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        function draw() {
+            // Fondo del espacio
+            ctx.fillStyle = '#0f3460';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Estrellas (fondo decorativo)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            for (let i = 0; i < 50; i++) {
+                const x = (simulatedTime * 0.01 + i * 13.47) % canvas.width;
+                const y = (i * 37.23) % canvas.height;
+                ctx.fillRect(x, y, 1, 1);
+            }
+
+            // Dibujar bacterias
+            bacteria.forEach(b => b.draw());
+
+            // Información
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText(`Bacterias activas: ${bacteria.length}`, 15, 25);
+
+            // Actualizar timer (en horas, minutos, segundos)
+            const totalSeconds = simulatedTime / 1000;
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+            
+            timeDisplay.textContent = 
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+        }
+
+        // Inicialización
+        resetBtn.click();
+    </script>
+</body>
+</html>
