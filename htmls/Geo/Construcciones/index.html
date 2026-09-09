@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Construcciones Geométricas · Prof. Núñez</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Fuente -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- =====================================================
+         ENCABEZADO
+    ====================================================== -->
+
+    <header class="hero">
+
+        <div class="hero-content">
+
+            <a 
+                href="https://fraxycl.github.io/portafolio_profesor_michael/"
+                class="back-link"
+            >
+                ← Volver al Hub Matemático
+            </a>
+
+            <div class="hero-icon">
+                📐
+            </div>
+
+            <h1>Construcciones Geométricas</h1>
+
+            <p class="hero-subtitle">
+                Colección de construcciones geométricas interactivas
+                desarrolladas mediante Software educativo.
+            </p>
+
+            <div class="hero-author">
+                Michael Núñez · PLEMC USACH
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         CONTENIDO PRINCIPAL
+    ====================================================== -->
+
+    <main class="container">
+
+
+        <!-- Estadísticas -->
+
+        <section class="stats">
+
+            <div class="stat">
+                <strong id="total-construcciones">0</strong>
+                <span>Construcciones</span>
+            </div>
+
+            <div class="stat">
+                <strong id="total-categorias">0</strong>
+                <span>Categorías</span>
+            </div>
+
+            <div class="stat">
+                <strong id="total-niveles">0</strong>
+                <span>Niveles</span>
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             FILTROS
+        ================================================== -->
+
+        <section class="tools">
+
+            <div class="search-box">
+
+                <span>🔎</span>
+
+                <input
+                    type="text"
+                    id="buscador"
+                    placeholder="Buscar una construcción..."
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+            <div class="filters">
+
+                <select id="filtro-categoria">
+
+                    <option value="todas">
+                        Todas las categorías
+                    </option>
+
+                </select>
+
+
+                <select id="filtro-nivel">
+
+                    <option value="todos">
+                        Todos los niveles
+                    </option>
+
+                </select>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CONTENEDOR DE TARJETAS
+        ================================================== -->
+
+        <section>
+
+            <div id="grid-construcciones" class="grid">
+
+                <!--
+                    Las tarjetas se generan automáticamente
+                    mediante JavaScript.
+                -->
+
+            </div>
+
+
+            <div
+                id="sin-resultados"
+                class="sin-resultados oculto"
+            >
+
+                <div>🔍</div>
+
+                <h3>
+                    No encontramos construcciones
+                </h3>
+
+                <p>
+                    Prueba modificando la búsqueda o los filtros.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         PIE DE PÁGINA
+    ====================================================== -->
+
+    <footer>
+
+        <p>
+            Repositorio Digital · 2026
+        </p>
+
+        <p>
+            Profesor Michael Antonio Núñez Núñez · PLEMC USACH
+        </p>
+
+    </footer>
+
+
+    <!-- JavaScript -->
+
+    <script src="script.js"></script>
+
+</body>
+</html>
