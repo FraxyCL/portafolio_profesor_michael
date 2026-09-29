@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desafío de Funciones — 2° Medio</title>
+<style>
+:root{--bg:#0f172a;--panel:#1e293b;--panel2:#334155;--text:#f8fafc;--muted:#cbd5e1;--yellow:#facc15;--red:#fb7185}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at center,#1e3a5f 0%,var(--bg) 68%);color:var(--text);display:flex;flex-direction:column}
+header{padding:16px 26px;display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:1px solid rgba(255,255,255,.1)}
+header h1{margin:0;font-size:clamp(20px,2.5vw,32px)}
+.subtitle{color:var(--muted);font-size:14px;margin-top:5px}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;gap:18px}
+.function-card{width:min(1150px,94vw);min-height:320px;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.76);border:2px solid rgba(56,189,248,.35);border-radius:28px;box-shadow:0 20px 70px rgba(0,0,0,.35);padding:28px}
+#function{font-size:clamp(52px,9vw,135px);font-weight:800;letter-spacing:1px;text-align:center;color:white;text-shadow:0 5px 25px rgba(56,189,248,.2);display:flex;align-items:center;justify-content:center;line-height:1.15}
+.fraction{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:.9;margin:0 .08em;font-size:.72em}
+.fraction .num{border-bottom:3px solid currentColor;padding:0 .12em .08em}.fraction .den{padding:.08em .12em 0}
+.bigFraction{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;vertical-align:middle;line-height:1.05;margin-left:.12em}
+.bigFraction .num{border-bottom:6px solid currentColor;padding:0 .18em .12em}.bigFraction .den{padding-top:.1em}
+.timer{font-variant-numeric:tabular-nums;font-size:clamp(46px,6vw,78px);font-weight:800;min-width:260px;text-align:center}
+.timer.warning{color:var(--yellow)}.timer.danger{color:var(--red);animation:pulse .7s infinite alternate}.timer.finished{color:var(--red)}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+.controls,.settings,.checks{width:min(1150px,94vw);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:9px}
+button,select,input{font:inherit}
+button{border:0;border-radius:11px;padding:12px 17px;cursor:pointer;font-weight:700;color:white;background:var(--panel2);transition:.15s}
+button:hover{filter:brightness(1.15);transform:translateY(-1px)}button:active{transform:translateY(0)}
+.primary{background:#0284c7}.success{background:#16a34a}.danger{background:#dc2626}.purple{background:#7c3aed}.orange{background:#ea580c}
+.settings{background:rgba(30,41,59,.9);border-radius:16px;padding:12px}
+.setting-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 8px}
+label{color:var(--muted);font-size:13px;font-weight:700}
+select,input{background:#0f172a;color:white;border:1px solid #475569;border-radius:9px;padding:9px 10px;outline:none}
+input[type=number]{width:68px}
+.checks{gap:7px}
+.check{background:rgba(30,41,59,.9);border:1px solid #475569;border-radius:10px;padding:8px 11px;color:#e2e8f0;font-size:13px}
+.check input{width:auto;margin-right:5px}
+.status{min-height:22px;color:var(--muted);text-align:center;font-weight:600}
+.help{position:fixed;right:16px;bottom:16px;background:rgba(15,23,42,.92);border:1px solid rgba(255,255,255,.12);padding:9px 12px;border-radius:9px;color:#cbd5e1;font-size:12px}
+@media(max-width:700px){.function-card{min-height:240px;padding:18px}.timer{min-width:auto}header{padding:13px 17px}.help{display:none}}
+</style>
+</head>
+<body>
+<header>
+<div><h1>⚡ Desafío de Funciones</h1><div class="subtitle">Generador de funciones para 2° Medio</div></div>
+<button onclick="toggleFullscreen()" class="purple">⛶ Pantalla completa</button>
+</header>
+
+<main>
+<div class="function-card"><div id="function"></div></div>
+<div id="timer" class="timer">01:00</div>
+
+<div class="controls">
+<button class="success" onclick="startTimer()">▶ Iniciar</button>
+<button onclick="pauseTimer()">⏸ Pausar</button>
+<button onclick="resetTimer()">↺ Reiniciar tiempo</button>
+<button class="primary" onclick="newFunction()">🎲 Nueva función</button>
+<button class="danger" onclick="revealAnswer()">👁 Mostrar tipo</button>
+</div>
+
+<div class="settings">
+<div class="setting-group">
+<label>Generación:</label>
+<select id="generationMode" onchange="updateMode()">
+<option value="selected">Aleatoria entre seleccionadas</option>
+<option value="sequence">Recorrer seleccionadas</option>
+</select>
+</div>
+<div class="setting-group">
+<label>Tiempo:</label>
+<input id="minutes" type="number" min="0" max="59" value="1"> :
+<input id="seconds" type="number" min="0" max="59" value="0">
+<button onclick="applyTime()">Aplicar</button>
+</div>
+</div>
+
+<div class="checks">
+<label class="check"><input type="checkbox" value="linear" checked> Lineal simple</label>
+<label class="check"><input type="checkbox" value="linearRational"> Lineal racional</label>
+<label class="check"><input type="checkbox" value="affine" checked> Afín simple</label>
+<label class="check"><input type="checkbox" value="affineRational"> Afín racional</label>
+<label class="check"><input type="checkbox" value="affineDivision"> Afín: expresión dividida</label>
+<label class="check"><input type="checkbox" value="quadratic"> Cuadrática: ax² + c</label>
+</div>
+
+<div id="status" class="status">Selecciona las modalidades que quieras utilizar.</div>
+</main>
+
+<div class="help">Atajos: <b>Espacio</b> iniciar/pausar · <b>N</b> nueva función · <b>F</b> pantalla completa</div>
+
+<script>
+let timer=null,totalSeconds=60,remainingSeconds=60,sequenceIndex=0;
+
+const functionEl=document.getElementById("function");
+const timerEl=document.getElementById("timer");
+const statusEl=document.getElementById("status");
+
+const integers=[-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9];
+const positive=[1,2,3,4,5,6,7,8,9];
+
+function randomItem(a){return a[Math.floor(Math.random()*a.length)]}
+
+function gcd(a,b){
+while(b!==0){const t=a%b;a=b;b=t}
+return a
+}
+
+function randomRational(){
+let n=randomItem(positive),d=randomItem(positive);
+if(Math.random()<0.5)n=-n;
+const g=gcd(Math.abs(n),d);
+return {n:n/g,d:d/g}
+}
+
+function formatTerm(a,v="x"){
+if(a===1)return v;
+if(a===-1)return "−"+v;
+return a+v
+}
+
+function fraction(n,d,v=""){
+if(d===1)return (n===-1?"−":n===1?"":n)+v;
+return `<span class="fraction"><span class="num">${n<0?"−":""}${Math.abs(n)}${v}</span><span class="den">${d}</span></span>`
+}
+
+function signed(c){
+if(c>0)return "+ "+c;
+if(c<0)return "− "+Math.abs(c);
+return ""
+}
+
+function selectedTypes(){
+return [...document.querySelectorAll('.check input:checked')].map(x=>x.value)
+}
+
+function generate(type){
+const a=randomItem(integers),b=randomItem(integers);
+
+if(type==="linear")
+return {html:`f(x) = ${formatTerm(a)}`,type:"Función lineal",detail:"coeficiente entero"};
+
+if(type==="linearRational"){
+const r=randomRational();
+return {html:`f(x) = ${fraction(r.n,r.d,"x")}`,type:"Función lineal",detail:"coeficiente racional"};
+}
+
+if(type==="affine")
+return {html:`f(x) = ${formatTerm(a)} ${signed(b)}`,type:"Función afín",detail:"forma ax + b"};
+
+if(type==="affineRational"){
+const r=randomRational();
+return {html:`f(x) = ${fraction(r.n,r.d,"x")} ${signed(b)}`,type:"Función afín",detail:"pendiente racional"};
+}
+
+if(type==="affineDivision"){
+const d=randomItem(positive);
+return {html:`f(x) = <span class="bigFraction"><span class="num">${formatTerm(a)} ${signed(b)}</span><span class="den">${d}</span></span>`,type:"Función afín",detail:"expresión completa dividida por "+d};
+}
+
+if(type==="quadratic"){
+const q=randomItem(integers);
+const c=randomItem([-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9]);
+const term=q===1?"x²":q===-1?"−x²":q+"x²";
+return {html:`f(x) = ${term} ${signed(c)}`,type:"Función cuadrática",detail:"forma ax² + c"};
+}
+}
+
+function newFunction(){
+const types=selectedTypes();
+
+if(types.length===0){
+statusEl.textContent="⚠️ Selecciona al menos una modalidad.";
+return
+}
+
+let type;
+
+if(document.getElementById("generationMode").value==="sequence"){
+type=types[sequenceIndex%types.length];
+sequenceIndex++;
+}else{
+type=randomItem(types);
+}
+
+const f=generate(type);
+
+functionEl.innerHTML=f.html;
+functionEl.dataset.type=f.type;
+functionEl.dataset.detail=f.detail;
+
+statusEl.textContent="Nueva función generada. ¡Comienza el desafío!";
+resetTimer();
+}
+
+function revealAnswer(){
+if(!functionEl.dataset.type)return;
+statusEl.textContent=`Es una ${functionEl.dataset.type.toLowerCase()} — ${functionEl.dataset.detail}.`;
+}
+
+function updateMode(){
+const mode=document.getElementById("generationMode").value;
+statusEl.textContent=mode==="sequence"
+?"Las modalidades seleccionadas aparecerán una tras otra."
+:"Se elegirá aleatoriamente entre las modalidades seleccionadas.";
+}
+
+function formatTime(s){
+return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")
+}
+
+function updateTimer(){
+timerEl.textContent=formatTime(remainingSeconds);
+timerEl.classList.remove("warning","danger","finished");
+
+if(remainingSeconds===0){
+timerEl.classList.add("finished");
+statusEl.textContent="⏰ ¡Tiempo terminado!";
+}else if(remainingSeconds<=10){
+timerEl.classList.add("danger");
+}else if(remainingSeconds<=20){
+timerEl.classList.add("warning");
+}
+}
+
+function startTimer(){
+if(timer)return;
+if(remainingSeconds<=0){remainingSeconds=totalSeconds;updateTimer()}
+statusEl.textContent="⏱️ ¡Tiempo corriendo!";
+
+timer=setInterval(()=>{
+remainingSeconds--;
+updateTimer();
+if(remainingSeconds<=0){
+clearInterval(timer);
+timer=null
+}
+},1000);
+}
+
+function pauseTimer(){
+if(timer){
+clearInterval(timer);
+timer=null;
+statusEl.textContent="⏸ Tiempo pausado."
+}
+}
+
+function resetTimer(){
+pauseTimer();
+remainingSeconds=totalSeconds;
+updateTimer()
+}
+
+function applyTime(){
+const m=Math.max(0,Math.min(59,Number(document.getElementById("minutes").value)||0));
+const s=Math.max(0,Math.min(59,Number(document.getElementById("seconds").value)||0));
+
+totalSeconds=m*60+s;
+
+if(totalSeconds===0){
+totalSeconds=10;
+document.getElementById("seconds").value=10
+}
+
+resetTimer();
+statusEl.textContent=`Tiempo configurado: ${formatTime(totalSeconds)}.`;
+}
+
+function toggleFullscreen(){
+if(!document.fullscreenElement)
+document.documentElement.requestFullscreen?.();
+else
+document.exitFullscreen?.();
+}
+
+document.addEventListener("keydown",e=>{
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+
+if(e.code==="Space"){
+e.preventDefault();
+timer?pauseTimer():startTimer()
+}
+
+if(e.key.toLowerCase()==="n")newFunction();
+if(e.key.toLowerCase()==="f")toggleFullscreen();
+});
+
+document.querySelectorAll('.check input').forEach(box=>{
+box.addEventListener("change",()=>{
+const count=selectedTypes().length;
+statusEl.textContent=count
+?`${count} modalidad${count===1?"":"es"} seleccionada${count===1?"":"s"}.`
+:"⚠️ Selecciona al menos una modalidad.";
+})
+});
+
+newFunction();
+</script>
+</body>
+</html>
