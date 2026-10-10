@@ -39,6 +39,58 @@ header {
 .logo span { color: var(--text-muted); font-weight: 400; }
 .subtitle { font-size: 12px; color: var(--text-muted); }
 
+/* Selector de cursos: una fila horizontal, integrado con la paleta de la app */
+.header-brand { flex: 0 0 auto; min-width: 190px; }
+.course-manager {
+  display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center;
+  gap: 7px; min-width: 0; flex: 1; overflow-x: auto; padding: 3px 2px 7px;
+  scrollbar-width: thin; scrollbar-color: var(--green-dim) var(--bg-panel);
+}
+.course-manager::-webkit-scrollbar { height: 4px; }
+.course-manager::-webkit-scrollbar-track { background: var(--bg-panel); }
+.course-manager::-webkit-scrollbar-thumb { background: var(--green-dim); border-radius: 4px; }
+.course-slot {
+  display: inline-flex; flex: 0 0 auto; flex-direction: row; align-items: center;
+  gap: 3px; padding: 4px; border-radius: 9px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.18); transition: border-color .15s, background .15s;
+}
+.course-slot:hover { border-color: var(--green-dim); }
+.course-slot.active {
+  background: #203a28; border-color: var(--green-accent);
+  box-shadow: 0 0 0 1px rgba(76,175,114,.18), 0 2px 6px rgba(0,0,0,.2);
+}
+.course-load {
+  min-width: 42px; max-width: 78px; padding: 6px 8px; border-radius: 6px;
+  border: 1px solid transparent; background: transparent; color: var(--text-muted);
+  font: 700 11px 'Nunito', sans-serif; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; cursor: pointer; transition: color .15s, background .15s;
+}
+.course-load:hover { background: var(--green-dim); color: var(--text-main); }
+.course-load.has-save { color: var(--green-light); }
+.course-slot.active .course-load { color: var(--green-light); }
+.course-mini {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 25px; height: 25px; padding: 0; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg-panel);
+  color: var(--text-muted); font-size: 11px; line-height: 1; cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.course-mini:hover { background: var(--green-dim); border-color: var(--green-accent); color: var(--text-main); }
+.course-mini.delete:hover { background: #3a1010; border-color: var(--red-accent); color: var(--red-accent); }
+.active-course-indicator {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 5px;
+  padding: 4px 9px; width: fit-content; border-radius: 7px;
+  background: #1e1a08; border: 1px solid #4a3800; color: var(--amber-accent);
+  font: 700 11px 'Space Mono', monospace;
+}
+.active-course-indicator::before { content: ''; width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: var(--green-accent); }
+@media (max-width: 900px) {
+  header { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .header-brand { width: 100%; }
+  .course-manager { width: 100%; flex: 0 0 auto; }
+}
+
 .app-body { display: flex; flex: 1; overflow: hidden; }
 
 /* ── PANEL ── */
@@ -323,10 +375,12 @@ header {
 <div class="app-shell">
 
 <header>
-  <div>
+  <div class="header-brand">
     <div class="logo">Estudiantes a lo Random</div>
-    <div class="subtitle">Seleccionador aleatorio de estudiantes</div>
+    <div class="subtitle">Seleccionador aleatorio · Doble clic en un curso para renombrarlo</div>
+    <div class="active-course-indicator" id="active-course-indicator">Editando curso: 1A</div>
   </div>
+  <nav class="course-manager" id="course-manager" aria-label="Cursos guardados"></nav>
 </header>
 
 <div class="app-body">
@@ -885,6 +939,135 @@ function setStatus(msg, running=false) {
 }
 
 // ── LocalStorage ──
+// ── Cursos guardados (hasta 8, independientes) ──
+const COURSES_KEY = 'sala_random_courses_v1';
+const COURSE_COUNT = 8;
+let activeCourse = 0;
+let courseSlots = [];
+
+function defaultCourseSlots() {
+  return Array.from({length: COURSE_COUNT}, (_, i) => ({
+    name: `${Math.floor(i / 2) + 1}${i % 2 === 0 ? 'A' : 'B'}`,
+    state: null
+  }));
+}
+function readCourseSlots() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(COURSES_KEY) || 'null');
+    if (Array.isArray(saved)) {
+      const defaults = defaultCourseSlots();
+      return defaults.map((d, i) => ({
+        name: saved[i] && typeof saved[i].name === 'string' && saved[i].name.trim() ? saved[i].name : d.name,
+        state: saved[i] && saved[i].state ? saved[i].state : null
+      }));
+    }
+  } catch (e) {}
+  return defaultCourseSlots();
+}
+function persistCourseSlots() {
+  try { localStorage.setItem(COURSES_KEY, JSON.stringify(courseSlots)); return true; }
+  catch (e) { showToast('⚠️ No se pudo guardar. Revisa el espacio disponible del navegador.'); return false; }
+}
+function updateActiveCourseLabel() {
+  const label = document.getElementById('active-course-indicator');
+  if (label && courseSlots[activeCourse]) {
+    label.textContent = `Editando curso: ${courseSlots[activeCourse].name}`;
+  }
+}
+function renderCourseSlots() {
+  const nav = document.getElementById('course-manager');
+  if (!nav) return;
+  nav.innerHTML = '';
+  courseSlots.forEach((slot, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'course-slot' + (activeCourse === i ? ' active' : '');
+    const load = document.createElement('button');
+    load.className = 'course-load' + (slot.state ? ' has-save' : '');
+    load.textContent = slot.name;
+    load.title = 'Clic: cargar/seleccionar · Doble clic: cambiar nombre';
+    load.setAttribute('aria-label', `Curso ${slot.name}`);
+    load.addEventListener('click', () => {
+      if (slot.state) loadCourse(i);
+      else { activeCourse = i; renderCourseSlots(); showToast(`Curso ${slot.name} seleccionado. Pulsa 💾 para guardar la sala actual.`); }
+    });
+    load.addEventListener('dblclick', e => { e.preventDefault(); renameCourse(i); });
+    const save = document.createElement('button');
+    save.className = 'course-mini'; save.textContent = '💾'; save.title = `Guardar sala actual en ${slot.name}`;
+    save.setAttribute('aria-label', `Guardar ${slot.name}`);
+    save.addEventListener('click', () => saveCourse(i));
+    const del = document.createElement('button');
+    del.className = 'course-mini delete'; del.textContent = '×'; del.title = `Eliminar sala guardada de ${slot.name}`;
+    del.setAttribute('aria-label', `Eliminar ${slot.name}`);
+    del.addEventListener('click', () => deleteCourse(i));
+    wrap.append(load, save, del); nav.appendChild(wrap);
+  });
+  updateActiveCourseLabel();
+}
+function captureClassroomState() {
+  const rows = Math.max(1, Math.min(14, parseInt(document.getElementById('cfg-rows').value) || 4));
+  document.querySelectorAll('#groups-list input[type=number]').forEach((inp, i) => {
+    if (groups[i]) groups[i].cols = Math.max(1, Math.min(10, parseInt(inp.value) || 2));
+  });
+  const names = {}, disabled = [];
+  desks.forEach(d => { if (d.name) names[d.id] = d.name; if (!d.enabled) disabled.push(d.id); });
+  return { rows, groups: groups.map(g => ({cols:g.cols})), boardPos, names, disabled };
+}
+function applyClassroomState(state) {
+  if (!state || typeof state !== 'object') return;
+  document.getElementById('cfg-rows').value = state.rows || 4;
+  groups = Array.isArray(state.groups) && state.groups.length
+    ? state.groups.map(g => ({cols:Math.max(1, Math.min(10, parseInt(g.cols) || 2))}))
+    : [{cols:2},{cols:2},{cols:2}];
+  renderGroups();
+  setBoardPos(state.boardPos === 'bottom' ? 'bottom' : 'top');
+  buildClassroom(false);
+  if (state.names) Object.entries(state.names).forEach(([id, name]) => {
+    const d = desks.find(x => x.id === +id); if (!d) return;
+    d.name = String(name || '');
+    const span = document.getElementById(`desk-name-${id}`);
+    if (span) span.textContent = d.name;
+    d.el.classList.toggle('has-name', !!d.name);
+  });
+  if (Array.isArray(state.disabled)) state.disabled.forEach(id => {
+    const d = desks.find(x => x.id === +id); if (!d) return;
+    d.enabled = false; d.el.classList.add('disabled');
+  });
+  clearResult();
+}
+function saveCourse(index) {
+  if (isRunning) { showToast('Espera a que termine la selección antes de guardar.'); return; }
+  activeCourse = index;
+  courseSlots[index].state = captureClassroomState();
+  if (persistCourseSlots()) { renderCourseSlots(); showToast(`✅ Configuración de ${courseSlots[index].name} guardada`); }
+}
+function loadCourse(index) {
+  if (isRunning) { showToast('Espera a que termine la selección antes de cambiar de curso.'); return; }
+  const slot = courseSlots[index];
+  if (!slot || !slot.state) { activeCourse = index; renderCourseSlots(); showToast('Este curso aún no tiene una sala guardada.'); return; }
+  activeCourse = index;
+  applyClassroomState(slot.state);
+  historyLog = []; renderHistory(); renderCourseSlots();
+  setStatus(`Curso ${slot.name} cargado. Modifica la sala y vuelve a guardarla cuando quieras.`);
+  showToast(`📚 Se cargó ${slot.name}`);
+}
+function deleteCourse(index) {
+  if (isRunning) { showToast('Espera a que termine la selección antes de borrar un curso.'); return; }
+  const slot = courseSlots[index]; if (!slot) return;
+  if (!confirm(`¿Eliminar la sala guardada de "${slot.name}"? El nombre del botón se conservará.`)) return;
+  slot.state = null; activeCourse = index;
+  persistCourseSlots(); renderCourseSlots();
+  showToast(`🗑 Sala guardada de ${slot.name} eliminada`);
+}
+function renameCourse(index) {
+  const slot = courseSlots[index]; if (!slot) return;
+  const name = prompt('Nuevo nombre para este botón de curso (máximo 18 caracteres):', slot.name);
+  if (name === null) return;
+  const clean = name.trim().slice(0, 18);
+  if (!clean) { showToast('El nombre no puede quedar vacío.'); return; }
+  slot.name = clean; persistCourseSlots(); renderCourseSlots();
+  showToast(`Nombre actualizado: ${clean}`);
+}
+
 const CACHE_KEY = 'sala_random_v2';
 
 function saveToCache() {
@@ -979,6 +1162,8 @@ bindSlider('cfg-dur','val-dur','s');
 bindSlider('cfg-slow','val-slow','%');
 
 // ── Init ──
+courseSlots = readCourseSlots();
+renderCourseSlots();
 initGroups();
 const loaded = loadFromCache();
 if (!loaded) buildClassroom(false);
