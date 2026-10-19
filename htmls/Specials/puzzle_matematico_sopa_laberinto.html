@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cuaderno matemático</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F6EF; --line:#D5DFD1; --ink:#1B2A4E; --ink-soft:#56627F;
+  --panel:#FFFFFF; --panel-line:#C9D4C6;
+  --blue:#2F5DD0; --ok:#2E8B5B; --bad:#C8453B;
+  --tile-n:#FFFFFF; --tile-o:#DDE6FB; --hid:#FFF0B3; --okbg:#CDEBD9; --badbg:#F8CFCB;
+  --hl-opacity:.8;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#121A18; --line:#1E2B27; --ink:#E4ECF6; --ink-soft:#9DAAC2;
+    --panel:#1A2420; --panel-line:#2C3A35;
+    --blue:#7AA2FF; --ok:#5CC48E; --bad:#FF8479;
+    --tile-n:#22302B; --tile-o:#27365E; --hid:#4A4220; --okbg:#1F4A35; --badbg:#58262A;
+    --hl-opacity:.5;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121A18; --line:#1E2B27; --ink:#E4ECF6; --ink-soft:#9DAAC2;
+  --panel:#1A2420; --panel-line:#2C3A35;
+  --blue:#7AA2FF; --ok:#5CC48E; --bad:#FF8479;
+  --tile-n:#22302B; --tile-o:#27365E; --hid:#4A4220; --okbg:#1F4A35; --badbg:#58262A;
+  --hl-opacity:.5;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0; min-height:100%;
+  font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color:var(--ink); background-color:var(--paper);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:28px 28px;
+  line-height:1.45;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 40px}
+.top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:end;justify-content:space-between;margin-bottom:18px}
+h1{margin:0;font-size:clamp(28px,5vw,44px);line-height:1.05;letter-spacing:-.02em;font-weight:700}
+.sub{margin:6px 0 0;color:var(--ink-soft);font-size:15px}
+.top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+h2{margin:0 0 12px;font-size:19px;font-weight:700;letter-spacing:-.01em}
+
+.tabs{display:inline-flex;background:var(--panel);border:1.5px solid var(--ink);border-radius:12px;padding:3px;gap:3px}
+.tabs button{font:inherit;font-weight:500;border:0;background:transparent;color:var(--ink);padding:9px 16px;border-radius:9px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--panel)}
+
+.btn{font:inherit;font-size:14px;font-weight:500;color:var(--ink);background:var(--panel);border:1.5px solid var(--ink);border-radius:10px;padding:8px 14px;cursor:pointer}
+.btn:hover{background:var(--tile-o)}
+.btn.primary{background:var(--ink);color:var(--panel)}
+.btn.primary:hover{opacity:.9;background:var(--ink)}
+.btn.ghost{border-color:var(--panel-line)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+.layout[hidden]{display:none}
+.class-mode .layout{grid-template-columns:minmax(0,1fr)}
+.class-mode .side{display:none}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
+.main{display:grid;gap:16px;min-width:0}
+.panel{background:var(--panel);border:1.5px solid var(--panel-line);border-radius:14px;padding:16px;min-width:0}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.bar strong{font-size:17px}
+.bar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.board-scroll{overflow-x:auto;padding:2px}
+.msg{min-height:1.5em;margin:12px 0 0;color:var(--ink-soft);font-size:15px}
+.msg.good{color:var(--ok);font-weight:700}
+.warn{color:var(--bad);font-size:14px;margin:10px 0 0;min-height:1em}
+
+label,.lbl{display:block;font-size:14px;font-weight:500;margin:14px 0 6px}
+textarea,input[type=number],input[type=text],select{font:inherit;color:var(--ink);background:var(--paper);border:1.5px solid var(--panel-line);border-radius:10px;padding:9px 11px;width:100%}
+textarea{resize:vertical;min-height:110px;line-height:1.35}
+.hint{font-size:13px;color:var(--ink-soft);margin:6px 0 0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stepper{display:flex;align-items:stretch}
+.stepper input{text-align:center;border-radius:0;border-left:0;border-right:0;min-width:0;-moz-appearance:textfield}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.stepper button{font:inherit;font-size:18px;width:40px;border:1.5px solid var(--panel-line);background:var(--panel);color:var(--ink);cursor:pointer}
+.stepper button:first-child{border-radius:10px 0 0 10px}
+.stepper button:last-child{border-radius:0 10px 10px 0}
+fieldset{border:0;margin:14px 0 0;padding:0}
+legend{font-size:14px;font-weight:500;padding:0;margin-bottom:6px}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.check{display:flex;align-items:center;gap:7px;margin:0;font-weight:400;font-size:14px;padding:7px 11px;border:1.5px solid var(--panel-line);border-radius:10px;cursor:pointer}
+.check input{accent-color:var(--blue);margin:0}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+input[type=range]{width:100%;accent-color:var(--blue)}
+.range-val{font-weight:700}
+
+/* ---------- Sopa de letras ---------- */
+.ws-board{
+  position:relative;display:grid;margin:0 auto;width:max-content;
+  grid-template-columns:repeat(var(--cols),var(--cell));grid-auto-rows:var(--cell);
+  touch-action:none;
+}
+/* Sin pistas: el cursor nunca cambia sobre el tablero y las letras no reaccionan al mouse */
+.ws-board,.ws-board *{cursor:default !important;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.ws-cell{display:flex;align-items:center;justify-content:center;font-size:calc(var(--cell)*.5);font-weight:700;position:relative;z-index:1;pointer-events:none}
+.ws-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.words{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.words li{padding:6px 12px;border:1.5px solid var(--panel-line);border-radius:999px;font-weight:500;font-size:15px;letter-spacing:.04em}
+.words li.found{border-color:var(--hl);border-width:2px;color:var(--ink-soft);text-decoration:line-through;text-decoration-thickness:2px}
+.words li.blank{letter-spacing:.18em;color:var(--ink-soft)}
+.words li.note{border:0;padding:0;letter-spacing:0;color:var(--ink-soft)}
+
+/* ---------- Operaciones ---------- */
+.seg{display:inline-flex;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-size:14px;font-weight:500;border:0;background:var(--panel);color:var(--ink);padding:8px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.op-board{display:grid;gap:4px;margin:0 auto;width:max-content;grid-template-columns:repeat(var(--cols),var(--tile));grid-auto-rows:var(--tile);-webkit-user-select:none;user-select:none}
+.tile{display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:calc(var(--tile)*.42);font-weight:700;font-variant-numeric:tabular-nums;border:2px solid transparent;color:var(--ink)}
+.tile.n{background:var(--tile-n);border-color:var(--ink)}
+.tile.o,.tile.e{background:var(--tile-o);border-color:transparent}
+.tile.e{color:var(--blue)}
+.tile.hid{background:var(--hid);border:2px dashed var(--ink);cursor:pointer}
+.tile.sol{color:var(--ink-soft);font-style:italic}
+.tile.void{visibility:hidden}
+.edit-mode .tile.void{visibility:visible;border:1px dashed var(--panel-line);cursor:pointer}
+.edit-mode .tile{cursor:pointer}
+.tile.sel{outline:3px solid var(--blue);outline-offset:1px}
+.tile.ok{background:var(--okbg);border-color:var(--ok)}
+.tile.bad{background:var(--badbg);border-color:var(--bad)}
+.keypad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:360px;margin:16px auto 0}
+.keypad button{font:inherit;font-size:19px;font-weight:700;padding:11px 0;border:1.5px solid var(--ink);border-radius:10px;background:var(--panel);color:var(--ink);cursor:pointer}
+.keypad button:hover{background:var(--tile-o)}
+.keypad .opk{background:var(--tile-o)}
+.keypad .wide{grid-column:span 2;font-size:14px}
+.edit-only{display:none}
+.edit-mode .edit-only{display:grid}
+.edit-mode .play-only{display:none}
+.keypad .edit-only{display:none}
+.edit-mode .keypad .edit-only{display:block}
+
+.bar-actions select{width:auto;padding:7px 10px;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);z-index:50;opacity:0;pointer-events:none;text-align:center}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:no-preference){
+  .btn,.tabs button{transition:background-color .12s}
+  .toast{transition:opacity .15s}
+}
+@media (max-width:520px){
+  .wrap{padding:14px 10px 32px}
+  .panel{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header class="top">
+    <div>
+      <h1>Cuaderno matemático</h1>
+      <p class="sub">Sopa de letras y operaciones conectadas, listas para armar en clase.</p>
+    </div>
+    <div class="top-actions">
+      <div class="tabs" role="tablist" aria-label="Juego">
+        <button role="tab" type="button" data-tab="ws" aria-selected="true">Sopa de letras</button>
+        <button role="tab" type="button" data-tab="op" aria-selected="false">Operaciones</button>
+      </div>
+      <button class="btn ghost" id="classToggle" type="button" aria-pressed="false">Ocultar editor</button>
+    </div>
+  </header>
+
+  <!-- ================= SOPA DE LETRAS ================= -->
+  <section id="view-ws" class="layout" aria-label="Sopa de letras">
+    <div class="main">
+      <div class="panel" id="wsStage">
+        <div class="bar">
+          <strong id="wsProgress">0 de 0 palabras</strong>
+          <span class="bar-actions">
+            <button class="btn" type="button" id="wsCopyQuick">Copiar PNG</button>
+            <button class="btn" type="button" id="wsReset">Reiniciar</button>
+            <button class="btn" type="button" id="wsSol" aria-pressed="false">Ver soluciones</button>
+          </span>
+        </div>
+        <div class="board-scroll"><div id="wsBoard" class="ws-board" aria-label="Tablero de la sopa de letras"></div></div>
+        <p class="msg" id="wsMsg" aria-live="polite">Arrastra sobre las letras para marcar una palabra, o toca la primera y la última letra.</p>
+      </div>
+      <div class="panel">
+        <h2>Palabras por encontrar</h2>
+        <ul class="words" id="wsWords"></ul>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="panel">
+        <h2>Editor de la sopa</h2>
+        <label for="wsText" style="margin-top:0">Palabras a esconder</label>
+        <textarea id="wsText" spellcheck="false" autocomplete="off"></textarea>
+        <p class="hint">Una por línea o separadas por comas. Las tildes se quitan solas y se aceptan letras y números.</p>
+        <div class="row2">
+          <div>
+            <label for="wsRows">Filas</label>
+            <div class="stepper"><button type="button" data-dec="wsRows" aria-label="Menos filas">−</button><input id="wsRows" type="number" min="5" max="30" inputmode="numeric"><button type="button" data-inc="wsRows" aria-label="Más filas">+</button></div>
+          </div>
+          <div>
+            <label for="wsCols">Columnas</label>
+            <div class="stepper"><button type="button" data-dec="wsCols" aria-label="Menos columnas">−</button><input id="wsCols" type="number" min="5" max="30" inputmode="numeric"><button type="button" data-inc="wsCols" aria-label="Más columnas">+</button></div>
+          </div>
+        </div>
+        <p class="hint" id="wsHint"></p>
+        <fieldset>
+          <legend>Direcciones permitidas</legend>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="dirH" checked>Horizontal</label>
+            <label class="check"><input type="checkbox" id="dirV" checked>Vertical</label>
+            <label class="check"><input type="checkbox" id="dirD" checked>Diagonal</label>
+            <label class="check"><input type="checkbox" id="dirR" checked>Al revés</label>
+          </div>
+        </fieldset>
+        <label for="wsList">Lista para quien juega</label>
+        <select id="wsList">
+          <option value="full">Mostrar las palabras</option>
+          <option value="length">Solo la cantidad de letras</option>
+          <option value="hidden">Ocultar la lista</option>
+        </select>
+        <div class="btn-row"><button class="btn primary" type="button" id="wsGen">Generar sopa</button></div>
+        <p class="warn" id="wsWarn" aria-live="polite"></p>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h2>Imagen PNG</h2>
+        <div class="row2">
+          <div>
+            <label for="xwBg" style="margin-top:0">Fondo</label>
+            <select id="xwBg"><option value="white">Blanco</option><option value="transparent">Transparente</option><option value="grid">Cuadriculado</option></select>
+          </div>
+          <div>
+            <label for="xwContent" style="margin-top:0">Contenido</label>
+            <select id="xwContent"><option value="blank">Sin soluciones</option><option value="solution">Con soluciones</option><option value="game">Como va el juego</option></select>
+          </div>
+        </div>
+        <label for="xwList">Lista de palabras</label>
+        <select id="xwList"><option value="words">Mostrar las palabras</option><option value="blanks">Solo la cantidad de letras</option><option value="none">Sin lista</option></select>
+        <label for="xwTitle">Título (opcional)</label>
+        <input id="xwTitle" type="text" maxlength="80" autocomplete="off" placeholder="Ej.: Vocabulario de fracciones">
+        <div class="checks" style="margin-top:12px">
+          <label class="check"><input type="checkbox" id="xwName">Línea de nombre y fecha</label>
+          <label class="check"><input type="checkbox" id="xwGrid">Rejilla entre letras</label>
+        </div>
+        <label for="xwScale">Resolución</label>
+        <select id="xwScale"><option value="1">Normal (1×)</option><option value="2">Alta (2×)</option><option value="3">Muy alta (3×)</option></select>
+        <div class="btn-row">
+          <button class="btn primary" type="button" id="wsCopy">Copiar PNG</button>
+          <button class="btn" type="button" id="wsDown">Descargar PNG</button>
+        </div>
+        <p class="hint">La imagen siempre sale con colores claros, sin importar el tema. En tableros enormes la resolución baja sola.</p>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ================= OPERACIONES ================= -->
+  <section id="view-op" class="layout" aria-label="Operaciones conectadas" hidden>
+    <div class="main">
+      <div class="panel" id="opStage">
+        <div class="bar">
+          <div class="seg" role="group" aria-label="Modo">
+            <button type="button" id="modePlay" aria-pressed="true">Jugar</button>
+            <button type="button" id="modeEdit" aria-pressed="false">Editar casillas</button>
+          </div>
+          <span class="bar-actions">
+            <button class="btn play-only" type="button" id="opCheck">Comprobar</button>
+            <button class="btn play-only" type="button" id="opReset">Reiniciar</button>
+            <button class="btn play-only" type="button" id="opSol" aria-pressed="false">Ver solución</button>
+            <select id="opZoom" aria-label="Tamaño de las casillas"><option value="0">Ajustar a la pantalla</option><option value="24">Casillas pequeñas</option><option value="34">Casillas medianas</option><option value="46">Casillas grandes</option><option value="60">Casillas enormes</option></select>
+            <button class="btn" type="button" id="opCopyQuick">Copiar PNG</button>
+          </span>
+        </div>
+        <div class="board-scroll"><div id="opBoard" class="op-board" aria-label="Operaciones conectadas"></div></div>
+        <p class="msg" id="opMsg" aria-live="polite"></p>
+        <div class="keypad" id="keypad" aria-label="Teclado">
+          <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" class="opk" data-key="+" aria-label="más">+</button><button type="button" class="opk" data-key="-" aria-label="menos">−</button>
+          <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" class="opk" data-key="×" aria-label="por">×</button><button type="button" class="opk" data-key="÷" aria-label="entre">÷</button>
+          <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="0">0</button><button type="button" data-key="back" aria-label="Borrar un dígito">⌫</button>
+          <button type="button" class="edit-only opk" data-key="=">=</button>
+          <button type="button" class="edit-only wide" data-key="hide">Vaciar / mostrar</button>
+          <button type="button" class="edit-only wide" data-key="clear">Borrar casilla</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="panel">
+        <h2>Editor de operaciones</h2>
+        <div class="row2">
+          <div>
+            <label for="opRows" style="margin-top:0">Filas (máx.)</label>
+            <div class="stepper"><button type="button" data-dec="opRows" aria-label="Menos filas">−</button><input id="opRows" type="number" min="5" max="60" inputmode="numeric"><button type="button" data-inc="opRows" aria-label="Más filas">+</button></div>
+          </div>
+          <div>
+            <label for="opCols" style="margin-top:0">Columnas (máx.)</label>
+            <div class="stepper"><button type="button" data-dec="opCols" aria-label="Menos columnas">−</button><input id="opCols" type="number" min="5" max="60" inputmode="numeric"><button type="button" data-inc="opCols" aria-label="Más columnas">+</button></div>
+          </div>
+        </div>
+        <fieldset>
+          <legend>Operaciones</legend>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="opAdd" checked>+</label>
+            <label class="check"><input type="checkbox" id="opSub" checked>−</label>
+            <label class="check"><input type="checkbox" id="opMul" checked>×</label>
+            <label class="check"><input type="checkbox" id="opDiv">÷</label>
+          </div>
+        </fieldset>
+        <div class="row2">
+          <div>
+            <label for="opMax">Número máximo</label>
+            <input id="opMax" type="number" min="10" max="999" inputmode="numeric">
+          </div>
+          <div>
+            <label for="opEqs">Ecuaciones</label>
+            <input id="opEqs" type="number" min="1" max="200" inputmode="numeric">
+          </div>
+        </div>
+        <p class="hint">× y ÷ usan tablas hasta el 12.</p>
+        <label for="opEmpty">Casillas vacías: <span class="range-val" id="opEmptyVal"></span></label>
+        <input type="range" id="opEmpty" min="10" max="100" step="5">
+        <label for="opPer">Máximo de vacías por ecuación</label>
+        <select id="opPer">
+          <option value="1">1 (solución única)</option>
+          <option value="2">2 (más difícil)</option>
+        </select>
+        <label class="check" style="margin-top:12px"><input type="checkbox" id="opHideOps">Vaciar también operadores</label>
+        <label for="opStyle">Forma del puzzle</label>
+        <select id="opStyle">
+          <option value="maze">Laberinto (cadena larga y ramificada)</option>
+          <option value="compact">Compacto (ecuaciones por todos lados)</option>
+        </select>
+        <div class="checks" style="margin-top:12px">
+          <label class="check"><input type="checkbox" id="opGrow">Agrandar el lienzo si hace falta</label>
+          <label class="check"><input type="checkbox" id="opCrop">Recortar espacios vacíos</label>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" type="button" id="opGen">Generar puzzle</button>
+          <button class="btn" type="button" id="opResize">Cambiar tamaño</button>
+          <button class="btn" type="button" id="opClear">Limpiar todo</button>
+        </div>
+        <p class="hint">“Cambiar tamaño” conserva lo que ya hay. En “Editar casillas” toca una casilla y escribe números, operadores o =. Las ecuaciones que no se cumplen se marcan en rojo.</p>
+        <p class="hint" id="opInfo"></p>
+        <p class="warn" id="opWarn" aria-live="polite"></p>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h2>Imagen PNG</h2>
+        <div class="row2">
+          <div>
+            <label for="xoBg" style="margin-top:0">Fondo</label>
+            <select id="xoBg"><option value="white">Blanco</option><option value="transparent">Transparente</option><option value="grid">Cuadriculado</option></select>
+          </div>
+          <div>
+            <label for="xoContent" style="margin-top:0">Contenido</label>
+            <select id="xoContent"><option value="blank">Casillas vacías</option><option value="solution">Con solución</option><option value="game">Como va el juego</option></select>
+          </div>
+        </div>
+        <label for="xoTitle">Título (opcional)</label>
+        <input id="xoTitle" type="text" maxlength="80" autocomplete="off" placeholder="Ej.: Completa las operaciones">
+        <div class="checks" style="margin-top:12px">
+          <label class="check"><input type="checkbox" id="xoName">Línea de nombre y fecha</label>
+          <label class="check"><input type="checkbox" id="xoHl">Casillas vacías en amarillo</label>
+        </div>
+        <label for="xoScale">Resolución</label>
+        <select id="xoScale"><option value="1">Normal (1×)</option><option value="2">Alta (2×)</option><option value="3">Muy alta (3×)</option></select>
+        <div class="btn-row">
+          <button class="btn primary" type="button" id="opCopy">Copiar PNG</button>
+          <button class="btn" type="button" id="opDown">Descargar PNG</button>
+        </div>
+        <p class="hint">Se recortan los márgenes vacíos. La imagen siempre sale con colores claros.</p>
+      </div>
+    </aside>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(() => {
+'use strict';
+
+/* ---------- utilidades ---------- */
+const $ = s => document.querySelector(s);
+const rand = n => Math.floor(Math.random() * n);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rev = s => [...s].reverse().join('');
+const mk = (r, c, f = () => null) => Array.from({ length: r }, () => Array.from({ length: c }, f));
+const num = (el, d) => { const v = parseInt(el.value, 10); return Number.isFinite(v) ? v : d; };
+const KEY = 'cuaderno-matematico-v1';
+
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+
+const DEFAULT_WORDS = 'SUMA\nRESTA\nPRODUCTO\nCOCIENTE\nFRACCION\nDECIMAL\nENTERO\nECUACION\nPOTENCIA\nRAIZ';
+
+let tab = saved.tab === 'op' ? 'op' : 'ws';
+let classMode = !!saved.classMode;
+let wsCfg = Object.assign({ rows: 12, cols: 12, text: DEFAULT_WORDS, h: true, v: true, d: true, r: true, list: 'full' }, saved.wsCfg || {});
+let wsPuz = saved.wsPuz || null;
+let opCfg = Object.assign({ rows: 15, cols: 15, eqs: 14, max: 20, add: true, sub: true, mul: true, div: false, empty: 50, per: 1, hideOps: false, style: 'maze', grow: true, crop: true, zoom: 0 }, saved.opCfg || {});
+let opPuz = saved.opPuz || null;
+let exp = Object.assign({ wsBg: 'white', wsContent: 'blank', wsList: 'words', wsTitle: '', wsName: false, wsGrid: true, wsScale: 2, opBg: 'white', opContent: 'blank', opTitle: '', opName: false, opHl: true, opScale: 2 }, saved.exp || {});
+const OP_MAX = 60;
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify({ tab, classMode, wsCfg, wsPuz, opCfg, opPuz, exp })); } catch (e) {}
+}
+
+/* =========================================================
+   SOPA DE LETRAS
+   ========================================================= */
+const HL = ['#FFD84D', '#FF9EBB', '#6FD6EA', '#A6E05A', '#FFAE6B', '#BFA3FF'];
+const DIRS8 = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]];
+const ws = { found: {}, showSol: false };
+let anchor = null, endPt = null, dragging = false;
+
+function normalizeWord(w) {
+  return w.toUpperCase().replace(/Ñ/g, '\u0001').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\u0001/g, 'Ñ').replace(/[^A-ZÑ0-9]/g, '');
+}
+function parseWords(text) {
+  const out = [];
+  text.split(/[\s,;]+/).forEach(t => { const w = normalizeWord(t); if (w.length >= 2 && !out.includes(w)) out.push(w); });
+  return out;
+}
+
+function buildSearch(rows, cols, words, dirs) {
+  const g = mk(rows, cols, () => '');
+  const placed = [], failed = [];
+  [...words].sort((a, b) => b.length - a.length).forEach(w => {
+    const cands = [];
+    if (w.length <= Math.max(rows, cols)) {
+      for (const [dr, dc] of dirs) {
+        for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+          const er = r + dr * (w.length - 1), ec = c + dc * (w.length - 1);
+          if (er < 0 || er >= rows || ec < 0 || ec >= cols) continue;
+          let ok = true, ov = 0;
+          for (let i = 0; i < w.length; i++) {
+            const ch = g[r + dr * i][c + dc * i];
+            if (ch === '') continue;
+            if (ch !== w[i]) { ok = false; break; }
+            ov++;
+          }
+          if (ok) cands.push({ r, c, dr, dc, ov });
+        }
+      }
+    }
+    const good = cands.filter(p => p.ov < w.length);
+    const pool = good.length ? good : cands;
+    if (!pool.length) { failed.push(w); return; }
+    const p = pool[rand(pool.length)];
+    for (let i = 0; i < w.length; i++) g[p.r + p.dr * i][p.c + p.dc * i] = w[i];
+    placed.push({ word: w, r: p.r, c: p.c, dr: p.dr, dc: p.dc });
+  });
+  const hasL = words.some(w => /[A-ZÑ]/.test(w)), hasD = words.some(w => /\d/.test(w));
+  let alphabet = '';
+  if (hasL || !hasD) alphabet += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + (words.some(w => w.includes('Ñ')) ? 'Ñ' : '');
+  if (hasD) alphabet += '0123456789';
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) if (g[r][c] === '') g[r][c] = alphabet[rand(alphabet.length)];
+  return { grid: g, placed, failed };
+}
+
+function readWsCfg() {
+  wsCfg.rows = clamp(num($('#wsRows'), 12), 5, 30);
+  wsCfg.cols = clamp(num($('#wsCols'), 12), 5, 30);
+  wsCfg.text = $('#wsText').value;
+  wsCfg.h = $('#dirH').checked; wsCfg.v = $('#dirV').checked; wsCfg.d = $('#dirD').checked; wsCfg.r = $('#dirR').checked;
+  wsCfg.list = $('#wsList').value;
+}
+function writeWsCfg() {
+  $('#wsRows').value = wsCfg.rows; $('#wsCols').value = wsCfg.cols; $('#wsText').value = wsCfg.text;
+  $('#dirH').checked = wsCfg.h; $('#dirV').checked = wsCfg.v; $('#dirD').checked = wsCfg.d; $('#dirR').checked = wsCfg.r;
+  $('#wsList').value = wsCfg.list;
+}
+function updateWsHint() {
+  const words = parseWords($('#wsText').value);
+  const longest = words.reduce((m, w) => Math.max(m, w.length), 0);
+  const total = words.reduce((s, w) => s + w.length, 0);
+  const rec = Math.min(30, Math.max(longest, Math.ceil(Math.sqrt(total * 2.4)), 5));
+  $('#wsHint').textContent = words.length
+    ? `${words.length} palabra${words.length === 1 ? '' : 's'}. La más larga tiene ${longest} letras; se recomienda una matriz de ${rec} × ${rec} o más.`
+    : 'Escribe al menos una palabra de 2 letras o más.';
+}
+
+function generateWS() {
+  readWsCfg();
+  const words = parseWords(wsCfg.text);
+  const warn = $('#wsWarn');
+  if (!words.length) { warn.textContent = 'Escribe al menos una palabra de 2 letras o más.'; return; }
+  const dirs = [];
+  if (wsCfg.h) dirs.push([0, 1]);
+  if (wsCfg.v) dirs.push([1, 0]);
+  if (wsCfg.d) dirs.push([1, 1], [-1, 1]);
+  if (!dirs.length) { dirs.push([0, 1]); wsCfg.h = true; $('#dirH').checked = true; }
+  if (wsCfg.r) [...dirs].forEach(([a, b]) => dirs.push([-a, -b]));
+  const res = buildSearch(wsCfg.rows, wsCfg.cols, words, dirs);
+  const placedWords = words.filter(w => res.placed.some(p => p.word === w));
+  wsPuz = { grid: res.grid, words: placedWords, placed: res.placed };
+  ws.found = {}; ws.showSol = false; anchor = endPt = null; dragging = false;
+  $('#wsSol').setAttribute('aria-pressed', 'false'); $('#wsSol').textContent = 'Ver soluciones';
+  warn.textContent = res.failed.length
+    ? `No cupieron: ${res.failed.join(', ')}. Aumenta el tamaño o permite más direcciones.` : '';
+  setWsMsg('Arrastra sobre las letras para marcar una palabra, o toca la primera y la última letra.', false);
+  save(); renderWS();
+}
+
+function setWsMsg(t, good) { const m = $('#wsMsg'); m.textContent = t; m.classList.toggle('good', !!good); }
+
+const SVGNS = 'http://www.w3.org/2000/svg';
+function svgLine(g, r1, c1, r2, c2, style) {
+  const l = document.createElementNS(SVGNS, 'line');
+  l.setAttribute('x1', c1 + .5); l.setAttribute('y1', r1 + .5); l.setAttribute('x2', c2 + .5); l.setAttribute('y2', r2 + .5);
+  l.setAttribute('stroke-linecap', 'round');
+  Object.assign(l.style, style);
+  g.appendChild(l);
+}
+
+function renderWS() {
+  const board = $('#wsBoard');
+  if (!wsPuz) return;
+  const rows = wsPuz.grid.length, cols = wsPuz.grid[0].length;
+  const avail = Math.max(240, $('#wsStage').clientWidth - 34);
+  const cell = clamp(Math.floor(avail / cols), 20, 46);
+  board.style.setProperty('--cols', cols);
+  board.style.setProperty('--cell', cell + 'px');
+  let html = `<svg class="ws-svg" viewBox="0 0 ${cols} ${rows}" preserveAspectRatio="none" aria-hidden="true"><g id="solL"></g><g id="foundL"></g><g id="selL"></g></svg>`;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) html += `<div class="ws-cell">${wsPuz.grid[r][c]}</div>`;
+  board.innerHTML = html;
+  drawOverlays();
+  renderWordList();
+}
+
+function drawOverlays() {
+  const sol = $('#solL'), fnd = $('#foundL'), sel = $('#selL');
+  if (!sol) return;
+  if (ws.showSol) {
+    wsPuz.placed.forEach(p => {
+      const n = p.word.length - 1;
+      svgLine(sol, p.r, p.c, p.r + p.dr * n, p.c + p.dc * n, { stroke: 'var(--ink)', strokeWidth: .8, strokeOpacity: .16 });
+    });
+  }
+  Object.values(ws.found).forEach(f => svgLine(fnd, f.r1, f.c1, f.r2, f.c2, { stroke: f.color, strokeWidth: .78, strokeOpacity: 'var(--hl-opacity)' }));
+  drawSel();
+}
+function drawSel() {
+  const sel = $('#selL');
+  if (!sel) return;
+  sel.textContent = '';
+  if (anchor) {
+    const e = endPt || anchor;
+    svgLine(sel, anchor.r, anchor.c, e.r, e.c, { stroke: 'var(--blue)', strokeWidth: .8, strokeOpacity: .35 });
+  }
+}
+
+function renderWordList() {
+  const ul = $('#wsWords');
+  ul.textContent = '';
+  const words = wsPuz ? wsPuz.words : [];
+  const got = Object.keys(ws.found).length;
+  $('#wsProgress').textContent = `${got} de ${words.length} palabras`;
+  const mode = wsCfg.list;
+  words.forEach(w => {
+    const li = document.createElement('li');
+    if (ws.found[w]) { li.className = 'found'; li.style.setProperty('--hl', ws.found[w].color); li.textContent = w; }
+    else if (mode === 'full') li.textContent = w;
+    else if (mode === 'length') { li.className = 'blank'; li.textContent = '▢'.repeat(w.length); li.setAttribute('aria-label', w.length + ' letras'); }
+    else return;
+    ul.appendChild(li);
+  });
+  if (mode === 'hidden' && got < words.length) {
+    const li = document.createElement('li'); li.className = 'note';
+    li.textContent = `La lista está oculta. Quedan ${words.length - got} por encontrar.`;
+    ul.appendChild(li);
+  }
+}
+
+/* --- selección con puntero --- */
+const wsBoard = $('#wsBoard');
+function ptr(e) {
+  const rect = wsBoard.getBoundingClientRect();
+  const rows = wsPuz.grid.length, cols = wsPuz.grid[0].length;
+  return { x: (e.clientX - rect.left) / rect.width * cols, y: (e.clientY - rect.top) / rect.height * rows };
+}
+function snap(a, p) {
+  const rows = wsPuz.grid.length, cols = wsPuz.grid[0].length;
+  const dx = p.x - (a.c + .5), dy = p.y - (a.r + .5);
+  if (Math.hypot(dx, dy) < .5) return { r: a.r, c: a.c };
+  const k = ((Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) % 8) + 8) % 8;
+  const [sr, sc] = DIRS8[k];
+  let len = Math.max(0, Math.round((dx * sc + dy * sr) / (sr * sr + sc * sc)));
+  while (len > 0) {
+    const r = a.r + sr * len, c = a.c + sc * len;
+    if (r >= 0 && r < rows && c >= 0 && c < cols) break;
+    len--;
+  }
+  return { r: a.r + sr * len, c: a.c + sc * len };
+}
+function finishSel() {
+  const a = anchor, e = endPt || anchor;
+  anchor = endPt = null; dragging = false;
+  const dr = Math.sign(e.r - a.r), dc = Math.sign(e.c - a.c);
+  const n = Math.max(Math.abs(e.r - a.r), Math.abs(e.c - a.c)) + 1;
+  if (n >= 2) {
+    let s = '';
+    for (let i = 0; i < n; i++) s += wsPuz.grid[a.r + dr * i][a.c + dc * i];
+    const hit = wsPuz.words.find(w => !ws.found[w] && (w === s || w === rev(s)));
+    if (hit) {
+      ws.found[hit] = { r1: a.r, c1: a.c, r2: e.r, c2: e.c, color: HL[Object.keys(ws.found).length % HL.length] };
+      const all = Object.keys(ws.found).length === wsPuz.words.length;
+      setWsMsg(all ? '¡Encontraste todas las palabras!' : `¡Bien! Encontraste ${hit}.`, true);
+    }
+  }
+  const sel = $('#selL'); if (sel) sel.textContent = '';
+  const f = $('#foundL'); if (f) { f.textContent = ''; Object.values(ws.found).forEach(x => svgLine(f, x.r1, x.c1, x.r2, x.c2, { stroke: x.color, strokeWidth: .78, strokeOpacity: 'var(--hl-opacity)' })); }
+  renderWordList();
+}
+wsBoard.addEventListener('pointerdown', e => {
+  if (!wsPuz) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  e.preventDefault();
+  const p = ptr(e), rows = wsPuz.grid.length, cols = wsPuz.grid[0].length;
+  if (anchor && !dragging) { endPt = snap(anchor, p); finishSel(); return; }
+  anchor = { r: clamp(Math.floor(p.y), 0, rows - 1), c: clamp(Math.floor(p.x), 0, cols - 1) };
+  endPt = { ...anchor }; dragging = true;
+  try { wsBoard.setPointerCapture(e.pointerId); } catch (_) {}
+  drawSel();
+});
+wsBoard.addEventListener('pointermove', e => {
+  if (!dragging || !anchor) return;
+  endPt = snap(anchor, ptr(e)); drawSel();
+});
+wsBoard.addEventListener('pointerup', () => {
+  if (!dragging) return;
+  dragging = false;
+  if (endPt.r !== anchor.r || endPt.c !== anchor.c) finishSel(); else drawSel();
+});
+wsBoard.addEventListener('pointercancel', () => { anchor = endPt = null; dragging = false; drawSel(); });
+wsBoard.addEventListener('contextmenu', e => e.preventDefault());
+wsBoard.addEventListener('dragstart', e => e.preventDefault());
+
+$('#wsReset').addEventListener('click', () => {
+  ws.found = {}; anchor = endPt = null; dragging = false;
+  setWsMsg('Arrastra sobre las letras para marcar una palabra, o toca la primera y la última letra.', false);
+  renderWS();
+});
+$('#wsSol').addEventListener('click', e => {
+  ws.showSol = !ws.showSol;
+  e.currentTarget.setAttribute('aria-pressed', String(ws.showSol));
+  e.currentTarget.textContent = ws.showSol ? 'Ocultar soluciones' : 'Ver soluciones';
+  const sol = $('#solL'); if (sol) { sol.textContent = ''; }
+  drawOverlays();
+});
+$('#wsGen').addEventListener('click', generateWS);
+$('#wsList').addEventListener('change', () => { readWsCfg(); save(); renderWordList(); });
+['#wsText', '#wsRows', '#wsCols'].forEach(s => $(s).addEventListener('input', () => { updateWsHint(); }));
+
+/* =========================================================
+   OPERACIONES CONECTADAS
+   ========================================================= */
+const OPS = ['+', '-', '×', '÷'];
+const sym = v => v === '-' ? '−' : v;
+const op = { mode: 'play', sel: null, ans: {}, checked: false, showSol: false };
+
+function makeEquation(ops, max, fixIdx, s) {
+  for (const o of shuffle([...ops])) {
+    const options = [];
+    const test = (a, b) => {
+      if (a < 1 || b < 1) return;
+      let c;
+      if (o === '+') c = a + b;
+      else if (o === '-') c = a - b;
+      else if (o === '×') { if (a < 2 || b < 2 || a > 12 || b > 12) return; c = a * b; }
+      else { if (b < 2 || b > 12 || a % b) return; c = a / b; if (c < 2 || c > 12) return; }
+      if (c < 1 || c > max || a > max || b > max) return;
+      if (fixIdx === 4 && c !== s) return;
+      options.push([a, o, b, c]);
+    };
+    if (fixIdx === 0) { for (let b = 1; b <= max; b++) test(s, b); }
+    else if (fixIdx === 2) { for (let a = 1; a <= max; a++) test(a, s); }
+    else if (fixIdx === 4) {
+      for (let a = 1; a <= max; a++) {
+        let b;
+        if (o === '+') b = s - a;
+        else if (o === '-') b = a - s;
+        else if (o === '×') { if (s % a) continue; b = s / a; }
+        else { if (a % s) continue; b = a / s; }
+        test(a, b);
+      }
+    } else {
+      for (let i = 0; i < 400; i++) {
+        const lim = (o === '×' || o === '÷') ? 12 : max;
+        const b = 1 + rand(lim);
+        const a = o === '÷' ? b * (2 + rand(11)) : 1 + rand(lim);
+        test(a, b);
+      }
+    }
+    if (options.length) return options[rand(options.length)];
+  }
+  return null;
+}
+
+function fits(cells, coords, slot, dir) {
+  const R = cells.length, C = cells[0].length;
+  const free = (r, c) => r < 0 || c < 0 || r >= R || c >= C || cells[r][c] === null;
+  for (let k = 0; k < 5; k++) {
+    const [r, c] = coords[k];
+    if (r < 0 || c < 0 || r >= R || c >= C) return false;
+    if (k === slot) continue;
+    if (cells[r][c] !== null) return false;
+    if (dir === 'v') { if (!free(r, c - 1) || !free(r, c + 1)) return false; }
+    else { if (!free(r - 1, c) || !free(r + 1, c)) return false; }
+  }
+  const [r0, c0] = coords[0], [r4, c4] = coords[4];
+  if (dir === 'v') return free(r0 - 1, c0) && free(r4 + 1, c4);
+  return free(r0, c0 - 1) && free(r4, c4 + 1);
+}
+
+function attemptOp(rows, cols, target, max, ops, maze) {
+  const cells = mk(rows, cols), dirsAt = mk(rows, cols, () => []), eqs = [], open = [];
+  const KINDS = ['n', 'o', 'n', 'e', 'n'];
+  const place = (coords, eq, dir) => {
+    const toks = [eq[0], eq[1], eq[2], '=', eq[3]];
+    coords.forEach(([r, c], k) => {
+      if (cells[r][c] === null) {
+        cells[r][c] = { k: KINDS[k], v: String(toks[k]), h: false };
+        if (KINDS[k] === 'n') open.push([r, c]);
+      }
+      dirsAt[r][c].push(dir);
+    });
+    eqs.push({ coords });
+  };
+  let dir = Math.random() < .5 ? 'h' : 'v';
+  if (dir === 'h' && cols < 5) dir = 'v';
+  if (dir === 'v' && rows < 5) dir = 'h';
+  const e0 = makeEquation(ops, max, null, null);
+  if (!e0) return null;
+  const r0 = dir === 'h' ? (rows >> 1) : Math.max(0, (rows - 5) >> 1);
+  const c0 = dir === 'h' ? Math.max(0, (cols - 5) >> 1) : (cols >> 1);
+  place([0, 1, 2, 3, 4].map(k => dir === 'h' ? [r0, c0 + k] : [r0 + k, c0]), e0, dir);
+  /* Cada casilla numérica se prueba una sola vez (con las 3 posiciones posibles) y se descarta.
+     En modo laberinto se prefieren las casillas más nuevas: la cadena se alarga y se ramifica. */
+  while (eqs.length < target && open.length) {
+    const idx = (maze && Math.random() < .7) ? open.length - 1 - rand(Math.min(open.length, 8)) : rand(open.length);
+    const [r, c] = open[idx];
+    open.splice(idx, 1);
+    if (dirsAt[r][c].length !== 1) continue;
+    const nd = dirsAt[r][c][0] === 'h' ? 'v' : 'h';
+    const sv = parseInt(cells[r][c].v, 10);
+    for (const slot of shuffle([0, 2, 4])) {
+      const coords = [0, 1, 2, 3, 4].map(k => nd === 'v' ? [r - slot + k, c] : [r, c - slot + k]);
+      if (!fits(cells, coords, slot, nd)) continue;
+      const eq = makeEquation(ops, max, slot, sv);
+      if (!eq) continue;
+      place(coords, eq, nd);
+      break;
+    }
+  }
+  return { cells, eqs };
+}
+
+function hideCells(puz, cfg) {
+  const { cells, eqs } = puz;
+  const eqOf = {};
+  eqs.forEach((e, i) => e.coords.forEach(([r, c]) => { (eqOf[r + ',' + c] = eqOf[r + ',' + c] || []).push(i); }));
+  const count = eqs.map(() => 0);
+  const hideable = (r, c) => { const k = cells[r][c].k; return k === 'n' || (cfg.hideOps && k === 'o'); };
+  const tryHide = (r, c) => {
+    const ids = eqOf[r + ',' + c];
+    if (ids.some(i => count[i] >= cfg.per)) return false;
+    ids.forEach(i => count[i]++);
+    cells[r][c].h = true;
+    return true;
+  };
+  const cands = [];
+  cells.forEach((row, r) => row.forEach((cell, c) => { if (cell && hideable(r, c)) cands.push([r, c]); }));
+  shuffle(cands);
+  const target = Math.max(1, Math.round(cfg.empty / 100 * cands.length));
+  let n = 0;
+  for (const [r, c] of cands) { if (n >= target) break; if (tryHide(r, c)) n++; }
+  eqs.forEach((e, i) => {
+    if (count[i] > 0) return;
+    for (const [r, c] of shuffle(e.coords.filter(([r, c]) => hideable(r, c)))) if (tryHide(r, c)) break;
+  });
+}
+
+function readOpCfg() {
+  opCfg.rows = clamp(num($('#opRows'), 15), 5, OP_MAX);
+  opCfg.cols = clamp(num($('#opCols'), 15), 5, OP_MAX);
+  opCfg.add = $('#opAdd').checked; opCfg.sub = $('#opSub').checked; opCfg.mul = $('#opMul').checked; opCfg.div = $('#opDiv').checked;
+  opCfg.max = clamp(num($('#opMax'), 20), 10, 999);
+  opCfg.eqs = clamp(num($('#opEqs'), 14), 1, 200);
+  opCfg.empty = num($('#opEmpty'), 50);
+  opCfg.per = num($('#opPer'), 1);
+  opCfg.hideOps = $('#opHideOps').checked;
+  opCfg.style = $('#opStyle').value;
+  opCfg.grow = $('#opGrow').checked;
+  opCfg.crop = $('#opCrop').checked;
+  opCfg.zoom = num($('#opZoom'), 0);
+}
+function writeOpCfg() {
+  $('#opRows').value = opCfg.rows; $('#opCols').value = opCfg.cols;
+  $('#opAdd').checked = opCfg.add; $('#opSub').checked = opCfg.sub; $('#opMul').checked = opCfg.mul; $('#opDiv').checked = opCfg.div;
+  $('#opMax').value = opCfg.max; $('#opEqs').value = opCfg.eqs;
+  $('#opEmpty').value = opCfg.empty; $('#opEmptyVal').textContent = opCfg.empty + ' %';
+  $('#opPer').value = String(opCfg.per); $('#opHideOps').checked = opCfg.hideOps;
+  $('#opStyle').value = opCfg.style; $('#opGrow').checked = opCfg.grow; $('#opCrop').checked = opCfg.crop;
+  $('#opZoom').value = String(opCfg.zoom);
+}
+function cropCells(cells) {
+  let r0 = 1e9, r1 = -1, c0 = 1e9, c1 = -1;
+  cells.forEach((row, r) => row.forEach((cell, c) => { if (cell) { r0 = Math.min(r0, r); r1 = Math.max(r1, r); c0 = Math.min(c0, c); c1 = Math.max(c1, c); } }));
+  if (r1 < 0) return cells;
+  return cells.slice(r0, r1 + 1).map(row => row.slice(c0, c1 + 1));
+}
+
+function generateOp() {
+  readOpCfg();
+  const ops = [];
+  if (opCfg.add) ops.push('+'); if (opCfg.sub) ops.push('-'); if (opCfg.mul) ops.push('×'); if (opCfg.div) ops.push('÷');
+  if (!ops.length) { ops.push('+'); opCfg.add = true; $('#opAdd').checked = true; }
+  const maze = opCfg.style !== 'compact';
+  let R = opCfg.rows, C = opCfg.cols, best = null, grown = false;
+  for (let round = 0; round < 6; round++) {
+    for (let t = 0; t < 4; t++) {
+      const r = attemptOp(R, C, opCfg.eqs, opCfg.max, ops, maze);
+      if (r && (!best || r.eqs.length > best.eqs.length)) best = r;
+      if (best && best.eqs.length >= opCfg.eqs) break;
+    }
+    if ((best && best.eqs.length >= opCfg.eqs) || !opCfg.grow || (R >= OP_MAX && C >= OP_MAX)) break;
+    R = Math.min(OP_MAX, Math.ceil(R * 1.3)); C = Math.min(OP_MAX, Math.ceil(C * 1.3)); grown = true;
+  }
+  const warn = $('#opWarn');
+  if (!best) { warn.textContent = 'No se pudo armar el puzzle con esos valores. Sube el número máximo o activa más operaciones.'; return; }
+  hideCells(best, opCfg);
+  opPuz = { cells: opCfg.crop ? cropCells(best.cells) : best.cells };
+  op.sel = null; op.ans = {}; op.checked = false; op.showSol = false;
+  $('#opSol').setAttribute('aria-pressed', 'false'); $('#opSol').textContent = 'Ver solución';
+  if (best.eqs.length < opCfg.eqs) {
+    warn.textContent = `Se lograron ${best.eqs.length} de ${opCfg.eqs} ecuaciones: ya no cabe más en el lienzo.` + (opCfg.grow ? ' Sube las filas y columnas máximas.' : ' Activa “Agrandar el lienzo si hace falta” o sube filas y columnas.');
+  } else {
+    warn.textContent = grown ? `El lienzo creció a ${R} × ${C} para que cupieran las ${opCfg.eqs} ecuaciones.` : '';
+  }
+  save(); renderOp();
+}
+
+/* --- análisis de ecuaciones --- */
+function runsOf(cells) {
+  const R = cells.length, C = cells[0].length, runs = [];
+  for (let r = 0; r < R; r++) {
+    let cur = [];
+    for (let c = 0; c <= C; c++) {
+      if (c < C && cells[r][c]) cur.push([r, c]);
+      else { if (cur.length >= 3) runs.push(cur); cur = []; }
+    }
+  }
+  for (let c = 0; c < C; c++) {
+    let cur = [];
+    for (let r = 0; r <= R; r++) {
+      if (r < R && cells[r][c]) cur.push([r, c]);
+      else { if (cur.length >= 3) runs.push(cur); cur = []; }
+    }
+  }
+  return runs;
+}
+function calc(tok) {
+  if (tok.length % 2 === 0) return null;
+  const nums = [], ops = [];
+  for (let i = 0; i < tok.length; i++) {
+    if (i % 2 === 0) { if (!/^\d+$/.test(tok[i])) return null; nums.push(+tok[i]); }
+    else { if (!OPS.includes(tok[i])) return null; ops.push(tok[i]); }
+  }
+  const n2 = [nums[0]], o2 = [];
+  for (let i = 0; i < ops.length; i++) {
+    const x = nums[i + 1];
+    if (ops[i] === '×') n2[n2.length - 1] *= x;
+    else if (ops[i] === '÷') { if (x === 0) return NaN; n2[n2.length - 1] /= x; }
+    else { o2.push(ops[i]); n2.push(x); }
+  }
+  let v = n2[0];
+  o2.forEach((o, i) => { v = o === '+' ? v + n2[i + 1] : v - n2[i + 1]; });
+  return v;
+}
+function evalRun(coords, get) {
+  const t = coords.map(([r, c]) => get(r, c));
+  const eq = t.reduce((a, v, i) => v === '=' ? a.concat(i) : a, []);
+  if (eq.length === 0) return 'none';
+  if (eq.length > 1) return 'invalid';
+  if (t.some(v => v === '')) return 'incomplete';
+  const a = calc(t.slice(0, eq[0])), b = calc(t.slice(eq[0] + 1));
+  if (a === null || b === null) return 'invalid';
+  return Math.abs(a - b) < 1e-9 ? 'ok' : 'wrong';
+}
+function analyze(useAnswers) {
+  const marks = {}; let ok = 0, total = 0, incomplete = 0, bad = 0;
+  runsOf(opPuz.cells).forEach(run => {
+    const st = evalRun(run, (r, c) => { const cell = opPuz.cells[r][c]; return useAnswers && cell.h ? (op.ans[r + ',' + c] || '') : cell.v; });
+    if (st === 'none') return;
+    total++;
+    if (st === 'ok') ok++; else if (st === 'incomplete') incomplete++; else bad++;
+    run.forEach(([r, c]) => {
+      const k = r + ',' + c;
+      if (st === 'ok') { if (marks[k] !== 'bad') marks[k] = 'ok'; }
+      else if (st === 'wrong' || st === 'invalid') marks[k] = 'bad';
+    });
+  });
+  return { marks, ok, total, incomplete, bad };
+}
+
+/* --- dibujo --- */
+function renderOp() {
+  const board = $('#opBoard');
+  if (!opPuz) return;
+  const rows = opPuz.cells.length, cols = opPuz.cells[0].length;
+  const avail = Math.max(240, $('#opStage').clientWidth - 34);
+  const fitTile = clamp(Math.floor((avail - (cols - 1) * 4) / cols), 26, 64);
+  const tile = opCfg.zoom > 0 ? opCfg.zoom : fitTile;
+  board.style.setProperty('--cols', cols);
+  board.style.setProperty('--tile', tile + 'px');
+  const edit = op.mode === 'edit';
+  $('#opStage').classList.toggle('edit-mode', edit);
+  $('#modePlay').setAttribute('aria-pressed', String(!edit));
+  $('#modeEdit').setAttribute('aria-pressed', String(edit));
+  const st = analyze(!edit);
+  $('#opInfo').textContent = `Puzzle actual: ${st.total} ecuaciones en ${rows} × ${cols} casillas.`;
+  let marks = {};
+  if (edit) Object.keys(st.marks).forEach(k => { if (st.marks[k] === 'bad') marks[k] = 'bad'; });
+  else if (op.checked) marks = st.marks;
+  let html = '';
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const cell = opPuz.cells[r][c], k = r + ',' + c;
+    if (!cell) { html += `<div class="tile void" data-r="${r}" data-c="${c}"></div>`; continue; }
+    let cls = 'tile ' + cell.k, txt = sym(cell.v);
+    if (cell.h) {
+      cls += ' hid';
+      if (!edit) {
+        const a = op.ans[k];
+        if (a) txt = sym(a);
+        else if (op.showSol) { txt = sym(cell.v); cls += ' sol'; }
+        else txt = '';
+      }
+    }
+    if (op.sel && op.sel.r === r && op.sel.c === c) cls += ' sel';
+    if (marks[k]) cls += ' ' + marks[k];
+    html += `<div class="${cls}" data-r="${r}" data-c="${c}">${txt}</div>`;
+  }
+  board.innerHTML = html;
+  const msg = $('#opMsg');
+  msg.classList.remove('good');
+  if (edit) {
+    msg.textContent = st.bad ? `Hay ${st.bad} ecuación${st.bad === 1 ? '' : 'es'} que no se cumple${st.bad === 1 ? '' : 'n'} (en rojo).` : 'Toca una casilla y escribe un número, un operador o =. “Vaciar / mostrar” la convierte en casilla por resolver.';
+  } else if (st.total > 0 && st.ok === st.total) {
+    msg.textContent = '¡Resuelto! Todas las ecuaciones se cumplen.'; msg.classList.add('good');
+  } else if (op.checked) {
+    msg.textContent = `${st.ok} de ${st.total} ecuaciones correctas` + (st.incomplete ? `; ${st.incomplete} sin completar.` : '.');
+  } else {
+    msg.textContent = 'Toca una casilla vacía y escribe el número que completa la operación.';
+  }
+}
+
+/* --- entrada --- */
+function applyKey(key) {
+  if (!op.sel || !opPuz) { $('#opMsg').textContent = 'Primero toca una casilla.'; return; }
+  const { r, c } = op.sel, cell = opPuz.cells[r][c], k = r + ',' + c;
+  if (op.mode === 'play') {
+    if (!cell || !cell.h) return;
+    let cur = op.ans[k] || '';
+    if (cell.k === 'n') {
+      if (/^\d$/.test(key)) { if (cur === '0') cur = key; else if (cur.length < 4) cur += key; }
+      else if (key === 'back') cur = cur.slice(0, -1);
+      else if (key === 'clear') cur = '';
+      else return;
+    } else {
+      if (OPS.includes(key)) cur = key;
+      else if (key === 'back' || key === 'clear') cur = '';
+      else return;
+    }
+    if (cur) op.ans[k] = cur; else delete op.ans[k];
+    op.checked = false;
+  } else {
+    if (/^\d$/.test(key)) {
+      if (cell && cell.k === 'n') { if (cell.v.length < 3) cell.v = cell.v === '0' ? key : cell.v + key; }
+      else opPuz.cells[r][c] = { k: 'n', v: key, h: false };
+    } else if (OPS.includes(key)) opPuz.cells[r][c] = { k: 'o', v: key, h: !!(cell && cell.k === 'o' && cell.h) };
+    else if (key === '=') opPuz.cells[r][c] = { k: 'e', v: '=', h: false };
+    else if (key === 'back') { if (cell && cell.k === 'n' && cell.v.length > 1) cell.v = cell.v.slice(0, -1); else opPuz.cells[r][c] = null; }
+    else if (key === 'clear') opPuz.cells[r][c] = null;
+    else if (key === 'hide') { if (cell && cell.k !== 'e') cell.h = !cell.h; }
+    op.ans = {}; op.checked = false;
+    save();
+  }
+  renderOp();
+}
+function moveSel(dr, dc) {
+  if (!op.sel) { op.sel = { r: 0, c: 0 }; renderOp(); return; }
+  const R = opPuz.cells.length, C = opPuz.cells[0].length;
+  let r = op.sel.r, c = op.sel.c;
+  for (;;) {
+    r += dr; c += dc;
+    if (r < 0 || c < 0 || r >= R || c >= C) return;
+    if (op.mode === 'edit' || (opPuz.cells[r][c] && opPuz.cells[r][c].h)) { op.sel = { r, c }; renderOp(); return; }
+  }
+}
+function nextHidden() {
+  const R = opPuz.cells.length, C = opPuz.cells[0].length, start = op.sel ? op.sel.r * C + op.sel.c : -1;
+  for (let i = 1; i <= R * C; i++) {
+    const idx = (start + i) % (R * C), r = Math.floor(idx / C), c = idx % C;
+    if (opPuz.cells[r][c] && opPuz.cells[r][c].h) { op.sel = { r, c }; renderOp(); return; }
+  }
+}
+
+$('#opBoard').addEventListener('click', e => {
+  const t = e.target.closest('.tile'); if (!t) return;
+  const r = +t.dataset.r, c = +t.dataset.c, cell = opPuz.cells[r][c];
+  if (op.mode === 'play' && !(cell && cell.h)) return;
+  op.sel = { r, c }; renderOp();
+});
+$('#keypad').addEventListener('click', e => { const b = e.target.closest('button'); if (b) applyKey(b.dataset.key); });
+document.addEventListener('keydown', e => {
+  if (tab === 'ws') {
+    if (e.key === 'Escape' && anchor) { anchor = endPt = null; dragging = false; drawSel(); }
+    return;
+  }
+  if (!opPuz || e.ctrlKey || e.metaKey || e.altKey) return;
+  const tg = e.target.tagName;
+  if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
+  const k = e.key;
+  let key = null;
+  if (/^\d$/.test(k)) key = k;
+  else if (k === '+') key = '+';
+  else if (k === '-' || k === '−') key = '-';
+  else if (k === '*' || k === 'x' || k === 'X' || k === '×') key = '×';
+  else if (k === '/' || k === '÷') key = '÷';
+  else if (k === '=') key = '=';
+  else if (k === 'Backspace') key = 'back';
+  else if (k === 'Delete') key = 'clear';
+  if (key) { e.preventDefault(); applyKey(key); return; }
+  if (k === 'ArrowUp') { e.preventDefault(); moveSel(-1, 0); }
+  else if (k === 'ArrowDown') { e.preventDefault(); moveSel(1, 0); }
+  else if (k === 'ArrowLeft') { e.preventDefault(); moveSel(0, -1); }
+  else if (k === 'ArrowRight') { e.preventDefault(); moveSel(0, 1); }
+  else if (k === 'Enter' && op.mode === 'play') { e.preventDefault(); nextHidden(); }
+});
+
+$('#modePlay').addEventListener('click', () => { op.mode = 'play'; op.sel = null; renderOp(); });
+$('#modeEdit').addEventListener('click', () => { op.mode = 'edit'; op.sel = null; renderOp(); });
+$('#opCheck').addEventListener('click', () => { op.checked = true; renderOp(); });
+$('#opReset').addEventListener('click', () => { op.ans = {}; op.checked = false; op.sel = null; renderOp(); });
+$('#opSol').addEventListener('click', e => {
+  op.showSol = !op.showSol;
+  e.currentTarget.setAttribute('aria-pressed', String(op.showSol));
+  e.currentTarget.textContent = op.showSol ? 'Ocultar solución' : 'Ver solución';
+  renderOp();
+});
+$('#opGen').addEventListener('click', generateOp);
+$('#opResize').addEventListener('click', () => {
+  readOpCfg();
+  const old = opPuz.cells, next = mk(opCfg.rows, opCfg.cols);
+  for (let r = 0; r < Math.min(old.length, opCfg.rows); r++) for (let c = 0; c < Math.min(old[0].length, opCfg.cols); c++) next[r][c] = old[r][c];
+  opPuz = { cells: next }; op.sel = null; op.ans = {}; op.checked = false;
+  $('#opWarn').textContent = '';
+  save(); renderOp();
+});
+$('#opClear').addEventListener('click', () => {
+  readOpCfg();
+  opPuz = { cells: mk(opCfg.rows, opCfg.cols) }; op.sel = null; op.ans = {}; op.checked = false;
+  op.mode = 'edit'; $('#opWarn').textContent = '';
+  save(); renderOp();
+});
+$('#opEmpty').addEventListener('input', () => { $('#opEmptyVal').textContent = $('#opEmpty').value + ' %'; });
+
+/* =========================================================
+   Interfaz general
+   ========================================================= */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-inc],[data-dec]'); if (!b) return;
+  const id = b.dataset.inc || b.dataset.dec, el = document.getElementById(id);
+  const v = clamp((parseInt(el.value, 10) || 0) + (b.dataset.inc ? 1 : -1), +el.min, +el.max);
+  el.value = v; el.dispatchEvent(new Event('input', { bubbles: true }));
+});
+
+function setTab(t) {
+  tab = t;
+  document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  $('#view-ws').hidden = t !== 'ws';
+  $('#view-op').hidden = t !== 'op';
+  anchor = endPt = null; dragging = false;
+  relayout(); save();
+}
+document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+
+function applyClassMode() {
+  $('#app').classList.toggle('class-mode', classMode);
+  const b = $('#classToggle');
+  b.setAttribute('aria-pressed', String(classMode));
+  b.textContent = classMode ? 'Mostrar editor' : 'Ocultar editor';
+}
+$('#classToggle').addEventListener('click', () => { classMode = !classMode; applyClassMode(); relayout(); save(); });
+
+function relayout() { if (tab === 'ws') renderWS(); else renderOp(); }
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(relayout, 120); });
+
+/* =========================================================
+   Exportar como PNG
+   ========================================================= */
+const FONT = '"Bricolage Grotesque", system-ui, "Segoe UI", Roboto, sans-serif';
+const EX = { ink: '#1B2A4E', soft: '#56627F', line: '#C9D4C6', chip: '#9FB0A4', tile: '#DDE6FB', hid: '#FFF0B3', ok: '#2E8B5B', blue: '#2F5DD0', paper: '#F3F6EF' };
+
+async function fontsReady() {
+  try { await Promise.all([document.fonts.load('700 24px "Bricolage Grotesque"'), document.fonts.load('500 16px "Bricolage Grotesque"')]); } catch (e) {}
+}
+function newCanvas(w, h, scale) {
+  const sc = Math.max(.25, Math.min(scale, Math.sqrt(16e6 / (w * h)), 16000 / Math.max(w, h)));
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(w * sc); cv.height = Math.round(h * sc);
+  const g = cv.getContext('2d');
+  g.scale(cv.width / w, cv.height / h);
+  return { cv, g };
+}
+function paintBg(g, w, h, bg) {
+  if (bg === 'white') { g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); }
+  else if (bg === 'grid') {
+    g.fillStyle = EX.paper; g.fillRect(0, 0, w, h);
+    g.strokeStyle = EX.line; g.lineWidth = 1; g.beginPath();
+    for (let x = .5; x < w; x += 28) { g.moveTo(x, 0); g.lineTo(x, h); }
+    for (let y = .5; y < h; y += 28) { g.moveTo(0, y); g.lineTo(w, y); }
+    g.stroke();
+  }
+}
+function rr(g, x, y, w, h, r) {
+  g.beginPath(); g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+function drawHeader(g, W, m, y, title, name) {
+  g.textBaseline = 'alphabetic'; g.textAlign = 'left'; g.fillStyle = EX.ink;
+  if (title) { g.font = `700 26px ${FONT}`; g.fillText(title, m, y + 26, W - 2 * m); y += 44; }
+  if (name) {
+    g.font = `500 15px ${FONT}`;
+    const fx = m + (W - 2 * m) * .64;
+    g.fillText('Nombre', m, y + 16); g.fillText('Fecha', fx, y + 16);
+    g.strokeStyle = EX.ink; g.lineWidth = 1; g.beginPath();
+    g.moveTo(m + 60, y + 18.5); g.lineTo(fx - 16, y + 18.5);
+    g.moveTo(fx + 46, y + 18.5); g.lineTo(W - m, y + 18.5);
+    g.stroke(); y += 36;
+  }
+  return y;
+}
+
+async function drawWsCanvas() {
+  if (!wsPuz) return null;
+  await fontsReady();
+  const P = wsPuz, o = exp, rows = P.grid.length, cols = P.grid[0].length;
+  const cell = clamp(Math.floor(760 / cols), 24, 44), m = 28;
+  const gridW = cols * cell, gridH = rows * cell;
+  const contentW = Math.max(gridW, 360), W = contentW + 2 * m;
+  const g0 = document.createElement('canvas').getContext('2d');
+  g0.font = `500 16px ${FONT}`;
+  const items = [];
+  if (o.wsList !== 'none') P.words.forEach(w => {
+    const label = o.wsList === 'words' ? w : '_ '.repeat(w.length).trim();
+    items.push({ label, w: g0.measureText(label).width + 26, found: o.wsContent === 'game' && ws.found[w] ? ws.found[w].color : null });
+  });
+  const lines = []; let cur = [], cw = 0;
+  items.forEach(it => {
+    if (cur.length && cw + it.w > contentW) { lines.push(cur); cur = []; cw = 0; }
+    cur.push(it); cw += it.w + 8;
+  });
+  if (cur.length) lines.push(cur);
+  const listH = lines.length * 36;
+  const hh = (o.wsTitle ? 44 : 0) + (o.wsName ? 36 : 0);
+  const H = m + hh + gridH + (listH ? 24 + listH : 0) + m;
+  const { cv, g } = newCanvas(W, H, o.wsScale);
+  paintBg(g, W, H, o.wsBg);
+  const gy = drawHeader(g, W, m, m, o.wsTitle, o.wsName);
+  const gx = m + (contentW - gridW) / 2;
+  if (o.wsBg !== 'transparent') { g.fillStyle = '#fff'; g.fillRect(gx, gy, gridW, gridH); }
+  const marks = o.wsContent === 'solution'
+    ? P.placed.map((p, i) => ({ r1: p.r, c1: p.c, r2: p.r + p.dr * (p.word.length - 1), c2: p.c + p.dc * (p.word.length - 1), color: HL[i % HL.length] }))
+    : o.wsContent === 'game' ? Object.values(ws.found) : [];
+  g.save(); g.lineCap = 'round'; g.lineWidth = cell * .78; g.globalAlpha = .6;
+  marks.forEach(k => {
+    g.strokeStyle = k.color; g.beginPath();
+    g.moveTo(gx + (k.c1 + .5) * cell, gy + (k.r1 + .5) * cell); g.lineTo(gx + (k.c2 + .5) * cell, gy + (k.r2 + .5) * cell); g.stroke();
+  });
+  g.restore();
+  if (o.wsGrid) {
+    g.strokeStyle = EX.line; g.lineWidth = 1; g.beginPath();
+    for (let i = 1; i < cols; i++) { const x = Math.round(gx + i * cell) + .5; g.moveTo(x, gy); g.lineTo(x, gy + gridH); }
+    for (let i = 1; i < rows; i++) { const y = Math.round(gy + i * cell) + .5; g.moveTo(gx, y); g.lineTo(gx + gridW, y); }
+    g.stroke();
+  }
+  g.strokeStyle = EX.ink; g.lineWidth = 2; g.strokeRect(gx, gy, gridW, gridH);
+  g.fillStyle = EX.ink; g.font = `700 ${Math.round(cell * .52)}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) g.fillText(P.grid[r][c], gx + (c + .5) * cell, gy + (r + .5) * cell + 1);
+  let ly = gy + gridH + 24;
+  g.font = `500 16px ${FONT}`;
+  lines.forEach(line => {
+    let x = m;
+    line.forEach(it => {
+      rr(g, x, ly, it.w, 28, 14);
+      g.lineWidth = it.found ? 2 : 1.5; g.strokeStyle = it.found || EX.chip; g.stroke();
+      g.fillStyle = it.found ? EX.soft : EX.ink; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(it.label, x + it.w / 2, ly + 15);
+      if (it.found) { g.lineWidth = 1.5; g.strokeStyle = EX.soft; g.beginPath(); g.moveTo(x + 12, ly + 15); g.lineTo(x + it.w - 12, ly + 15); g.stroke(); }
+      x += it.w + 8;
+    });
+    ly += 36;
+  });
+  return cv;
+}
+
+async function drawOpCanvas() {
+  if (!opPuz) return null;
+  const cells = opPuz.cells;
+  let r0 = 1e9, r1 = -1, c0 = 1e9, c1 = -1;
+  cells.forEach((row, r) => row.forEach((cell, c) => { if (cell) { r0 = Math.min(r0, r); r1 = Math.max(r1, r); c0 = Math.min(c0, c); c1 = Math.max(c1, c); } }));
+  if (r1 < 0) return null;
+  await fontsReady();
+  const o = exp, rows = r1 - r0 + 1, cols = c1 - c0 + 1;
+  const tile = clamp(Math.floor(900 / cols), 30, 56), gap = tile < 40 ? 4 : 5, m = 28;
+  const gridW = cols * tile + (cols - 1) * gap, gridH = rows * tile + (rows - 1) * gap;
+  const contentW = Math.max(gridW, 360), W = contentW + 2 * m;
+  const hh = (o.opTitle ? 44 : 0) + (o.opName ? 36 : 0);
+  const H = m + hh + gridH + m;
+  const { cv, g } = newCanvas(W, H, o.opScale);
+  paintBg(g, W, H, o.opBg);
+  const gy = drawHeader(g, W, m, m, o.opTitle, o.opName);
+  const gx = m + (contentW - gridW) / 2;
+  g.font = `700 ${Math.round(tile * .42)}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) {
+    const cell = cells[r][c];
+    if (!cell) continue;
+    const x = gx + (c - c0) * (tile + gap), y = gy + (r - r0) * (tile + gap);
+    let txt = sym(cell.v), col = EX.ink;
+    rr(g, x, y, tile, tile, 8);
+    if (cell.h) {
+      g.fillStyle = o.opHl ? EX.hid : '#fff'; g.fill();
+      g.setLineDash([5, 4]); g.lineWidth = 2; g.strokeStyle = EX.ink; g.stroke(); g.setLineDash([]);
+      if (o.opContent === 'solution') col = EX.ok;
+      else if (o.opContent === 'game' && op.ans[r + ',' + c]) { txt = sym(op.ans[r + ',' + c]); col = EX.blue; }
+      else txt = '';
+    } else if (cell.k === 'n') {
+      g.fillStyle = '#fff'; g.fill(); g.lineWidth = 2; g.strokeStyle = EX.ink; g.stroke();
+    } else {
+      g.fillStyle = EX.tile; g.fill();
+      if (cell.k === 'e') col = EX.blue;
+    }
+    if (txt) { g.fillStyle = col; g.fillText(txt, x + tile / 2, y + tile / 2 + 1); }
+  }
+  return cv;
+}
+
+function readExp() {
+  exp.wsBg = $('#xwBg').value; exp.wsContent = $('#xwContent').value; exp.wsList = $('#xwList').value;
+  exp.wsTitle = $('#xwTitle').value.trim().slice(0, 80); exp.wsName = $('#xwName').checked; exp.wsGrid = $('#xwGrid').checked;
+  exp.wsScale = num($('#xwScale'), 2);
+  exp.opBg = $('#xoBg').value; exp.opContent = $('#xoContent').value;
+  exp.opTitle = $('#xoTitle').value.trim().slice(0, 80); exp.opName = $('#xoName').checked; exp.opHl = $('#xoHl').checked;
+  exp.opScale = num($('#xoScale'), 2);
+}
+function writeExp() {
+  $('#xwBg').value = exp.wsBg; $('#xwContent').value = exp.wsContent; $('#xwList').value = exp.wsList;
+  $('#xwTitle').value = exp.wsTitle; $('#xwName').checked = exp.wsName; $('#xwGrid').checked = exp.wsGrid;
+  $('#xwScale').value = String(exp.wsScale);
+  $('#xoBg').value = exp.opBg; $('#xoContent').value = exp.opContent;
+  $('#xoTitle').value = exp.opTitle; $('#xoName').checked = exp.opName; $('#xoHl').checked = exp.opHl;
+  $('#xoScale').value = String(exp.opScale);
+}
+
+let toastT;
+function toast(t) {
+  const el = $('#toast'); el.textContent = t; el.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 3400);
+}
+function saveBlob(b, name) {
+  const url = URL.createObjectURL(b), a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+function makeBlob(kind) {
+  return (async () => {
+    const cv = await (kind === 'ws' ? drawWsCanvas() : drawOpCanvas());
+    const b = await new Promise(res => cv.toBlob(res, 'image/png'));
+    if (!b) throw new Error('sin imagen');
+    return b;
+  })();
+}
+function doExport(kind, action) {
+  readExp(); save();
+  const name = kind === 'ws' ? 'sopa-de-letras.png' : 'operaciones.png';
+  toast('Preparando la imagen…');
+  const blobP = makeBlob(kind);
+  const failed = () => toast('No se pudo crear la imagen.');
+  const download = msg => blobP.then(b => { saveBlob(b, name); toast(msg); }).catch(failed);
+  if (action === 'copy' && navigator.clipboard && window.ClipboardItem) {
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })])
+      .then(() => toast('Imagen copiada. Pégala en Word, Docs o Slides.'))
+      .catch(() => download('Este navegador no deja copiar imágenes desde aquí; se descargó el PNG.'));
+  } else {
+    download(action === 'copy' ? 'Este navegador no permite copiar imágenes; se descargó el PNG.' : 'PNG descargado.');
+  }
+}
+['#wsCopy', '#wsCopyQuick'].forEach(q => $(q).addEventListener('click', () => doExport('ws', 'copy')));
+$('#wsDown').addEventListener('click', () => doExport('ws', 'down'));
+['#opCopy', '#opCopyQuick'].forEach(q => $(q).addEventListener('click', () => doExport('op', 'copy')));
+$('#opDown').addEventListener('click', () => doExport('op', 'down'));
+$('#opZoom').addEventListener('change', () => { opCfg.zoom = num($('#opZoom'), 0); save(); renderOp(); });
+
+/* --- arranque --- */
+writeWsCfg(); writeOpCfg(); writeExp(); updateWsHint(); applyClassMode();
+if (!wsPuz || !wsPuz.grid) generateWS();
+if (!opPuz || !opPuz.cells) generateOp();
+setTab(tab);
+})();
+</script>
+</body>
+</html>
