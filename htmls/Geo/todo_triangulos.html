@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Triángulos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EAF4FF; --card:#FFFFFF; --ink:#1F2A44; --soft:#56627F; --line:#D5E3F3; --field:#F4F9FF;
+  --blue:#3B82F6; --blueD:#2F5FBF; --blueL:#DCEBFF;
+  --green:#22A06B; --greenD:#13774C; --greenL:#D8F3E6;
+  --orange:#F28C28; --orangeD:#B8620A; --orangeL:#FFE8D0;
+  --purple:#7C5CE0; --purpleL:#EAE3FF;
+  --pink:#E9568C; --pinkL:#FFDEEA;
+  --yellow:#F2A81D; --yellowL:#FFF0C7;
+  --teal:#14B8A6; --tealL:#D3F5F0;
+  --bad:#D9483B; --badL:#FFE3DF;
+  --shadow:0 6px 0 rgba(47,95,191,.10);
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.5;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+[hidden]{display:none !important}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+button{font:inherit;color:inherit}
+h1,h2,h3,p{margin:0}
+
+/* ---------- cabecera ---------- */
+.hdr{background:var(--card);border-bottom:2px solid var(--line);padding:12px clamp(14px,3vw,32px);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{width:46px;height:46px;flex:none}
+.brand h1{font-size:26px;font-weight:800;letter-spacing:-.01em;line-height:1.1}
+.brand p{font-size:14px;color:var(--soft);font-weight:600}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;background:var(--blueL);padding:5px;border-radius:999px}
+.tabs button{border:0;background:transparent;font-weight:800;font-size:15px;padding:9px 18px;border-radius:999px;cursor:pointer;color:var(--blueD)}
+.tabs button[aria-selected="true"]{background:var(--blue);color:#fff;box-shadow:0 3px 0 rgba(47,95,191,.35)}
+
+main{max-width:1240px;margin:0 auto;padding:20px clamp(14px,3vw,32px) 48px}
+.sub{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.pill{border:2px solid var(--line);background:var(--card);font-weight:800;font-size:14px;padding:8px 16px;border-radius:999px;cursor:pointer;color:var(--soft)}
+.pill[aria-pressed="true"]{border-color:var(--blue);background:var(--blueL);color:var(--blueD)}
+.pill.k-altura[aria-pressed="true"]{border-color:var(--orange);background:var(--orangeL);color:var(--orangeD)}
+.pill.k-transv[aria-pressed="true"]{border-color:var(--green);background:var(--greenL);color:var(--greenD)}
+.pill.k-simetral[aria-pressed="true"]{border-color:var(--purple);background:var(--purpleL);color:#5B3FC0}
+.pill.k-bisect[aria-pressed="true"]{border-color:var(--pink);background:var(--pinkL);color:#B02F66}
+
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:20px;align-items:start}
+@media (max-width:1000px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:16px 18px;min-width:0}
+.card + .card{margin-top:20px}
+.stack{display:grid;gap:20px;min-width:0}
+.stack > .card{margin-top:0}
+.card h2{font-size:20px;font-weight:800;margin-bottom:4px}
+.card h3{font-size:16px;font-weight:800;margin-bottom:6px}
+.muted{color:var(--soft);font-size:14px;font-weight:600}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;margin-bottom:10px}
+.check{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--soft);cursor:pointer}
+.check input{accent-color:var(--blue);width:18px;height:18px;margin:0}
+
+.btn{border:2px solid var(--blue);background:var(--card);color:var(--blueD);font-weight:800;font-size:15px;padding:9px 18px;border-radius:999px;cursor:pointer;box-shadow:0 3px 0 rgba(47,95,191,.18)}
+.btn:hover{background:var(--blueL)}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.primary:hover{background:#2F72E8}
+.btn.good{background:var(--green);border-color:var(--green);color:#fff}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.sm{font-size:13px;padding:6px 13px}
+
+/* ---------- lienzo ---------- */
+.canvas{display:block;width:100%;height:auto;background:#fff;border-radius:16px;border:2px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
+.canvas .handle{cursor:grab}
+.canvas.drag .handle{cursor:grabbing}
+.hint{font-size:14px;color:var(--soft);font-weight:600;margin-top:8px}
+
+/* ---------- teoría ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 4px}
+.chiplab{font-weight:800;font-size:14px;color:var(--soft);min-width:122px}
+.chip{display:inline-block;padding:6px 14px;border-radius:999px;font-weight:800;font-size:14px;border:2px solid var(--line);color:var(--soft);background:var(--field)}
+.chip.on.c-eq{background:var(--blueL);border-color:var(--blue);color:var(--blueD)}
+.chip.on.c-is{background:var(--tealL);border-color:var(--teal);color:#0B7A6D}
+.chip.on.c-es{background:var(--yellowL);border-color:var(--yellow);color:#8A5A00}
+.chip.on.c-ac{background:var(--greenL);border-color:var(--green);color:var(--greenD)}
+.chip.on.c-re{background:var(--orangeL);border-color:var(--orange);color:var(--orangeD)}
+.chip.on.c-ob{background:var(--pinkL);border-color:var(--pink);color:#B02F66}
+.defs{display:grid;gap:8px;margin-top:10px}
+.def{border-radius:14px;padding:10px 14px;font-size:15px;font-weight:600}
+.def.s{background:var(--blueL)} .def.a{background:var(--greenL)}
+.meas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.meas div{background:var(--field);border:2px solid var(--line);border-radius:14px;padding:8px 10px;font-weight:700;font-size:14px}
+.meas b{display:block;font-size:18px;color:var(--blueD)}
+.types{display:grid;gap:8px}
+.types h3{margin:8px 0 0}
+.type{border:2px solid var(--line);background:var(--card);border-radius:16px;padding:8px;text-align:left;cursor:pointer;display:grid;grid-template-columns:116px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;width:100%}
+.type svg{grid-row:1/3;width:100%;height:auto;display:block;background:var(--field);border-radius:10px}
+.type b{display:block;font-size:16px;align-self:end}
+.type span{display:block;font-size:13px;color:var(--soft);font-weight:600;line-height:1.3;align-self:start}
+.type.on{border-color:var(--blue);background:var(--blueL)}
+.props{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:20px}
+@media (max-width:800px){.props{grid-template-columns:1fr}}
+.prop{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:14px 16px;box-shadow:var(--shadow)}
+.prop .big{font-size:20px;font-weight:800;color:var(--blueD);margin:4px 0}
+.prop p{font-size:14px;font-weight:600;color:var(--soft)}
+.okmark{color:var(--green);font-weight:800}.nomark{color:var(--bad);font-weight:800}
+
+/* ---------- líneas notables ---------- */
+.kinds{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.steps-nav{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+.dots{display:flex;gap:6px;margin-left:auto}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--line);border:0;padding:0;cursor:pointer}
+.dot.done{background:var(--kc,var(--blue))}
+.dot.cur{outline:3px solid var(--kc,var(--blue));outline-offset:2px}
+.stepbox{border-left:8px solid var(--kc,var(--blue));padding-left:14px}
+.stepbox .n{font-size:13px;font-weight:800;color:var(--soft)}
+.stepbox h2{margin:2px 0 6px}
+.stepbox p{font-weight:600}
+.keyfact{margin-top:12px;background:var(--kl,var(--blueL));border-radius:14px;padding:10px 14px;font-weight:700;font-size:15px}
+table.data{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;font-weight:700}
+table.data td,table.data th{padding:5px 8px;border-bottom:2px solid var(--line);text-align:left}
+table.data th{color:var(--soft);font-size:13px}
+.seg-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.tgl{border:2px solid var(--line);background:var(--card);font-weight:800;font-size:14px;padding:6px 14px;border-radius:999px;cursor:pointer;color:var(--soft)}
+.tgl[aria-pressed="true"]{background:var(--kl,var(--blueL));border-color:var(--kc,var(--blue));color:var(--ink)}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+
+/* ---------- desafíos ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:end;margin-bottom:14px}
+.filters label{display:block;font-size:13px;font-weight:800;color:var(--soft);margin-bottom:4px}
+select,input[type=text]{font:inherit;font-weight:700;color:var(--ink);background:var(--field);border:2px solid var(--line);border-radius:12px;padding:8px 12px}
+.prob .topic{display:inline-block;font-size:13px;font-weight:800;padding:3px 12px;border-radius:999px;background:var(--yellowL);color:#8A5A00;margin-bottom:8px}
+.prob .lvl{font-size:13px;font-weight:800;color:var(--soft);margin-left:8px}
+.prob .stmt{font-size:19px;font-weight:700;line-height:1.45;margin-bottom:12px}
+.prob .diagram{background:var(--field);border:2px solid var(--line);border-radius:18px;padding:6px;max-width:520px;margin:0 auto 14px}
+.prob .diagram svg{display:block;width:100%;height:auto}
+.answer{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.answer input{flex:1 1 220px;min-width:0;font-size:20px;padding:10px 14px}
+.answer .unit{font-weight:800;color:var(--soft)}
+.fb{margin-top:14px;border-radius:16px;padding:12px 16px;font-weight:700}
+.fb.ok{background:var(--greenL);color:#0F5E3C;border:2px solid var(--green)}
+.fb.no{background:var(--badL);color:#8E2A20;border:2px solid var(--bad)}
+.fb.tip{background:var(--yellowL);color:#6B4700;border:2px solid var(--yellow)}
+.fb .why{display:block;margin-top:6px;font-weight:600;color:var(--ink)}
+#hintBox .fb,#fb .fb{scroll-margin-bottom:24px}
+#hintBox .fb{margin-top:14px}
+#fb .fb{margin-top:10px}
+.score{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.score div{background:var(--field);border:2px solid var(--line);border-radius:14px;padding:8px 10px;text-align:center;font-size:13px;font-weight:800;color:var(--soft)}
+.score b{display:block;font-size:26px;color:var(--blueD);line-height:1.1}
+.hist{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.hist i{width:16px;height:16px;border-radius:50%;background:var(--line);display:block}
+.hist i.y{background:var(--green)} .hist i.n{background:var(--bad)}
+.kbd{background:var(--field);border:2px solid var(--line);border-radius:6px;padding:0 6px;font-weight:800;font-size:13px}
+
+@media (prefers-reduced-motion:no-preference){
+  .btn,.pill,.tgl,.chip{transition:background-color .15s,border-color .15s}
+  .fb.shake{animation:shake .35s}
+  @keyframes shake{20%{transform:translateX(-6px)}50%{transform:translateX(6px)}80%{transform:translateX(-3px)}}
+}
+@media (max-width:560px){
+  .hdr{padding:10px 12px}.tabs{border-radius:22px}.tabs button{padding:8px 12px;font-size:14px}
+  .brand h1{font-size:22px}.chiplab{min-width:100%}
+  .prob .stmt{font-size:17px}
+}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="brand">
+    <svg viewBox="0 0 48 48" aria-hidden="true"><polygon points="4,42 24,6 44,42" fill="#DCEBFF" stroke="#3B82F6" stroke-width="3" stroke-linejoin="round"/><polygon points="14,42 24,24 34,42" fill="#FFF0C7" stroke="#F2A81D" stroke-width="3" stroke-linejoin="round"/><circle cx="24" cy="33" r="3.5" fill="#E9568C"/></svg>
+    <div><h1>Triángulos</h1><p>Explora, construye y practica</p></div>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Módulos">
+    <button role="tab" id="tab-teoria" aria-controls="p-teoria" aria-selected="true" type="button">Teoría y clasificación</button>
+    <button role="tab" id="tab-lineas" aria-controls="p-lineas" aria-selected="false" type="button">Líneas y puntos notables</button>
+    <button role="tab" id="tab-retos" aria-controls="p-retos" aria-selected="false" type="button">Desafíos</button>
+  </nav>
+</header>
+
+<main>
+<!-- ================= TEORÍA ================= -->
+<section id="p-teoria" role="tabpanel" aria-labelledby="tab-teoria">
+  <div class="sub">
+    <button class="pill" type="button" data-sub="clas" aria-pressed="true">Clasificación</button>
+    <button class="pill" type="button" data-sub="notables" aria-pressed="false">Altura y líneas notables</button>
+  </div>
+
+  <div id="sub-clas">
+    <div class="grid">
+      <div class="stack">
+        <div class="card">
+          <div class="bar">
+            <div><h2>Arma tu triángulo</h2><p class="muted">Arrastra los vértices A, B y C y mira cómo cambia su clasificación.</p></div>
+            <label class="check"><input type="checkbox" class="snapbox" checked>Imán a la cuadrícula</label>
+          </div>
+          <div id="host-clas"></div>
+          <div class="chips"><span class="chiplab">Por sus lados</span><span id="chipsSides"></span></div>
+          <div class="chips"><span class="chiplab">Por sus ángulos</span><span id="chipsAng"></span></div>
+          <div class="defs"><div class="def s" id="defSides"></div><div class="def a" id="defAng"></div></div>
+          <div class="meas" id="meas"></div>
+          <p class="hint">Al arrastrar es difícil lograr medidas exactas, por eso se usa una tolerancia pequeña. La cuadrícula ayuda: cada cuadrito mide 1 u.</p>
+        </div>
+      </div>
+      <aside class="card">
+        <h2>Los 6 tipos</h2>
+        <p class="muted" style="margin-bottom:10px">Toca uno para cargarlo en el lienzo.</p>
+        <div class="types" id="types"></div>
+        <div class="presets"><button class="btn sm" type="button" id="randomTri">Triángulo al azar</button></div>
+      </aside>
+    </div>
+    <div class="props">
+      <div class="prop"><h3>Suma de ángulos interiores</h3><div class="big" id="pSum"></div><p>En todo triángulo, los tres ángulos interiores suman 180°.</p></div>
+      <div class="prop"><h3>Ángulo exterior</h3><div class="big" id="pExt"></div><p>Un ángulo exterior es igual a la suma de los dos ángulos interiores que no están a su lado.</p></div>
+      <div class="prop"><h3>Desigualdad triangular</h3><div class="big" id="pIneq"></div><p>La suma de dos lados siempre es mayor que el tercero.</p></div>
+    </div>
+  </div>
+
+  <div id="sub-notables" hidden>
+    <div class="grid">
+      <div class="card" id="nCard">
+        <div class="bar">
+          <div><h2>Líneas notables</h2><p class="muted">Elige una línea y arrastra los vértices para ver cómo se comporta.</p></div>
+          <label class="check"><input type="checkbox" class="snapbox" checked>Imán a la cuadrícula</label>
+        </div>
+        <div class="kinds" id="nKinds"></div>
+        <div class="seg-tools" id="nTools"></div>
+        <div id="host-not"></div>
+        <div class="presets"><span class="muted">Prueba con:</span>
+          <button class="btn sm" type="button" data-preset="acutangulo">Acutángulo</button>
+          <button class="btn sm" type="button" data-preset="rectangulo">Rectángulo</button>
+          <button class="btn sm" type="button" data-preset="obtusangulo">Obtusángulo</button>
+        </div>
+      </div>
+      <aside class="card" id="nInfo"></aside>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LÍNEAS Y PUNTOS NOTABLES ================= -->
+<section id="p-lineas" role="tabpanel" aria-labelledby="tab-lineas" hidden>
+  <div class="grid">
+    <div class="card" id="cCard">
+      <div class="kinds" id="cKinds"></div>
+      <div class="bar">
+        <p class="muted">Construcción paso a paso. También puedes arrastrar los vértices A, B y C.</p>
+        <label class="check"><input type="checkbox" class="snapbox" checked>Imán a la cuadrícula</label>
+      </div>
+      <div id="host-con"></div>
+      <div class="steps-nav">
+        <button class="btn" type="button" id="cPrev">Anterior</button>
+        <button class="btn primary" type="button" id="cNext">Siguiente</button>
+        <button class="btn" type="button" id="cReset">Reiniciar</button>
+        <div class="dots" id="cDots" role="group" aria-label="Pasos"></div>
+      </div>
+      <div class="presets"><span class="muted">Prueba con:</span>
+        <button class="btn sm" type="button" data-preset="acutangulo">Acutángulo</button>
+        <button class="btn sm" type="button" data-preset="rectangulo">Rectángulo</button>
+        <button class="btn sm" type="button" data-preset="obtusangulo">Obtusángulo</button>
+        <button class="btn sm" type="button" id="cRandom">Al azar</button>
+      </div>
+    </div>
+    <aside class="card stepbox" id="cInfo" aria-live="polite"></aside>
+  </div>
+</section>
+
+<!-- ================= DESAFÍOS ================= -->
+<section id="p-retos" role="tabpanel" aria-labelledby="tab-retos" hidden>
+  <div class="grid">
+    <div class="card prob">
+      <div class="filters">
+        <div><label for="fTopic">Tema</label><select id="fTopic"></select></div>
+        <div><label for="fLevel">Nivel</label><select id="fLevel">
+          <option value="0">Mixto</option><option value="1">Fácil</option><option value="2">Medio</option><option value="3">Desafío</option></select></div>
+        <button class="btn" type="button" id="fNew">Nuevo problema</button>
+      </div>
+      <div><span class="topic" id="pTopic"></span><span class="lvl" id="pLevel"></span></div>
+      <p class="stmt" id="pText"></p>
+      <div class="diagram" id="pDiagram"></div>
+      <p class="muted" style="margin:14px 0 0">Resuélvelo en tu cuaderno. Cuando quieras comprobar, usa los botones.</p>
+      <div class="answer" id="actions">
+        <button class="btn" type="button" id="bHint">Pista</button>
+        <button class="btn primary" type="button" id="bSol" aria-expanded="false">Ver solución</button>
+        <button class="btn good" type="button" id="bNext">Siguiente problema</button>
+      </div>
+      <div id="hintBox"></div>
+      <div id="fb" aria-live="polite"></div>
+    </div>
+    <aside class="card">
+      <h2>Cómo usarlo</h2>
+      <ol class="muted" style="padding-left:20px;margin:8px 0 0;line-height:1.6">
+        <li>Elige el tema y el nivel.</li>
+        <li>Resuelve el problema en tu cuaderno.</li>
+        <li>¿Te trabaste? Pulsa <b>Pista</b>.</li>
+        <li>Pulsa <b>Ver solución</b> para comparar tu resultado y revisar el procedimiento.</li>
+        <li>Sigue con <b>Siguiente problema</b>.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+</main>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const ri = (a, b) => Math.floor(rnd(a, b + 1));
+const pick = a => a[ri(0, a.length - 1)];
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = ri(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const N = v => Math.round(v * 100) / 100;
+const fx = (n, d = 1) => { const s = (Math.round(n * 10 ** d) / 10 ** d).toFixed(d); return s.replace('.', ',').replace(/,0+$/, ''); };
+const DEG = 180 / Math.PI;
+const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+
+/* =========================================================
+   Geometría
+   ========================================================= */
+const V = (x, y) => ({ x, y });
+const add = (a, b) => V(a.x + b.x, a.y + b.y), sub = (a, b) => V(a.x - b.x, a.y - b.y), mul = (a, k) => V(a.x * k, a.y * k);
+const dot = (a, b) => a.x * b.x + a.y * b.y, cross = (a, b) => a.x * b.y - a.y * b.x;
+const len = a => Math.hypot(a.x, a.y), dist = (a, b) => len(sub(a, b));
+const unit = a => { const l = len(a) || 1; return V(a.x / l, a.y / l); };
+const perp = a => V(-a.y, a.x);
+const mid = (a, b) => V((a.x + b.x) / 2, (a.y + b.y) / 2);
+const lerp = (a, b, t) => V(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+const foot = (p, a, b) => { const d = sub(b, a); return add(a, mul(d, dot(sub(p, a), d) / dot(d, d))); };
+const angleAt = (v, p, q) => { const a = sub(p, v), b = sub(q, v); return Math.acos(clamp(dot(a, b) / (len(a) * len(b)), -1, 1)); };
+
+function derive(A, B, C) {
+  const a = dist(B, C), b = dist(C, A), c = dist(A, B);
+  const G = V((A.x + B.x + C.x) / 3, (A.y + B.y + C.y) / 3);
+  const d = 2 * (A.x * (B.y - C.y) + B.x * (C.y - A.y) + C.x * (A.y - B.y));
+  const sa = A.x * A.x + A.y * A.y, sb = B.x * B.x + B.y * B.y, sc = C.x * C.x + C.y * C.y;
+  const O = V((sa * (B.y - C.y) + sb * (C.y - A.y) + sc * (A.y - B.y)) / d, (sa * (C.x - B.x) + sb * (A.x - C.x) + sc * (B.x - A.x)) / d);
+  const H = V(A.x + B.x + C.x - 2 * O.x, A.y + B.y + C.y - 2 * O.y);
+  const p = a + b + c;
+  const I = V((a * A.x + b * B.x + c * C.x) / p, (a * A.y + b * B.y + c * C.y) / p);
+  return { A, B, C, a, b, c, G, O, H, I, R: dist(O, A), r: dist(I, foot(I, A, B)),
+    angA: angleAt(A, B, C), angB: angleAt(B, C, A), angC: angleAt(C, A, B) };
+}
+function clipLine(M, d, r) {
+  let t0 = -1e9, t1 = 1e9;
+  for (const [m, dd, lo, hi] of [[M.x, d.x, r.x0, r.x1], [M.y, d.y, r.y0, r.y1]]) {
+    if (Math.abs(dd) < 1e-9) { if (m < lo || m > hi) return [M, M]; }
+    else { const a = (lo - m) / dd, b = (hi - m) / dd; t0 = Math.max(t0, Math.min(a, b)); t1 = Math.min(t1, Math.max(a, b)); }
+  }
+  return [add(M, mul(d, t0)), add(M, mul(d, t1))];
+}
+function classify(t) {
+  const s = [t.a, t.b, t.c].sort((x, y) => x - y), tol = .025 * s[2];
+  const e1 = Math.abs(s[0] - s[1]) <= tol, e2 = Math.abs(s[1] - s[2]) <= tol;
+  const sides = e1 && e2 ? 'equilatero' : (e1 || e2) ? 'isosceles' : 'escaleno';
+  const mx = Math.max(t.angA, t.angB, t.angC) * DEG;
+  const ang = Math.abs(mx - 90) <= 1.2 ? 'rectangulo' : mx > 90 ? 'obtusangulo' : 'acutangulo';
+  return { sides, ang, tol };
+}
+
+/* =========================================================
+   Primitivas SVG
+   ========================================================= */
+const COL = { ink: '#1F2A44', soft: '#56627F', blueD: '#2F5FBF', fill: '#DCEBFF', green: '#22A06B', greenD: '#13774C', greenL: '#A9E4C8',
+  altura: '#F28C28', alturaD: '#B8620A', simetral: '#7C5CE0', bisect: '#E9568C', teal: '#14B8A6', amber: '#F2A81D',
+  acute: '#22A06B', right: '#F28C28', obtuse: '#E9568C', given: '#2F5FBF', unknown: '#E8590C' };
+const seg = (a, b, o = {}) => ({ k: 'seg', a, b, ...o });
+const pt = (p, o = {}) => ({ k: 'pt', p, ...o });
+const txt = (p, s, o = {}) => ({ k: 'txt', p, s, ...o });
+const rightM = (v, u, w, s = 14, o = {}) => ({ k: 'right', v, u, w, s, ...o });
+const arcAt = (v, p, q, r, o = {}) => ({ k: 'arc', v, p, q, r, ...o });
+const arcAbs = (c, r, a1, d, o = {}) => ({ k: 'arcabs', c, r, a1, d, ...o });
+const circ = (c, r, o = {}) => ({ k: 'circ', c, r, ...o });
+const tick = (a, b, n, o = {}) => ({ k: 'tick', a, b, n, ...o });
+const poly = (pts, o = {}) => ({ k: 'poly', pts, ...o });
+
+const P2 = q => `${N(q.x)} ${N(q.y)}`;
+function arcD(c, r, a1, d, sector) {
+  const s = V(c.x + r * Math.cos(a1), c.y + r * Math.sin(a1)), e = V(c.x + r * Math.cos(a1 + d), c.y + r * Math.sin(a1 + d));
+  const arc = `A${N(r)} ${N(r)} 0 ${Math.abs(d) > Math.PI ? 1 : 0} ${d > 0 ? 1 : 0} ${P2(e)}`;
+  return sector ? `M${P2(c)}L${P2(s)}${arc}Z` : `M${P2(s)}${arc}`;
+}
+const normA = d => { while (d > Math.PI) d -= 2 * Math.PI; while (d <= -Math.PI) d += 2 * Math.PI; return d; };
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+function txtSvg(p, s, o, t) {
+  return `<text x="${N(p.x)}" y="${N(p.y)}" dy=".35em" text-anchor="${o.anchor || 'middle'}" font-size="${o.size || 16}" font-weight="${o.weight || 800}" fill="${o.color || COL.ink}" paint-order="stroke" stroke="#fff" stroke-width="${o.halo ?? 5}" stroke-linejoin="round" opacity="${t}">${esc(s)}</text>`;
+}
+const PR = {
+  poly: (p, t) => `<polygon points="${p.pts.map(q => `${N(q.x)},${N(q.y)}`).join(' ')}" fill="${p.fill}" opacity="${t}"/>`,
+  seg: (p, t) => { const e = lerp(p.a, p.b, t); return `<line x1="${N(p.a.x)}" y1="${N(p.a.y)}" x2="${N(e.x)}" y2="${N(e.y)}" stroke="${p.color || COL.ink}" stroke-width="${p.w || 3}" stroke-linecap="round"${p.dash ? ` stroke-dasharray="${p.dash}"` : ''}${p.op ? ` opacity="${p.op}"` : ''}/>`; },
+  pt: (p, t) => `<circle cx="${N(p.p.x)}" cy="${N(p.p.y)}" r="${N((p.r || 5) * (.4 + .6 * t))}" fill="${p.color || COL.ink}" stroke="#fff" stroke-width="2" opacity="${t}"/>` +
+    (p.label ? txtSvg(p.lp || V(p.p.x + 12, p.p.y - 14), p.label, { size: p.size || 20, color: p.color || COL.ink }, t) : ''),
+  txt: (p, t) => txtSvg(p.p, p.s, p, t),
+  right: (p, t) => { const a = add(p.v, mul(p.u, p.s)), c = add(p.v, mul(p.w, p.s)), b = add(a, mul(p.w, p.s));
+    return `<path d="M${P2(a)}L${P2(b)}L${P2(c)}" fill="${p.fill || 'none'}" fill-opacity="${p.fo || .25}" stroke="${p.color || COL.ink}" stroke-width="${p.w2 || 2.5}" stroke-linejoin="round" opacity="${t}"/>`; },
+  arc: (p, t) => {
+    const a1 = Math.atan2(p.p.y - p.v.y, p.p.x - p.v.x), d = normA(Math.atan2(p.q.y - p.v.y, p.q.x - p.v.x) - a1);
+    let s = p.fill ? `<path d="${arcD(p.v, p.r, a1, d, true)}" fill="${p.fill}" fill-opacity="${p.fo || .2}" opacity="${t}"/>` : '';
+    for (let i = 0; i < (p.n || 1); i++) s += `<path d="${arcD(p.v, p.r + i * 5, a1, d)}" fill="none" stroke="${p.color || COL.ink}" stroke-width="${p.w || 2.5}" stroke-linecap="round" opacity="${t}"/>`;
+    return s;
+  },
+  arcabs: (p, t) => `<path d="${arcD(p.c, p.r, p.a1, p.d)}" fill="none" stroke="${p.color || COL.ink}" stroke-width="${p.w || 2}" stroke-linecap="round" opacity="${(p.op || 1) * t}"/>`,
+  circ: (p, t) => `<circle cx="${N(p.c.x)}" cy="${N(p.c.y)}" r="${N(p.r)}" fill="${p.fill || 'none'}" stroke="${p.color || COL.ink}" stroke-width="${p.w || 3}"${p.dash ? ` stroke-dasharray="${p.dash}"` : ''} opacity="${t}"/>`,
+  tick: (p, t) => {
+    const m = mid(p.a, p.b), u = unit(sub(p.b, p.a)), n = perp(u), h = p.len || 7; let s = '';
+    for (let i = 0; i < p.n; i++) { const c = add(m, mul(u, (i - (p.n - 1) / 2) * (p.gap || 6))); const a = add(c, mul(n, h)), b = sub(c, mul(n, h));
+      s += `<line x1="${N(a.x)}" y1="${N(a.y)}" x2="${N(b.x)}" y2="${N(b.y)}" stroke="${p.color || COL.ink}" stroke-width="${p.w || 2.5}" stroke-linecap="round" opacity="${t}"/>`; }
+    return s;
+  }
+};
+const drawAll = groups => groups.map(g => g.prims.map(p => PR[p.k](p, g.t ?? 1)).join('')).join('');
+
+function baseLayer(t, o = {}) {
+  const g = [poly([t.A, t.B, t.C], { fill: o.fill || COL.fill })];
+  [[t.A, t.B], [t.B, t.C], [t.C, t.A]].forEach(([p, q]) => g.push(seg(p, q, { color: COL.blueD, w: o.sw || 3.5 })));
+  if (!o.noLabels) [['A', t.A], ['B', t.B], ['C', t.C]].forEach(([n, P]) => g.push(txt(add(P, mul(unit(sub(P, t.G)), o.ld || 26)), n, { size: o.ls || 22 })));
+  if (o.pts) [t.A, t.B, t.C].forEach(P => g.push(pt(P, { r: 4, color: COL.blueD })));
+  return g;
+}
+
+/* =========================================================
+   Estado del triángulo compartido y arrastre
+   ========================================================= */
+const PRESETS = {
+  equilatero: [V(240, 400), V(520, 400), V(380, 400 - 280 * Math.sqrt(3) / 2)],
+  isosceles: [V(260, 400), V(500, 400), V(380, 160)],
+  escaleno: [V(160, 380), V(600, 420), V(340, 120)],
+  acutangulo: [V(180, 400), V(560, 400), V(400, 150)],
+  rectangulo: [V(240, 400), V(560, 400), V(240, 160)],
+  obtusangulo: [V(200, 420), V(560, 420), V(300, 300)]
+};
+const TRI = { A: V(160, 380), B: V(600, 420), C: V(340, 120) };
+let snapOn = true;
+const views = [];
+const area2 = (A, B, C) => Math.abs(cross(sub(B, A), sub(C, A)));
+const T = () => derive(TRI.A, TRI.B, TRI.C);
+function setTri(pts) { TRI.A = V(...Object.values(pts[0])); TRI.B = V(...Object.values(pts[1])); TRI.C = V(...Object.values(pts[2])); refreshAll(); }
+function refreshAll() { views.forEach(v => v.visible() && v.draw()); }
+
+function makeCanvas(host, id) {
+  host.innerHTML = `<svg class="canvas" id="${id}" viewBox="0 0 760 520" role="img" aria-label="Lienzo con un triángulo que puedes modificar arrastrando sus vértices">
+    <defs><pattern id="${id}-g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#E3EDF8" stroke-width="1"/></pattern></defs>
+    <rect width="760" height="520" fill="url(#${id}-g)"/><g class="layer" font-family="Nunito, system-ui, sans-serif"></g></svg>`;
+  const svg = host.firstElementChild, layer = $('.layer', svg);
+  let drag = null;
+  const local = e => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const m = svg.getScreenCTM(); return m ? p.matrixTransform(m.inverse()) : V(0, 0); };
+  svg.addEventListener('pointerdown', e => {
+    const p = local(e); let best = null, bd = 46;
+    for (const k of ['A', 'B', 'C']) { const d = dist(p, TRI[k]); if (d < bd) { bd = d; best = k; } }
+    if (best) { drag = best; svg.classList.add('drag'); svg.setPointerCapture(e.pointerId); e.preventDefault(); }
+  });
+  svg.addEventListener('pointermove', e => {
+    if (!drag) return;
+    let p = local(e); p = V(clamp(p.x, 40, 720), clamp(p.y, 40, 480));
+    if (snapOn) p = V(Math.round(p.x / 20) * 20, Math.round(p.y / 20) * 20);
+    const o = { ...TRI, [drag]: p };
+    if (area2(o.A, o.B, o.C) < 3000) return;
+    if (p.x === TRI[drag].x && p.y === TRI[drag].y) return;
+    TRI[drag] = p; refreshAll();
+  });
+  const end = () => { drag = null; svg.classList.remove('drag'); };
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(n => svg.addEventListener(n, end));
+  return { svg, layer };
+}
+const handles = () => ['A', 'B', 'C'].map(k => `<circle class="handle" cx="${N(TRI[k].x)}" cy="${N(TRI[k].y)}" r="12" fill="#fff" stroke="${COL.blueD}" stroke-width="4"/>`).join('');
+$$('.snapbox').forEach(b => b.addEventListener('change', () => { snapOn = b.checked; $$('.snapbox').forEach(o => o.checked = snapOn); }));
+
+/* =========================================================
+   Módulo 1 · Clasificación
+   ========================================================= */
+const SIDES = {
+  equilatero: { n: 'Equilátero', c: 'c-eq', d: 'Tiene sus <b>3 lados iguales</b>. Sus 3 ángulos también son iguales: miden 60° cada uno.', s: 'Tres lados iguales' },
+  isosceles: { n: 'Isósceles', c: 'c-is', d: 'Tiene <b>2 lados iguales</b>. Los ángulos que se oponen a esos lados (los de la base) también son iguales.', s: 'Dos lados iguales' },
+  escaleno: { n: 'Escaleno', c: 'c-es', d: 'Tiene sus <b>3 lados distintos</b>, y por eso sus 3 ángulos también son distintos.', s: 'Tres lados distintos' }
+};
+const ANGS = {
+  acutangulo: { n: 'Acutángulo', c: 'c-ac', d: 'Sus <b>3 ángulos son agudos</b>, es decir, menores que 90°.', s: 'Tres ángulos agudos' },
+  rectangulo: { n: 'Rectángulo', c: 'c-re', d: 'Tiene <b>un ángulo recto</b> (90°). Los lados que lo forman se llaman catetos y el lado opuesto, hipotenusa: a² + b² = c².', s: 'Un ángulo de 90°' },
+  obtusangulo: { n: 'Obtusángulo', c: 'c-ob', d: 'Tiene <b>un ángulo obtuso</b>: mayor que 90° y menor que 180°. Los otros dos son agudos.', s: 'Un ángulo mayor que 90°' }
+};
+const angCol = deg => Math.abs(deg - 90) <= 1.2 ? COL.right : deg > 90 ? COL.obtuse : COL.acute;
+
+function classMarks(t, cl, mini) {
+  const m = [], k = mini ? 2.3 : 1;
+  const sd = [[t.B, t.C, t.a], [t.C, t.A, t.b], [t.A, t.B, t.c]];
+  const tk = (p, q, n) => tick(p, q, n, { color: COL.ink, len: 8 * k, gap: 6 * k, w: 2.5 * (mini ? 1.8 : 1) });
+  if (cl.sides === 'equilatero') sd.forEach(([p, q]) => m.push(tk(p, q, 1)));
+  else if (cl.sides === 'isosceles') {
+    const pairs = [[0, 1], [1, 2], [2, 0]].map(([i, j]) => [Math.abs(sd[i][2] - sd[j][2]), i, j]).sort((x, y) => x[0] - y[0])[0];
+    [pairs[1], pairs[2]].forEach(i => m.push(tk(sd[i][0], sd[i][1], 1)));
+  } else sd.forEach(([p, q], i) => m.push(tk(p, q, i + 1)));
+  [[t.A, t.B, t.C, t.angA], [t.B, t.C, t.A, t.angB], [t.C, t.A, t.B, t.angC]].forEach(([P, Q, R, rad]) => {
+    const deg = rad * DEG, col = angCol(deg), r = 30 * k;
+    if (Math.abs(deg - 90) <= 1.2) m.push(rightM(P, unit(sub(Q, P)), unit(sub(R, P)), 22 * k, { color: col, fill: col, fo: .22, w2: 2.5 * (mini ? 1.8 : 1) }));
+    else m.push(arcAt(P, Q, R, r, { color: col, fill: col, fo: .22, w: 2.8 * (mini ? 1.8 : 1) }));
+    if (!mini) { const u = unit(add(unit(sub(Q, P)), unit(sub(R, P)))); m.push(txt(add(P, mul(u, deg < 40 ? 62 : 54)), fx(deg) + '°', { size: 15, color: col === COL.right ? '#B8620A' : col === COL.obtuse ? '#B02F66' : '#13774C' })); }
+  });
+  if (!mini) sd.forEach(([p, q, l], i) => {
+    const mm = mid(p, q); let n = unit(perp(sub(q, p))); if (dot(n, sub(mm, t.G)) < 0) n = mul(n, -1);
+    m.push(txt(add(mm, mul(n, 30)), `${['a', 'b', 'c'][i]} = ${fx(l / 20)}`, { size: 14, color: COL.soft, weight: 700 }));
+  });
+  return m;
+}
+
+(function initClas() {
+  const { svg, layer } = makeCanvas($('#host-clas'), 'cv-clas');
+  const chipS = $('#chipsSides'), chipA = $('#chipsAng');
+  function draw() {
+    const t = T(), cl = classify(t);
+    layer.innerHTML = drawAll([{ prims: [...baseLayer(t, { ld: 34 }), ...classMarks(t, cl)] }]) + handles();
+    chipS.innerHTML = Object.entries(SIDES).map(([k, v]) => `<span class="chip ${v.c}${k === cl.sides ? ' on' : ''}">${v.n}</span>`).join(' ');
+    chipA.innerHTML = Object.entries(ANGS).map(([k, v]) => `<span class="chip ${v.c}${k === cl.ang ? ' on' : ''}">${v.n}</span>`).join(' ');
+    $('#defSides').innerHTML = `<b>${SIDES[cl.sides].n}:</b> ${SIDES[cl.sides].d}` + (cl.sides === 'equilatero' ? ' Cumple lo de tener 2 lados iguales, pero se clasifica aparte.' : '');
+    $('#defAng').innerHTML = `<b>${ANGS[cl.ang].n}:</b> ${ANGS[cl.ang].d}`;
+    $('#meas').innerHTML = [['Lado a (BC)', fx(t.a / 20) + ' u'], ['Lado b (CA)', fx(t.b / 20) + ' u'], ['Lado c (AB)', fx(t.c / 20) + ' u'],
+      ['Ángulo A', fx(t.angA * DEG) + '°'], ['Ángulo B', fx(t.angB * DEG) + '°'], ['Ángulo C', fx(t.angC * DEG) + '°']].map(([l, v]) => `<div>${l}<b>${v}</b></div>`).join('');
+    $$('#types .type').forEach(b => b.classList.toggle('on', b.dataset.k === cl.sides || b.dataset.k === cl.ang));
+    // propiedades
+    const A = t.angA * DEG, B = t.angB * DEG, C = t.angC * DEG;
+    $('#pSum').textContent = `${fx(A)}° + ${fx(B)}° + ${fx(C)}° = ${fx(A + B + C)}°`;
+    $('#pExt').textContent = `Ext. en C = ${fx(A)}° + ${fx(B)}° = ${fx(A + B)}°`;
+    const s = [t.a, t.b, t.c].sort((x, y) => x - y);
+    $('#pIneq').innerHTML = `${fx(s[0] / 20)} + ${fx(s[1] / 20)} &gt; ${fx(s[2] / 20)} <span class="okmark">✓</span>`;
+  }
+  views.push({ visible: () => !$('#p-teoria').hidden && !$('#sub-clas').hidden, draw });
+  // tarjetas
+  const mini = (k) => {
+    const pts = PRESETS[{ equilatero: 'equilatero', isosceles: 'isosceles', escaleno: 'escaleno', acutangulo: 'acutangulo', rectangulo: 'rectangulo', obtusangulo: 'obtusangulo' }[k]];
+    const t = derive(...pts), xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+    const x0 = Math.min(...xs) - 50, y0 = Math.min(...ys) - 40, w = Math.max(...xs) - Math.min(...xs) + 100, h = Math.max(...ys) - Math.min(...ys) + 80;
+    const cl = classify(t);
+    const forced = { ...cl, ...(SIDES[k] ? { sides: k } : { ang: k }) };
+    const prims = [...baseLayer(t, { noLabels: true, sw: 6 }), ...classMarks(t, forced, true)];
+    return `<svg viewBox="${x0} ${y0} ${Math.max(w, h * 1.4)} ${h}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${drawAll([{ prims }])}</svg>`;
+  };
+  const card = (k, v) => `<button type="button" class="type" data-k="${k}">${mini(k)}<b>${v.n}</b><span>${v.s}</span></button>`;
+  $('#types').innerHTML = '<h3>Por sus lados</h3>' + Object.entries(SIDES).map(([k, v]) => card(k, v)).join('') +
+    '<h3>Por sus ángulos</h3>' + Object.entries(ANGS).map(([k, v]) => card(k, v)).join('');
+  $('#types').addEventListener('click', e => { const b = e.target.closest('.type'); if (b) setTri(PRESETS[b.dataset.k]); });
+  $('#randomTri').addEventListener('click', randomTri);
+})();
+
+function randomTri() {
+  for (let i = 0; i < 50; i++) {
+    const g = v => Math.round(v / 20) * 20;
+    const o = { A: V(g(rnd(100, 300)), g(rnd(340, 440))), B: V(g(rnd(460, 680)), g(rnd(340, 440))), C: V(g(rnd(120, 640)), g(rnd(90, 260))) };
+    if (area2(o.A, o.B, o.C) > 12000) { TRI.A = o.A; TRI.B = o.B; TRI.C = o.C; break; }
+  }
+  refreshAll();
+}
+
+/* =========================================================
+   Construcciones (alturas, transversales, simetrales, bisectrices)
+   ========================================================= */
+const KINDS = {
+  altura: { label: 'Alturas · Ortocentro', name: 'Altura', pname: 'ortocentro', L: 'H', color: COL.altura, dark: COL.alturaD, soft: 'var(--orangeL)', c: 'k-altura' },
+  transv: { label: 'Transversales · Baricentro', name: 'Transversal de gravedad', pname: 'baricentro', L: 'G', color: COL.green, dark: COL.greenD, soft: 'var(--greenL)', c: 'k-transv' },
+  simetral: { label: 'Simetrales · Circuncentro', name: 'Simetral', pname: 'circuncentro', L: 'O', color: COL.simetral, dark: '#5B3FC0', soft: 'var(--purpleL)', c: 'k-simetral' },
+  bisect: { label: 'Bisectrices · Incentro', name: 'Bisectriz', pname: 'incentro', L: 'I', color: COL.bisect, dark: '#B02F66', soft: 'var(--pinkL)', c: 'k-bisect' }
+};
+const RECT = { x0: 0, y0: 0, x1: 760, y1: 520 };
+const keepIn = p => V(clamp(p.x, 24, 736), clamp(p.y, 24, 496));
+
+function build(kind, t) {
+  const { A, B, C, G } = t;
+  const verts = [[A, B, C, 'A', 'BC'], [B, C, A, 'B', 'CA'], [C, A, B, 'C', 'AB']];
+  const col = KINDS[kind].color, dk = KINDS[kind].dark;
+  const outFrom = (P, d) => keepIn(add(P, mul(unit(sub(P, G)), d)));
+  if (kind === 'altura') {
+    const feet = [], lines = verts.map(([P, Q, R]) => {
+      const F = foot(P, Q, R), s = dot(sub(F, Q), sub(R, Q)) / dot(sub(R, Q), sub(R, Q)), pr = [];
+      feet.push(F);
+      if (s < -1e-6) pr.push(seg(Q, F, { color: col, dash: '7 6', w: 2.5, op: .85 }));
+      else if (s > 1 + 1e-6) pr.push(seg(R, F, { color: col, dash: '7 6', w: 2.5, op: .85 }));
+      pr.push(seg(P, F, { color: col, w: 4.5 }));
+      const m = mid(Q, R), w = len(sub(m, F)) > 1e-6 ? unit(sub(m, F)) : unit(sub(R, Q)), u = len(sub(P, F)) > 1e-6 ? unit(sub(P, F)) : V(0, -1);
+      pr.push(rightM(F, u, w, 15, { color: col, fill: col }), pt(F, { r: 4.5, color: col }));
+      return pr;
+    });
+    const point = [];
+    verts.forEach(([P], i) => {
+      const dv = sub(feet[i], P), s = dot(sub(t.H, P), dv) / dot(dv, dv);
+      if (s > 1 + 1e-6) point.push(seg(feet[i], t.H, { color: col, dash: '7 6', w: 2.5, op: .85 }));
+      else if (s < -1e-6) point.push(seg(P, t.H, { color: col, dash: '7 6', w: 2.5, op: .85 }));
+    });
+    const inView = t.H.x > 20 && t.H.x < 740 && t.H.y > 20 && t.H.y < 500;
+    if (inView) point.push(pt(t.H, { r: 8, color: dk, label: 'H', lp: keepIn(V(t.H.x + 16, t.H.y - 16)) }));
+    else point.push(txt(keepIn(t.H), 'H está más allá', { size: 15, color: dk }));
+    return { lines, point, extra: null, data: null };
+  }
+  if (kind === 'transv') {
+    const names = ['D', 'E', 'F'], ms = [mid(B, C), mid(C, A), mid(A, B)];
+    const lines = verts.map(([P, Q, R], i) => {
+      const M = ms[i];
+      return [tick(Q, M, i + 1, { color: col }), tick(M, R, i + 1, { color: col }), seg(P, M, { color: col, w: 4.5 }),
+        pt(M, { r: 5, color: col, label: names[i], lp: outFrom(M, 20) })];
+    });
+    const point = [pt(G, { r: 8, color: dk, label: 'G', lp: keepIn(V(G.x - 4, G.y + 24)) })];
+    const extra = [];
+    verts.forEach(([P], i) => { extra.push(seg(P, G, { color: dk, w: 7, op: .95 }), seg(G, ms[i], { color: COL.greenL, w: 7 })); });
+    const lab = (P, Q, s, ref, d) => { const m = mid(P, Q); let n = unit(perp(sub(Q, P))); if (dot(n, sub(ref, m)) < 0) n = mul(n, -1); return txt(add(m, mul(n, d)), s, { size: 15, color: dk }); };
+    extra.push(lab(A, G, `AG = ${fx(dist(A, G) / 20)}`, B, 22), lab(G, ms[0], `GD = ${fx(dist(G, ms[0]) / 20)}`, C, 22));
+    const data = verts.map(([P], i) => [`${P === A ? 'AG' : P === B ? 'BG' : 'CG'} : ${['GD', 'GE', 'GF'][i]}`, `${fx(dist(P, G) / 20)} : ${fx(dist(G, ms[i]) / 20)}`, `${fx(dist(P, G) / dist(G, ms[i]), 2)} : 1`]);
+    return { lines, point, extra, data, extraLabel: 'Propiedad 2 : 1' };
+  }
+  if (kind === 'simetral') {
+    const sides = [[A, B, C, 'AB'], [B, C, A, 'BC'], [C, A, B, 'CA']];
+    const lines = sides.map(([P, Q, R], i) => {
+      const M = mid(P, Q), L = dist(P, Q); let d = unit(perp(sub(Q, P))); if (dot(d, sub(R, M)) < 0) d = mul(d, -1);
+      const [e1, e2] = clipLine(M, d, RECT), rr = .72 * L, h = Math.sqrt(rr * rr - L * L / 4), pr = [];
+      [add(M, mul(d, h)), sub(M, mul(d, h))].forEach(X => [P, Q].forEach(Z => { const a = Math.atan2(X.y - Z.y, X.x - Z.x); pr.push(arcAbs(Z, rr, a - .2, .4, { color: col, w: 2, op: .65 })); }));
+      pr.push(seg(e1, e2, { color: col, w: 4 }), tick(P, M, i + 1, { color: col }), tick(M, Q, i + 1, { color: col }),
+        rightM(M, unit(sub(Q, P)), d, 15, { color: col, fill: col }), pt(M, { r: 5, color: col }));
+      return pr;
+    });
+    const point = [pt(t.O, { r: 8, color: dk, label: 'O', lp: keepIn(V(t.O.x + 16, t.O.y - 16)) })];
+    const extra = [circ(t.O, t.R, { color: col, w: 3.5, dash: '9 6', fill: 'rgba(124,92,224,.07)' })];
+    [A, B, C].forEach((P, i) => extra.push(seg(t.O, P, { color: dk, w: 2.8, dash: '3 5' }), tick(t.O, P, 1, { color: dk, len: 6 })));
+    extra.push(txt(keepIn(add(mid(t.O, A), mul(unit(perp(sub(A, t.O))), 16))), 'R', { size: 17, color: dk }));
+    return { lines, point, extra, data: [['OA = OB = OC = R', `${fx(t.R / 20)} u`]], extraLabel: 'Circunferencia circunscrita' };
+  }
+  // bisectrices
+  const lines = verts.map(([P, Q, R], i) => {
+    const pq = dist(P, Q), pr2 = dist(P, R), D = V((pr2 * Q.x + pq * R.x) / (pq + pr2), (pr2 * Q.y + pq * R.y) / (pq + pr2));
+    return [arcAt(P, Q, D, 34, { n: i + 1, color: col, fill: col, fo: .22 }), arcAt(P, D, R, 34, { n: i + 1, color: col, fill: col, fo: .22 }),
+      seg(P, D, { color: col, w: 4.5 }), pt(D, { r: 4.5, color: col })];
+  });
+  const point = [pt(t.I, { r: 8, color: dk, label: 'I', lp: keepIn(V(t.I.x + 16, t.I.y - 16)) })];
+  const extra = [circ(t.I, t.r, { color: col, w: 3.5, fill: 'rgba(233,86,140,.12)' })];
+  [[A, B], [B, C], [C, A]].forEach(([P, Q]) => { const F = foot(t.I, P, Q); extra.push(seg(t.I, F, { color: dk, w: 2.8, dash: '3 5' }), rightM(F, unit(sub(t.I, F)), unit(sub(mid(P, Q), F)), 11, { color: dk }), pt(F, { r: 3.5, color: dk })); });
+  extra.push(txt(keepIn(add(mid(t.I, foot(t.I, A, B)), V(16, 0))), 'r', { size: 17, color: dk }));
+  return { lines, point, extra, data: [['Radio r', `${fx(t.r / 20)} u`]], extraLabel: 'Circunferencia inscrita' };
+}
+
+function posNote(kind, t) {
+  const ang = classify(t).ang;
+  if (kind === 'altura') return { acutangulo: 'Como el triángulo es acutángulo, H está <b>dentro</b> del triángulo.', rectangulo: 'Como el triángulo es rectángulo, H <b>coincide con el vértice del ángulo recto</b>.', obtusangulo: 'Como el triángulo es obtusángulo, H queda <b>fuera</b>: hay que prolongar las alturas (líneas punteadas) para que se encuentren.' }[ang];
+  if (kind === 'simetral') return { acutangulo: 'Como el triángulo es acutángulo, O está <b>dentro</b> del triángulo.', rectangulo: 'Como el triángulo es rectángulo, O es el <b>punto medio de la hipotenusa</b>.', obtusangulo: 'Como el triángulo es obtusángulo, O queda <b>fuera</b> del triángulo.' }[ang];
+  if (kind === 'transv') return 'G siempre queda <b>dentro</b> del triángulo, sea cual sea su forma.';
+  return 'I siempre queda <b>dentro</b> del triángulo, sea cual sea su forma.';
+}
+const SIDE_OF = { A: 'BC', B: 'CA', C: 'AB' };
+const MID_OF = [['D', 'BC', 'BD = DC'], ['E', 'CA', 'CE = EA'], ['F', 'AB', 'AF = FB']];
+const SIM = ['AB', 'BC', 'CA'];
+const KDEF = {
+  altura: { def: 'Segmento <b>perpendicular</b> (90°) que va desde un vértice hasta el lado opuesto, o hasta su prolongación.', pt: 'Las tres alturas se cortan en el <b>ortocentro H</b>.', props: ['Un triángulo tiene 3 alturas, una por cada vértice.', 'En un triángulo acutángulo, H está dentro; en el rectángulo, es el vértice del ángulo recto; en el obtusángulo, está fuera.', 'La altura se usa para calcular el área: área = base · altura / 2.'] },
+  transv: { def: 'Segmento que une un <b>vértice con el punto medio</b> del lado opuesto. También se llama mediana.', pt: 'Las tres transversales se cortan en el <b>baricentro G</b>, el centro de gravedad.', props: ['G siempre está dentro del triángulo.', 'G divide a cada transversal en razón <b>2 : 1</b>: AG = 2·GD, BG = 2·GE y CG = 2·GF.', 'Si recortas el triángulo en cartulina, se equilibra apoyado en G.'] },
+  simetral: { def: 'Recta <b>perpendicular a un lado</b> que pasa por su <b>punto medio</b>. También se llama mediatriz.', pt: 'Las tres simetrales se cortan en el <b>circuncentro O</b>.', props: ['O está a la misma distancia de los tres vértices: OA = OB = OC.', 'Es el centro de la circunferencia circunscrita (la que pasa por A, B y C).', 'Puede quedar dentro, sobre la hipotenusa (triángulo rectángulo) o fuera (obtusángulo).'] },
+  bisect: { def: 'Semirrecta que <b>divide un ángulo en dos ángulos iguales</b>.', pt: 'Las tres bisectrices se cortan en el <b>incentro I</b>.', props: ['I siempre está dentro del triángulo.', 'I está a la misma distancia de los tres lados.', 'Es el centro de la circunferencia inscrita, que toca a cada lado en un punto.'] }
+};
+
+/* ---------- Módulo 1b · altura y líneas notables ---------- */
+(function initNotables() {
+  const { layer } = makeCanvas($('#host-not'), 'cv-not');
+  const st = { kind: 'altura', on: [true, true, true], pt: true, extra: false };
+  const kindsHost = $('#nKinds'), tools = $('#nTools'), info = $('#nInfo');
+  kindsHost.innerHTML = Object.entries(KINDS).map(([k, v]) => `<button class="pill ${v.c}" type="button" data-k="${k}" aria-pressed="${k === st.kind}">${v.name}</button>`).join('');
+  kindsHost.addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b) return; st.kind = b.dataset.k; st.extra = false; $$('[data-k]', kindsHost).forEach(x => x.setAttribute('aria-pressed', String(x === b))); draw(); });
+  tools.addEventListener('click', e => { const b = e.target.closest('[data-i],[data-f]'); if (!b) return;
+    if (b.dataset.i !== undefined) st.on[+b.dataset.i] = !st.on[+b.dataset.i]; else st[b.dataset.f] = !st[b.dataset.f]; draw(); });
+  function draw() {
+    const t = T(), K = KINDS[st.kind], B = build(st.kind, t), kd = KDEF[st.kind];
+    const names = st.kind === 'simetral' ? SIM.map(s => `Lado ${s}`) : ['A', 'B', 'C'].map(s => `Desde ${s}`);
+    const all = st.on.every(Boolean);
+    const prims = [...baseLayer(t, { ld: 34 })];
+    B.lines.forEach((pr, i) => { if (st.on[i]) prims.push(...pr); });
+    if (st.pt && all) prims.push(...B.point);
+    if (st.extra && B.extra && all) prims.push(...B.extra);
+    layer.innerHTML = drawAll([{ prims }]) + handles();
+    tools.style.setProperty('--kc', K.color); tools.style.setProperty('--kl', K.soft);
+    tools.innerHTML = names.map((n, i) => `<button class="tgl" type="button" data-i="${i}" aria-pressed="${st.on[i]}">${n}</button>`).join('') +
+      `<button class="tgl" type="button" data-f="pt" aria-pressed="${st.pt}">Mostrar ${K.pname}</button>` +
+      (B.extra ? `<button class="tgl" type="button" data-f="extra" aria-pressed="${st.extra}">${B.extraLabel}</button>` : '');
+    info.style.setProperty('--kc', K.color); info.style.setProperty('--kl', K.soft);
+    const note = (st.pt && all) ? `<div class="keyfact">${posNote(st.kind, t)}</div>` : '';
+    const data = (st.extra && all && B.data) ? `<table class="data"><tbody>${B.data.map(r => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th>${c}</th>`).join('')}</tr>`).join('')}</tbody></table>` : '';
+    info.innerHTML = `<div class="stepbox"><h2>${K.name}</h2><p>${kd.def}</p></div>
+      <div class="keyfact" style="margin-top:14px"><b>Punto notable:</b> ${kd.pt}</div>
+      <h3 style="margin-top:14px">Propiedades</h3><ul style="margin:0;padding-left:20px;font-weight:600">${kd.props.map(p => `<li>${p}</li>`).join('')}</ul>${note}${data}`;
+  }
+  views.push({ visible: () => !$('#p-teoria').hidden && !$('#sub-notables').hidden, draw });
+})();
+
+/* =========================================================
+   Módulo 2 · Construcción paso a paso
+   ========================================================= */
+function makeSteps(kind, t) {
+  const B = build(kind, t), K = KINDS[kind], S = [];
+  const q = i => ['A', 'B', 'C'][i], deg = [t.angA, t.angB, t.angC].map(r => r * DEG);
+  if (kind === 'altura') {
+    S.push({ title: '¿Qué es una altura?', text: 'Una <b>altura</b> es el segmento que baja desde un vértice y llega <b>perpendicular</b> (formando 90°) al lado opuesto o a su prolongación. Todo triángulo tiene tres alturas. Pulsa «Siguiente» para trazarlas una por una.', prims: [] });
+    B.lines.forEach((pr, i) => {
+      const out = pr.some(p => p.k === 'seg' && p.dash);
+      S.push({ title: `Altura desde ${q(i)}`, text: `Desde ${q(i)} bajamos una perpendicular al lado ${SIDE_OF[q(i)]}. El cuadradito marca el ángulo recto.` + (out ? ' El pie de la altura cae fuera del lado, así que lo prolongamos con una línea punteada.' : ''), prims: pr });
+    });
+    S.push({ title: 'Ortocentro H', text: `Las tres alturas se cortan en un único punto: el <b>ortocentro H</b>. ${posNote(kind, t)}`, prims: B.point, fact: 'Dato: si el triángulo es acutángulo, H está dentro; si es rectángulo, es el vértice del ángulo recto; si es obtusángulo, está fuera.' });
+  } else if (kind === 'transv') {
+    S.push({ title: '¿Qué es una transversal de gravedad?', text: 'Una <b>transversal de gravedad</b> (o mediana) une un vértice con el <b>punto medio</b> del lado opuesto. Hay tres, una por cada vértice.', prims: [] });
+    B.lines.forEach((pr, i) => S.push({ title: `Desde ${q(i)} hasta el punto medio de ${SIDE_OF[q(i)]}`, text: `${MID_OF[i][0]} es el punto medio de ${MID_OF[i][1]}: las marcas iguales indican que ${MID_OF[i][2]}. Unimos ${q(i)} con ${MID_OF[i][0]}.`, prims: pr }));
+    S.push({ title: 'Baricentro G', text: 'Las tres transversales se cortan en el <b>baricentro G</b>, el centro de gravedad del triángulo. ' + posNote(kind, t), prims: B.point });
+    S.push({ title: 'Propiedad 2 : 1', text: 'El baricentro divide a cada transversal en dos partes: la que llega al vértice mide <b>el doble</b> que la otra. AG = 2·GD, BG = 2·GE y CG = 2·GF.', prims: B.extra, data: B.data, head: ['Partes', 'Medidas (u)', 'Razón'], fact: 'Mueve los vértices: la razón siempre sigue siendo 2 : 1.' });
+  } else if (kind === 'simetral') {
+    S.push({ title: '¿Qué es una simetral?', text: 'La <b>simetral</b> (o mediatriz) de un lado es la recta <b>perpendicular</b> a ese lado que pasa por su <b>punto medio</b>. Todos sus puntos están a la misma distancia de los dos extremos del lado.', prims: [] });
+    B.lines.forEach((pr, i) => { const s = SIM[i]; S.push({ title: `Simetral del lado ${s}`, text: `Con el compás hacemos arcos de igual abertura desde ${s[0]} y desde ${s[1]}. Se cruzan en dos puntos y la recta que los une es la simetral: pasa por el punto medio y forma 90° con el lado.`, prims: pr }); });
+    S.push({ title: 'Circuncentro O', text: `Las tres simetrales se cortan en el <b>circuncentro O</b>, que está a igual distancia de A, B y C. ${posNote(kind, t)}`, prims: B.point });
+    S.push({ title: 'Circunferencia circunscrita', text: 'Como OA = OB = OC, con centro en O y radio R = OA se dibuja la circunferencia que pasa por los tres vértices.', prims: B.extra, data: B.data, fact: 'Dato: por eso O es el centro de la circunferencia circunscrita.' });
+  } else {
+    S.push({ title: '¿Qué es una bisectriz?', text: 'La <b>bisectriz</b> de un ángulo es la semirrecta que lo divide en <b>dos ángulos iguales</b>. Cada punto de la bisectriz está a la misma distancia de los dos lados del ángulo.', prims: [] });
+    B.lines.forEach((pr, i) => S.push({ title: `Bisectriz del ángulo ${q(i)}`, text: `El ángulo en ${q(i)} mide ${fx(deg[i])}°. Su bisectriz lo parte en dos ángulos de ${fx(deg[i] / 2)}°; los arcos iguales lo muestran.`, prims: pr }));
+    S.push({ title: 'Incentro I', text: 'Las tres bisectrices se cortan en el <b>incentro I</b>. ' + posNote(kind, t), prims: B.point });
+    S.push({ title: 'Circunferencia inscrita', text: 'I está a la misma distancia de los tres lados. Esa distancia es el radio <b>r</b> de la circunferencia inscrita, que toca cada lado en un solo punto formando 90° con el radio.', prims: B.extra, data: B.data, fact: 'Dato: por eso I es el centro de la circunferencia inscrita.' });
+  }
+  return S;
+}
+
+(function initConstruccion() {
+  const { layer } = makeCanvas($('#host-con'), 'cv-con');
+  const st = { kind: 'altura', step: 0, t: 1, raf: 0 };
+  const kindsHost = $('#cKinds'), info = $('#cInfo'), dots = $('#cDots');
+  kindsHost.innerHTML = Object.entries(KINDS).map(([k, v]) => `<button class="pill ${v.c}" type="button" data-k="${k}" aria-pressed="${k === st.kind}">${v.label}</button>`).join('');
+  kindsHost.addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b) return; st.kind = b.dataset.k; st.step = 0; st.t = 1; cancelAnimationFrame(st.raf);
+    $$('[data-k]', kindsHost).forEach(x => x.setAttribute('aria-pressed', String(x === b))); draw(); });
+  function play() {
+    cancelAnimationFrame(st.raf);
+    if (reduceMotion) { st.t = 1; draw(); return; }
+    const t0 = performance.now(); st.t = 0;
+    const tick = now => { const u = Math.min(1, (now - t0) / 700); st.t = 1 - Math.pow(1 - u, 3); draw(); if (u < 1) st.raf = requestAnimationFrame(tick); };
+    st.raf = requestAnimationFrame(tick);
+  }
+  const go = d => { const S = makeSteps(st.kind, T()), n = clamp(st.step + d, 0, S.length - 1); if (n === st.step) return; st.step = n; d > 0 ? play() : (cancelAnimationFrame(st.raf), st.t = 1, draw()); };
+  $('#cNext').addEventListener('click', () => go(1));
+  $('#cPrev').addEventListener('click', () => go(-1));
+  $('#cReset').addEventListener('click', () => { st.step = 0; st.t = 1; cancelAnimationFrame(st.raf); draw(); });
+  dots.addEventListener('click', e => { const b = e.target.closest('.dot'); if (!b) return; st.step = +b.dataset.i; st.t = 1; cancelAnimationFrame(st.raf); draw(); });
+  $$('[data-preset]', $('#cCard')).forEach(b => b.addEventListener('click', () => setTri(PRESETS[b.dataset.preset])));
+  $('#cRandom').addEventListener('click', randomTri);
+  function draw() {
+    const t = T(), K = KINDS[st.kind], S = makeSteps(st.kind, t);
+    st.step = clamp(st.step, 0, S.length - 1);
+    const groups = [{ prims: baseLayer(t, { ld: 34 }) }];
+    for (let i = 1; i <= st.step; i++) groups.push({ prims: S[i].prims, t: i === st.step ? st.t : 1 });
+    layer.innerHTML = drawAll(groups) + handles();
+    const cur = S[st.step];
+    $('#cCard').style.setProperty('--kc', K.color); info.style.setProperty('--kc', K.color); info.style.setProperty('--kl', K.soft);
+    info.innerHTML = `<div class="n">Paso ${st.step + 1} de ${S.length}</div><h2>${cur.title}</h2><p>${cur.text}</p>` +
+      (cur.fact ? `<div class="keyfact">${cur.fact}</div>` : '') +
+      (cur.data ? `<table class="data">${cur.head ? `<thead><tr>${cur.head.map(h => `<th>${h}</th>`).join('')}</tr></thead>` : ''}<tbody>${cur.data.map(r => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th>${c}</th>`).join('')}</tr>`).join('')}</tbody></table><p class="hint">1 u = el lado de un cuadrito de la cuadrícula.</p>` : '');
+    dots.innerHTML = S.map((s, i) => `<button class="dot${i < st.step ? ' done' : ''}${i === st.step ? ' cur done' : ''}" type="button" data-i="${i}" aria-label="Ir al paso ${i + 1}" aria-current="${i === st.step}"></button>`).join('');
+    $('#cPrev').disabled = st.step === 0; $('#cNext').disabled = st.step === S.length - 1;
+  }
+  views.push({ visible: () => !$('#p-lineas').hidden, draw });
+  document.addEventListener('keydown', e => {
+    if ($('#p-lineas').hidden || ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+    if (e.key === 'ArrowRight') go(1); else if (e.key === 'ArrowLeft') go(-1);
+  });
+})();
+
+/* =========================================================
+   Módulo 3 · Desafíos
+   ========================================================= */
+function fitTri(a, b, o = {}) {
+  const c = 180 - a - b, r = Math.PI / 180, bb = Math.sin(b * r) / Math.sin(c * r);
+  const A = V(0, 0), B = V(1, 0), C = V(bb * Math.cos(a * r), -bb * Math.sin(a * r));
+  const pts = [A, B, C];
+  if (o.circle) { const d = derive(A, B, C); pts.push(V(d.O.x - d.R, d.O.y - d.R), V(d.O.x + d.R, d.O.y + d.R)); }
+  if (o.ext) pts.push(V(1.4, 0));
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const box = o.box || { x: 45, y: 35, w: 330, h: 215 }, s = Math.min(box.w / (x1 - x0), box.h / (y1 - y0));
+  const ox = box.x + (box.w - (x1 - x0) * s) / 2 - x0 * s, oy = box.y + (box.h - (y1 - y0) * s) / 2 - y0 * s;
+  const f = p => V(p.x * s + ox, p.y * s + oy);
+  return derive(f(A), f(B), f(C));
+}
+const lin = (m, c) => { const mx = m === 1 ? 'x' : m === -1 ? '-x' : `${m}x`; return c === 0 ? mx : `${mx} ${c < 0 ? '−' : '+'} ${Math.abs(c)}`; };
+const sgn = c => (c < 0 ? `− ${-c}` : `+ ${c}`);
+const KEYS = ['A', 'B', 'C'];
+const svgWrap = (prims, alt) => `<svg viewBox="0 0 420 290" role="img" aria-label="${esc(alt)}" font-family="Nunito, system-ui, sans-serif">${drawAll([{ prims }])}</svg>`;
+function angMark(t, key, label, o = {}) {
+  const [P, Q, R] = key === 'A' ? [t.A, t.B, t.C] : key === 'B' ? [t.B, t.C, t.A] : [t.C, t.A, t.B];
+  const deg = (key === 'A' ? t.angA : key === 'B' ? t.angB : t.angC) * DEG, r = o.r || (deg < 40 ? 36 : 28);
+  const u = unit(add(unit(sub(Q, P)), unit(sub(R, P)))), col = label.includes('?') ? COL.unknown : (o.color || COL.given);
+  return [arcAt(P, Q, R, r, { color: col, w: 2.8, fill: col, fo: .18 }), txt(add(P, mul(u, r + (deg < 40 ? 26 : 20) + (label.length > 5 ? 12 : 0))), label, { size: o.size || 15, color: col })];
+}
+const angLabelAt = (P, Q, R, r, label, extra = 20) => { const u = unit(add(unit(sub(Q, P)), unit(sub(R, P)))), col = label.includes('?') ? COL.unknown : COL.given;
+  return [arcAt(P, Q, R, r, { color: col, w: 2.8, fill: col, fo: .18 }), txt(add(P, mul(u, r + extra)), label, { size: 15, color: col })]; };
+function segLabel(P, Q, s, ref, d = 20) { const m = mid(P, Q); let n = unit(perp(sub(Q, P))); if (dot(n, sub(ref, m)) < 0) n = mul(n, -1); return txt(add(m, mul(n, d)), s, { size: 15, color: s.includes('?') ? COL.unknown : COL.given }); }
+const vl = (t, o = {}) => baseLayer(t, { ld: 22, ls: 21, pts: true, ...o });
+
+/* ---------- generadores ---------- */
+const HINT_SUM = 'Los ángulos interiores de un triángulo suman 180°.';
+function gBary(level) {
+  const t = fitTri(ri(50, 68), ri(48, 66)), D = mid(t.B, t.C), E = mid(t.C, t.A), F = mid(t.A, t.B), G = t.G;
+  const intro = 'En el triángulo ABC, <b>G</b> es el baricentro y <b>AD</b> es una transversal de gravedad (D es el punto medio de BC).';
+  const hint = 'El baricentro divide a cada transversal de gravedad en razón 2 : 1. La parte más larga es la que llega al vértice: AG = 2·GD.';
+  let text, lab = {}, ans, explain, ph = 'Ej.: 12', unit_ = 'cm';
+  if (level === 1) {
+    const v = ri(0, 2), k = ri(2, 9);
+    if (v === 0) { lab = { GD: `${k} cm`, AG: '?' }; text = `${intro} Si GD = ${k} cm, ¿cuánto mide AG?`; ans = { num: 2 * k }; explain = `Como G es el baricentro, AG = 2·GD.<br>AG = 2 · ${k} = <b>${2 * k} cm</b>.`; }
+    else if (v === 1) { lab = { AD: `${3 * k} cm`, AG: '?' }; text = `${intro} Si AD = ${3 * k} cm, ¿cuánto mide AG?`; ans = { num: 2 * k }; explain = `AD queda dividida en 3 partes iguales: GD tiene 1 y AG tiene 2.<br>AG = (2/3) · ${3 * k} = <b>${2 * k} cm</b>.`; }
+    else { lab = { AG: `${2 * k} cm`, AD: '?' }; text = `${intro} Si AG = ${2 * k} cm, ¿cuánto mide AD?`; ans = { num: 3 * k }; explain = `GD = AG : 2 = ${k} cm.<br>AD = AG + GD = ${2 * k} + ${k} = <b>${3 * k} cm</b>.`; }
+  } else if (level === 2) {
+    let x, p, q, r, s;
+    do { x = ri(2, 9); p = ri(1, 3); q = ri(1, 6); r = ri(1, 7); s = (2 * p - r) * x + 2 * q; } while (r === 2 * p || Math.abs(s) > 18);
+    lab = { AG: `AG = ${lin(r, s)}`, GD: `GD = ${lin(p, q)}` }; text = `${intro} Si AG = ${lin(r, s)} cm y GD = ${lin(p, q)} cm, ¿cuál es el valor de x?`;
+    ans = { num: x }; ph = 'Ej.: 5'; unit_ = '';
+    explain = `AG = 2·GD<br>${lin(r, s)} = 2(${lin(p, q)})<br>${lin(r, s)} = ${lin(2 * p, 2 * q)}<br>${r - 2 * p}x = ${2 * q - s}<br>x = <b>${x}</b>.`;
+  } else {
+    const v = ri(0, 2);
+    if (v === 0) { const a = ri(1, 2), b = ri(1, 4); lab = { AD: `AD = ${lin(3 * a, 3 * b)}`, AG: 'AG = ?' }; text = `${intro} Si AD = (${lin(3 * a, 3 * b)}) cm, escribe AG en función de x.`;
+      ans = { fn: x => 2 * a * x + 2 * b }; ph = 'Ej.: 2x + 4'; unit_ = ''; explain = `AG es los 2/3 de AD.<br>AG = (2/3)(${lin(3 * a, 3 * b)}) = <b>${lin(2 * a, 2 * b)}</b>.`; }
+    else if (v === 1) { const k = ri(0, 4); lab = { GD: `GD = ${k ? lin(1, k) : 'x'}`, AD: 'AD = ?' }; text = `${intro} Si GD = (${k ? lin(1, k) : 'x'}) cm, escribe AD en función de x.`;
+      ans = { fn: x => 3 * (x + k) }; ph = 'Ej.: 3x + 6'; unit_ = ''; explain = `AG = 2·GD, así que AD = AG + GD = 3·GD.<br>AD = 3(${k ? lin(1, k) : 'x'}) = <b>${lin(3, 3 * k)}</b>.`; }
+    else { const k = ri(2, 9); lab = { AG: 'AG', GD: 'GD' }; text = `${intro} Si AG − GD = ${k} cm, ¿cuánto mide AD?`; ans = { num: 3 * k };
+      explain = `Como AG = 2·GD, entonces AG − GD = GD = ${k} cm.<br>AG = ${2 * k} cm y AD = AG + GD = <b>${3 * k} cm</b>.`; lab = { AG: `AG − GD = ${k} cm`, AD: 'AD = ?' }; }
+  }
+  const prims = [...vl(t), seg(t.B, E, { color: COL.greenL, w: 2.5, dash: '6 5' }), seg(t.C, F, { color: COL.greenL, w: 2.5, dash: '6 5' }),
+    tick(t.B, D, 1, { color: COL.green }), tick(D, t.C, 1, { color: COL.green }), seg(t.A, D, { color: COL.green, w: 4.5 }),
+    pt(D, { r: 5, color: COL.green, label: 'D', lp: add(D, mul(unit(sub(D, G)), 18)) }), pt(G, { r: 6, color: COL.greenD, label: 'G', lp: V(G.x - 2, G.y + 20), size: 18 })];
+  const L = (k, P, Q, ref, d) => { if (lab[k]) prims.push(segLabel(P, Q, lab[k].includes('=') || lab[k] === '?' ? (lab[k] === '?' ? `${k} = ?` : lab[k]) : `${k} = ${lab[k]}`, ref, d)); };
+  if (lab.AG && lab.GD === undefined && lab.AD) { L('AG', t.A, G, t.B, 22); L('AD', G, D, t.C, 24); }
+  else { L('AG', t.A, G, t.B, 22); L('GD', G, D, t.C, 22); if (lab.AD) L('AD', t.A, D, t.C, 26); }
+  return { topic: 'Baricentro y transversales', text, svg: svgWrap(prims, 'Triángulo ABC con baricentro G y transversal AD'), ans, unit: unit_, explain, hint, ph };
+}
+
+function gInt(level) {
+  let text, ans, explain, ph = 'Ej.: 65', unit_ = '°', labels, vals, hint = HINT_SUM;
+  if (level === 1) {
+    let a, b; do { a = ri(30, 80); b = ri(30, 80); } while (180 - a - b < 20 || 180 - a - b > 110);
+    vals = shuffle([a, b, 180 - a - b]); const u = ri(0, 2), k = [0, 1, 2].filter(i => i !== u);
+    labels = vals.map((v, i) => i === u ? '?' : `${v}°`);
+    text = `En el triángulo ABC, ∠${KEYS[k[0]]} = ${vals[k[0]]}° y ∠${KEYS[k[1]]} = ${vals[k[1]]}°. ¿Cuánto mide ∠${KEYS[u]}?`; ans = { num: vals[u] };
+    explain = `${HINT_SUM}<br>∠${KEYS[u]} = 180° − ${vals[k[0]]}° − ${vals[k[1]]}° = <b>${vals[u]}°</b>.`;
+  } else if (level === 2) {
+    let ms, x, cs, c3, v;
+    for (;;) {
+      ms = pick([[1, 2, 3], [1, 1, 2], [2, 3, 4], [1, 2, 2], [1, 3, 4], [2, 2, 3], [1, 1, 3]]); x = ri(8, 25);
+      cs = [ri(-20, 20), ri(-20, 20)]; c3 = 180 - (ms[0] + ms[1] + ms[2]) * x - cs[0] - cs[1]; cs.push(c3);
+      v = ms.map((m, i) => m * x + cs[i]);
+      if (Math.abs(c3) <= 30 && v.every(z => z >= 25 && z <= 120)) break;
+    }
+    const sm = ms[0] + ms[1] + ms[2], sc = cs[0] + cs[1] + cs[2]; vals = v; labels = ms.map((m, i) => lin(m, cs[i]) + '°');
+    text = `Los ángulos interiores de un triángulo miden (${lin(ms[0], cs[0])})°, (${lin(ms[1], cs[1])})° y (${lin(ms[2], cs[2])})°. ¿Cuál es el valor de x?`; ans = { num: x }; ph = 'Ej.: 15'; unit_ = '';
+    explain = `Los tres ángulos suman 180°:<br>(${lin(ms[0], cs[0])}) + (${lin(ms[1], cs[1])}) + (${lin(ms[2], cs[2])}) = 180<br>${sm}x ${sgn(sc)} = 180<br>${sm}x = ${180 - sc}<br>x = <b>${x}</b>.`;
+    hint = HINT_SUM + ' Suma las tres expresiones y resuelve la ecuación.';
+  } else {
+    const [r1, r2, r3, k] = pick([[2, 3, 4, 20], [1, 2, 3, 30], [3, 4, 5, 15], [2, 3, 5, 18], [1, 4, 7, 15], [1, 2, 6, 20]]);
+    vals = shuffle([r1 * k, r2 * k, r3 * k]); labels = vals.map(v => `${v / k}k`);
+    text = `Los ángulos interiores de un triángulo están en la razón ${r1} : ${r2} : ${r3}. ¿Cuánto mide el ángulo mayor?`; ans = { num: r3 * k };
+    explain = `Los ángulos miden ${r1}k, ${r2}k y ${r3}k, y suman 180°:<br>${r1 + r2 + r3}k = 180 → k = ${k}<br>El mayor es ${r3}k = ${r3} · ${k} = <b>${r3 * k}°</b>.`;
+    hint = 'Escribe los ángulos como múltiplos de k y usa que suman 180°.';
+  }
+  const t = fitTri(vals[0], vals[1]), prims = [...vl(t)];
+  KEYS.forEach((kk, i) => prims.push(...angMark(t, kk, labels[i])));
+  return { topic: 'Ángulos interiores', text, svg: svgWrap(prims, 'Triángulo con sus ángulos interiores'), ans, unit: unit_, explain, hint, ph };
+}
+
+function gExt(level) {
+  let al, ga, text, ans, explain, ph = 'Ej.: 110', unit_ = '°', la, lc, le, hint = 'Un ángulo exterior es igual a la suma de los dos ángulos interiores que no están a su lado.';
+  if (level === 1) {
+    do { al = ri(30, 80); ga = ri(30, 80); } while (al + ga > 150);
+    if (ri(0, 1)) { la = `${al}°`; lc = `${ga}°`; le = '?'; text = `En el triángulo ABC se prolongó el lado AB hasta E. Si ∠A = ${al}° y ∠C = ${ga}°, ¿cuánto mide el ángulo exterior ∠CBE?`; ans = { num: al + ga };
+      explain = `El ángulo exterior es la suma de los dos interiores no adyacentes.<br>∠CBE = ∠A + ∠C = ${al}° + ${ga}° = <b>${al + ga}°</b>.`; }
+    else { la = `${al}°`; lc = '?'; le = `${al + ga}°`; text = `En el triángulo ABC se prolongó el lado AB hasta E. Si ∠A = ${al}° y el ángulo exterior ∠CBE = ${al + ga}°, ¿cuánto mide ∠C?`; ans = { num: ga };
+      explain = `∠CBE = ∠A + ∠C<br>${al + ga}° = ${al}° + ∠C → ∠C = ${al + ga}° − ${al}° = <b>${ga}°</b>.`; }
+  } else if (level === 2) {
+    let x, p, q, r, s;
+    do { x = ri(8, 25); p = ri(1, 3); r = ri(1, 3); q = ri(-10, 20); s = ri(-10, 20); al = p * x + q; ga = r * x + s; } while (al < 25 || al > 85 || ga < 25 || ga > 85 || al + ga > 150);
+    la = lin(p, q) + '°'; lc = lin(r, s) + '°'; le = `${al + ga}°`; ans = { num: x }; ph = 'Ej.: 12'; unit_ = '';
+    text = `En el triángulo ABC se prolongó el lado AB. Los ángulos interiores ∠A y ∠C miden (${lin(p, q)})° y (${lin(r, s)})°, y el ángulo exterior en B mide ${al + ga}°. ¿Cuál es el valor de x?`;
+    explain = `Ángulo exterior = suma de los interiores no adyacentes:<br>(${lin(p, q)}) + (${lin(r, s)}) = ${al + ga}<br>${p + r}x ${sgn(q + s)} = ${al + ga}<br>${p + r}x = ${al + ga - q - s}<br>x = <b>${x}</b>.`;
+  } else {
+    const [m, n] = pick([[2, 3], [1, 2], [3, 4], [2, 5], [3, 5], [1, 3]]), k = ri(10, 20), e = (m + n) * k, askA = ri(0, 1);
+    al = m * k; ga = n * k; la = askA ? '?' : `${m}k`; lc = askA ? `${n}k` : '?'; le = `${e}°`; ans = { num: askA ? al : ga };
+    text = `El ángulo exterior en B del triángulo ABC mide ${e}°. Los ángulos interiores ∠A y ∠C están en la razón ${m} : ${n}. ¿Cuánto mide ∠${askA ? 'A' : 'C'}?`;
+    explain = `Sean ∠A = ${m}k y ∠C = ${n}k. El exterior es su suma:<br>${m}k + ${n}k = ${e} → ${m + n}k = ${e} → k = ${k}<br>∠${askA ? 'A' : 'C'} = ${askA ? m : n} · ${k} = <b>${ans.num}°</b>.`;
+    hint = 'Escribe los ángulos como múltiplos de k y usa la propiedad del ángulo exterior.';
+  }
+  const t = fitTri(al, 180 - al - ga, { ext: true }), E = add(t.B, mul(sub(t.B, t.A), .3));
+  const prims = [...vl(t), seg(t.B, E, { color: COL.blueD, w: 3.5 }), txt(add(E, V(0, -16)), 'E', { size: 20 })];
+  prims.push(...angMark(t, 'A', la), ...angMark(t, 'C', lc), ...angLabelAt(t.B, E, t.C, 30, le, 26));
+  return { topic: 'Ángulo exterior', text, svg: svgWrap(prims, 'Triángulo con un ángulo exterior en B'), ans, unit: unit_, explain, hint, ph };
+}
+
+function gIso(level) {
+  let text, ans, explain, la, lb, lc, base, ph = 'Ej.: 50', unit_ = '°', hint = 'En un triángulo isósceles los ángulos de la base son iguales, y los tres ángulos suman 180°.';
+  if (level === 1) {
+    if (ri(0, 1)) { const g = 2 * ri(10, 60); base = (180 - g) / 2; la = lb = '?'; lc = `${g}°`; text = `El triángulo ABC es isósceles con AC = BC. Si el ángulo del vértice C mide ${g}°, ¿cuánto mide cada ángulo de la base?`; ans = { num: base };
+      explain = `Los ángulos de la base son iguales y entre los tres suman 180°.<br>2 · base = 180° − ${g}° = ${180 - g}°<br>base = <b>${base}°</b>.`; }
+    else { base = ri(35, 80); la = lb = `${base}°`; lc = '?'; text = `El triángulo ABC es isósceles con AC = BC. Si cada ángulo de la base mide ${base}°, ¿cuánto mide el ángulo del vértice C?`; ans = { num: 180 - 2 * base };
+      explain = `∠C = 180° − ${base}° − ${base}° = <b>${180 - 2 * base}°</b>.`; }
+  } else if (level === 2) {
+    let x, p, q, r, s;
+    do { x = ri(5, 20); p = ri(2, 5); r = ri(1, 4); base = ri(40, 75); q = base - p * x; s = base - r * x; } while (p === r || Math.abs(q) > 30 || Math.abs(s) > 30);
+    la = lin(p, q) + '°'; lb = lin(r, s) + '°'; lc = '?'; ans = { num: x }; ph = 'Ej.: 10'; unit_ = '';
+    text = `El triángulo ABC es isósceles con AC = BC. Sus ángulos de la base miden (${lin(p, q)})° y (${lin(r, s)})°. ¿Cuál es el valor de x?`;
+    explain = `Los ángulos de la base son iguales:<br>${lin(p, q)} = ${lin(r, s)}<br>${p - r}x = ${s - q}<br>x = <b>${x}</b>.`;
+  } else {
+    const m = pick([2, 3, 4, 7]), b = 180 / (m + 2), askV = ri(0, 1); base = b; la = lb = askV ? `${b}°` : '?'; lc = askV ? '?' : `${m} · base`;
+    ans = { num: askV ? m * b : b }; text = `En un triángulo isósceles, el ángulo del vértice mide ${m === 2 ? 'el doble' : m === 3 ? 'el triple' : m === 4 ? 'el cuádruple' : `${m} veces`} de cada ángulo de la base. ${askV ? '¿Cuánto mide el ángulo del vértice?' : '¿Cuánto mide cada ángulo de la base?'}`;
+    if (askV) { la = lb = `${b}°`; lc = '?'; text = `En un triángulo isósceles, el ángulo del vértice mide ${m === 2 ? 'el doble' : m === 3 ? 'el triple' : m === 4 ? 'el cuádruple' : '7 veces'} el ángulo de la base, que mide ${b}°. ¿Cuánto mide el ángulo del vértice?`; }
+    else { la = lb = 'b'; lc = `${m}b`; text = `En un triángulo isósceles, el ángulo del vértice mide ${m === 2 ? 'el doble' : m === 3 ? 'el triple' : m === 4 ? 'el cuádruple' : '7 veces'} el ángulo de la base. ¿Cuánto mide cada ángulo de la base?`; }
+    explain = `Sea b cada ángulo de la base; el del vértice es ${m}b.<br>b + b + ${m}b = 180 → ${m + 2}b = 180 → b = ${b}°.<br>${askV ? `Vértice = ${m} · ${b}° = <b>${m * b}°</b>.` : `Cada ángulo de la base mide <b>${b}°</b>.`}`;
+    hint = 'Llama b al ángulo de la base y escribe el del vértice con b.';
+  }
+  const t = fitTri(base, base), prims = [...vl(t), tick(t.A, t.C, 1, { color: COL.ink, len: 9 }), tick(t.B, t.C, 1, { color: COL.ink, len: 9 })];
+  prims.push(...angMark(t, 'A', la), ...angMark(t, 'B', lb), ...angMark(t, 'C', lc));
+  return { topic: 'Triángulo isósceles', text, svg: svgWrap(prims, 'Triángulo isósceles ABC'), ans, unit: unit_, explain, hint, ph };
+}
+
+function gBis(level) {
+  let text, ans, explain, ph = 'Ej.: 35', unit_ = '°', hint, t, prims;
+  const mkT = a => { let b; do { b = ri(40, 80); } while (180 - a - b < 25 || 180 - a - b > 100); return fitTri(a, b); };
+  const bisectorAt = (P, Q, R) => { const pq = dist(P, Q), pr = dist(P, R); return V((pr * Q.x + pq * R.x) / (pq + pr), (pr * Q.y + pq * R.y) / (pq + pr)); };
+  if (level === 1) {
+    const al = 2 * ri(20, 50), ask = ri(0, 1), half = al / 2; t = mkT(al); const D = bisectorAt(t.A, t.B, t.C);
+    hint = 'La bisectriz divide al ángulo en dos ángulos iguales.';
+    text = `En el triángulo ABC, AD es la bisectriz del ángulo A. ${ask ? `Si ∠BAD = ${half}°, ¿cuánto mide ∠BAC?` : `Si ∠BAC = ${al}°, ¿cuánto mide ∠BAD?`}`; ans = { num: ask ? al : half };
+    explain = ask ? `AD divide a ∠A en dos ángulos iguales, así que ∠BAC = 2 · ∠BAD = 2 · ${half}° = <b>${al}°</b>.` : `AD divide a ∠A en dos ángulos iguales.<br>∠BAD = ${al}° : 2 = <b>${half}°</b>.`;
+    prims = [...vl(t), seg(t.A, D, { color: COL.bisect, w: 4 }), pt(D, { r: 5, color: COL.bisect, label: 'D', lp: add(D, mul(unit(sub(D, t.G)), 18)) }),
+      ...angLabelAt(t.A, t.B, D, 40, ask ? `${half}°` : '?', 24), ...angLabelAt(t.A, D, t.C, 40, ask ? '?' : '', 24)].filter(Boolean);
+    if (!ask) prims.push(arcAt(t.A, D, t.C, 40, { color: COL.bisect, w: 2.8 })); else prims.push(arcAt(t.A, D, t.C, 40, { color: COL.unknown, w: 2.8 }));
+    // etiquetas: ∠BAC total
+    if (ask) prims.push(...[txt(add(t.A, mul(unit(add(unit(sub(t.B, t.A)), unit(sub(t.C, t.A)))), 78)), '∠BAC = ?', { size: 14, color: COL.unknown })]);
+    else prims.push(txt(add(t.A, mul(unit(add(unit(sub(t.B, t.A)), unit(sub(t.C, t.A)))), 78)), `∠BAC = ${al}°`, { size: 14, color: COL.given }));
+  } else if (level === 2) {
+    const al = 2 * ri(20, 45); t = mkT(al); const Bd = t.angB * DEG, Cd = t.angC * DEG;
+    // usar ángulos enteros
+    const b = ri(40, 75), c = 180 - al - b; t = fitTri(al, b);
+    text = `En el triángulo ABC, I es el incentro (el punto donde se cortan las bisectrices). Si ∠BAC = ${al}°, ¿cuánto mide ∠BIC?`; ans = { num: 90 + al / 2 };
+    explain = `I está en las bisectrices de B y C, así que ∠IBC = ∠B/2 y ∠ICB = ∠C/2.<br>En el triángulo BIC: ∠BIC = 180° − (∠B + ∠C)/2.<br>Como ∠B + ∠C = 180° − ${al}° = ${180 - al}°, ∠BIC = 180° − ${(180 - al) / 2}° = <b>${90 + al / 2}°</b>.`;
+    hint = 'Fíjate en el triángulo BIC: sus ángulos en B y C miden la mitad de ∠B y ∠C.';
+    prims = [...vl(t)];
+    [[t.A, t.B, t.C], [t.B, t.C, t.A], [t.C, t.A, t.B]].forEach(([P, Q, R]) => prims.push(seg(P, bisectorAt(P, Q, R), { color: COL.bisect, w: 3 })));
+    prims.push(pt(t.I, { r: 6, color: '#B02F66', label: 'I', lp: V(t.I.x + 4, t.I.y + 22), size: 18 }), ...angMark(t, 'A', `${al}°`), ...angLabelAt(t.I, t.B, t.C, 26, '?', 22));
+    void Bd; void Cd; void c;
+  } else if (ri(0, 1)) {
+    const al = 2 * ri(20, 50), om = 90 + al / 2, b = ri(40, 75); t = fitTri(al, b);
+    text = `En el triángulo ABC, I es el incentro. Si ∠BIC = ${om}°, ¿cuánto mide ∠BAC?`; ans = { num: al };
+    explain = `En el triángulo BIC: ∠IBC + ∠ICB = 180° − ${om}° = ${180 - om}°. Esos dos ángulos son las mitades de ∠B y ∠C, así que ∠B + ∠C = 2 · ${180 - om}° = ${2 * (180 - om)}°.<br>∠BAC = 180° − ${2 * (180 - om)}° = <b>${al}°</b>.`;
+    hint = 'Usa el triángulo BIC y recuerda que ∠IBC y ∠ICB son las mitades de ∠B y ∠C.';
+    prims = [...vl(t)];
+    [[t.A, t.B, t.C], [t.B, t.C, t.A], [t.C, t.A, t.B]].forEach(([P, Q, R]) => prims.push(seg(P, bisectorAt(P, Q, R), { color: COL.bisect, w: 3 })));
+    prims.push(pt(t.I, { r: 6, color: '#B02F66', label: 'I', lp: V(t.I.x + 4, t.I.y + 22), size: 18 }), ...angMark(t, 'A', '?'), ...angLabelAt(t.I, t.B, t.C, 26, `${om}°`, 24));
+  } else {
+    let x, p, q, r, s, h;
+    do { x = ri(5, 20); h = ri(15, 45); p = ri(2, 5); r = ri(1, 4); q = h - p * x; s = h - r * x; } while (p === r || Math.abs(q) > 30 || Math.abs(s) > 30);
+    t = mkT(2 * h); const D = bisectorAt(t.A, t.B, t.C);
+    text = `En el triángulo ABC, AD es la bisectriz del ángulo A. Si ∠BAD = (${lin(p, q)})° y ∠DAC = (${lin(r, s)})°, ¿cuánto mide ∠BAC?`; ans = { num: 2 * h };
+    explain = `La bisectriz forma dos ángulos iguales:<br>${lin(p, q)} = ${lin(r, s)}<br>${p - r}x = ${s - q} → x = ${x}.<br>Cada mitad mide ${p}·${x} ${sgn(q)} = ${h}°, así que ∠BAC = 2 · ${h}° = <b>${2 * h}°</b>.`;
+    hint = 'Las dos mitades son iguales: plantea una ecuación para x y luego duplica.';
+    prims = [...vl(t), seg(t.A, D, { color: COL.bisect, w: 4 }), pt(D, { r: 5, color: COL.bisect, label: 'D', lp: add(D, mul(unit(sub(D, t.G)), 18)) }),
+      ...angLabelAt(t.A, t.B, D, 40, lin(p, q) + '°', 30), ...angLabelAt(t.A, D, t.C, 40, lin(r, s) + '°', 30)];
+  }
+  return { topic: 'Bisectrices e incentro', text, svg: svgWrap(prims, 'Triángulo ABC con bisectrices'), ans, unit: unit_, explain, hint, ph };
+}
+
+function gAlt(level) {
+  let text, ans, explain, ph = 'Ej.: 40', unit_ = '°', hint, t, prims;
+  const acute = () => { let a, b; do { a = ri(48, 80); b = ri(48, 80); } while (180 - a - b < 45 || 180 - a - b > 82); return fitTri(a, b); };
+  if (level === 1) {
+    t = acute(); const D = foot(t.A, t.B, t.C), askB = ri(0, 1), ang = Math.round((askB ? t.angB : t.angC) * DEG);
+    const bd = askB ? t.angB : t.angC; void bd;
+    t = fitTri(Math.round(t.angA * DEG), Math.round(t.angB * DEG)); const D2 = foot(t.A, t.B, t.C), g = askB ? Math.round(t.angB * DEG) : Math.round(t.angC * DEG);
+    text = `En el triángulo ABC, AD es la altura desde A (AD ⟂ BC). Si ∠${askB ? 'B' : 'C'} = ${g}°, ¿cuánto mide ∠${askB ? 'BAD' : 'DAC'}?`; ans = { num: 90 - g };
+    explain = `La altura forma un ángulo recto en D, así que el triángulo ${askB ? 'ABD' : 'ADC'} es rectángulo.<br>Sus ángulos agudos suman 90°: ∠${askB ? 'BAD' : 'DAC'} = 90° − ${g}° = <b>${90 - g}°</b>.`;
+    hint = 'En el triángulo rectángulo que forma la altura, los dos ángulos agudos suman 90°.'; void ang; void D;
+    prims = [...vl(t), seg(t.A, D2, { color: COL.altura, w: 4.5 }), rightM(D2, unit(sub(t.A, D2)), unit(sub(t.C, D2)), 14, { color: COL.altura, fill: COL.altura }),
+      pt(D2, { r: 5, color: COL.altura, label: 'D', lp: V(D2.x + 2, D2.y + 22) }), ...angMark(t, askB ? 'B' : 'C', `${g}°`),
+      ...(askB ? angLabelAt(t.A, t.B, D2, 38, '?', 24) : angLabelAt(t.A, D2, t.C, 38, '?', 24))];
+  } else if (level === 2) {
+    const al = ri(50, 78); let b; do { b = ri(50, 78); } while (180 - al - b < 45 || 180 - al - b > 82); t = fitTri(al, b);
+    text = `En el triángulo acutángulo ABC, H es el ortocentro. Si ∠BAC = ${al}°, ¿cuánto mide ∠BHC?`; ans = { num: 180 - al };
+    explain = `Las alturas desde B y C cortan a los lados opuestos formando dos ángulos de 90°. En el cuadrilátero que queda con vértice A, los ángulos suman 360°:<br>90° + 90° + ${al}° + ∠BHC = 360° (∠BHC es opuesto por el vértice con el ángulo en H del cuadrilátero)<br>∠BHC = 180° − ${al}° = <b>${180 - al}°</b>.`;
+    hint = 'Busca un cuadrilátero con dos ángulos rectos (los que forman las alturas) y el ángulo A.';
+    prims = [...vl(t)];
+    [[t.A, t.B, t.C], [t.B, t.C, t.A], [t.C, t.A, t.B]].forEach(([P, Q, R]) => prims.push(seg(P, foot(P, Q, R), { color: COL.altura, w: 3 })));
+    prims.push(pt(t.H, { r: 6, color: COL.alturaD, label: 'H', lp: V(t.H.x + 18, t.H.y + 6), size: 18 }), ...angMark(t, 'A', `${al}°`), ...angLabelAt(t.H, t.B, t.C, 22, '?', 22));
+  } else if (ri(0, 1)) {
+    let b, c; do { b = ri(48, 80); c = ri(48, 80); } while (b + c < 100 || b + c > 135); t = fitTri(180 - b - c, b);
+    text = `En el triángulo acutángulo ABC, H es el ortocentro. Si ∠ABC = ${b}° y ∠ACB = ${c}°, ¿cuánto mide ∠BHC?`; ans = { num: b + c };
+    explain = `Primero, ∠BAC = 180° − ${b}° − ${c}° = ${180 - b - c}°.<br>Se cumple que ∠BHC = 180° − ∠BAC = 180° − ${180 - b - c}° = <b>${b + c}°</b>.`;
+    hint = 'Calcula ∠BAC y usa que ∠BHC = 180° − ∠BAC.';
+    prims = [...vl(t)];
+    [[t.A, t.B, t.C], [t.B, t.C, t.A], [t.C, t.A, t.B]].forEach(([P, Q, R]) => prims.push(seg(P, foot(P, Q, R), { color: COL.altura, w: 3 })));
+    prims.push(pt(t.H, { r: 6, color: COL.alturaD, label: 'H', lp: V(t.H.x + 18, t.H.y + 6), size: 18 }), ...angMark(t, 'B', `${b}°`), ...angMark(t, 'C', `${c}°`), ...angLabelAt(t.H, t.B, t.C, 22, '?', 22));
+  } else {
+    let x, p, q, r, s, bb;
+    do { x = ri(5, 20); bb = ri(50, 75); p = ri(1, 3); r = ri(1, 3); q = (90 - bb) - p * x; s = bb - r * x; } while (Math.abs(q) > 25 || Math.abs(s) > 25);
+    t = fitTri(Math.round(180 - bb - rnd(50, 70)), bb); if (!(t.angC * DEG > 40)) t = fitTri(55, bb);
+    t = fitTri(Math.round(t.angA * DEG), bb); const D = foot(t.A, t.B, t.C);
+    text = `En el triángulo ABC, AD es la altura desde A (AD ⟂ BC). Si ∠BAD = (${lin(p, q)})° y ∠ABC = (${lin(r, s)})°, ¿cuál es el valor de x?`; ans = { num: x }; ph = 'Ej.: 12'; unit_ = '';
+    explain = `En el triángulo rectángulo ABD, los ángulos agudos suman 90°:<br>(${lin(p, q)}) + (${lin(r, s)}) = 90<br>${p + r}x ${sgn(q + s)} = 90<br>${p + r}x = ${90 - q - s} → x = <b>${x}</b>.`;
+    hint = 'En el triángulo rectángulo ABD, ∠BAD + ∠ABD = 90°.';
+    prims = [...vl(t), seg(t.A, D, { color: COL.altura, w: 4.5 }), rightM(D, unit(sub(t.A, D)), unit(sub(t.C, D)), 14, { color: COL.altura, fill: COL.altura }),
+      pt(D, { r: 5, color: COL.altura, label: 'D', lp: V(D.x + 2, D.y + 22) }), ...angMark(t, 'B', lin(r, s) + '°'), ...angLabelAt(t.A, t.B, D, 38, lin(p, q) + '°', 30)];
+  }
+  return { topic: 'Alturas y ortocentro', text, svg: svgWrap(prims, 'Triángulo ABC con alturas'), ans, unit: unit_, explain, hint, ph };
+}
+
+function gCir(level) {
+  let text, ans, explain, ph = 'Ej.: 5', unit_ = level < 3 && level !== 2 ? 'cm' : '°', hint, t, prims;
+  const circle = tt => [circ(tt.O, tt.R, { color: COL.simetral, w: 3, fill: 'rgba(124,92,224,.07)' }), pt(tt.O, { r: 5.5, color: '#5B3FC0', label: 'O', lp: V(tt.O.x + 4, tt.O.y + 20), size: 18 })];
+  if (level === 1) {
+    if (ri(0, 1)) {
+      const R = ri(3, 12), hy = 2 * R; t = fitTri(ri(32, 58), 90, { circle: true });
+      text = `El triángulo ABC es rectángulo en B y O es su circuncentro. Si la hipotenusa AC mide ${hy} cm, ¿cuánto mide el radio de la circunferencia circunscrita (OA)?`; ans = { num: R };
+      explain = `En un triángulo rectángulo el circuncentro es el punto medio de la hipotenusa.<br>R = AC : 2 = ${hy} : 2 = <b>${R} cm</b>.`;
+      prims = [...vl(t, { fill: '#EFE9FF' }), ...circle(t), rightM(t.B, unit(sub(t.A, t.B)), unit(sub(t.C, t.B)), 14, { color: COL.ink }),
+        segLabel(t.A, t.C, `AC = ${hy} cm`, t.B, 22)];
+    } else {
+      const [a, b, c] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [12, 16, 20]]); t = fitTri(Math.atan(b / a) * DEG, 90, { circle: true });
+      text = `El triángulo ABC es rectángulo en B, con catetos AB = ${a} cm y BC = ${b} cm. Si O es el circuncentro, ¿cuánto mide el circunradio (OA)? Si es decimal, usa coma o punto.`; ans = { num: c / 2 };
+      explain = `Hipotenusa: AC² = ${a}² + ${b}² = ${a * a + b * b} → AC = ${c} cm.<br>El circuncentro es el punto medio de la hipotenusa, así que R = ${c} : 2 = <b>${fx(c / 2)} cm</b>.`;
+      prims = [...vl(t, { fill: '#EFE9FF' }), ...circle(t), rightM(t.B, unit(sub(t.A, t.B)), unit(sub(t.C, t.B)), 14, { color: COL.ink }),
+        segLabel(t.A, t.B, `${a} cm`, t.C, 20), segLabel(t.B, t.C, `${b} cm`, t.A, 20)];
+    }
+    hint = 'En un triángulo rectángulo, el circuncentro es el punto medio de la hipotenusa.';
+  } else {
+    let al, b; do { al = ri(36, 70); b = ri(50, 80); } while (180 - al - b < 50 || 180 - al - b > 82);
+    t = fitTri(al, b, { circle: true }); const Rr = t.R;
+    const bocLab = '?';
+    if (level === 2) {
+      text = `O es el circuncentro del triángulo acutángulo ABC. Si ∠BAC = ${al}°, ¿cuánto mide el ángulo del centro ∠BOC?`; ans = { num: 2 * al };
+      explain = `∠BAC es un ángulo inscrito y ∠BOC es el ángulo del centro que subtiende el mismo arco BC.<br>∠BOC = 2 · ∠BAC = 2 · ${al}° = <b>${2 * al}°</b>.`;
+      hint = 'El ángulo del centro mide el doble que el ángulo inscrito que abarca el mismo arco.';
+      prims = [...vl(t, { fill: '#EFE9FF' }), ...circle(t), seg(t.O, t.B, { color: '#5B3FC0', w: 2.8 }), seg(t.O, t.C, { color: '#5B3FC0', w: 2.8 }), ...angMark(t, 'A', `${al}°`), ...angLabelAt(t.O, t.B, t.C, 24, bocLab, 20)];
+    } else if (ri(0, 1)) {
+      text = `O es el circuncentro del triángulo acutángulo ABC. Si ∠BOC = ${2 * al}°, ¿cuánto mide ∠OBC?`; ans = { num: 90 - al };
+      explain = `OB = OC (son radios), así que el triángulo OBC es isósceles.<br>∠OBC = (180° − ${2 * al}°) : 2 = <b>${90 - al}°</b>.`;
+      hint = 'OB y OC son radios: el triángulo OBC es isósceles.';
+      prims = [...vl(t, { fill: '#EFE9FF' }), ...circle(t), seg(t.O, t.B, { color: '#5B3FC0', w: 2.8 }), seg(t.O, t.C, { color: '#5B3FC0', w: 2.8 }), tick(t.O, t.B, 1, { color: '#5B3FC0' }), tick(t.O, t.C, 1, { color: '#5B3FC0' }),
+        ...angLabelAt(t.O, t.B, t.C, 24, `${2 * al}°`, 22), ...angLabelAt(t.B, t.C, t.O, 30, '?', 24)];
+    } else {
+      text = `O es el circuncentro del triángulo acutángulo ABC. Si ∠BOC = ${2 * al}°, ¿cuánto mide ∠BAC?`; ans = { num: al };
+      explain = `∠BOC es el ángulo del centro y ∠BAC el ángulo inscrito que abarca el mismo arco BC.<br>∠BAC = ∠BOC : 2 = ${2 * al}° : 2 = <b>${al}°</b>.`;
+      hint = 'El ángulo inscrito mide la mitad del ángulo del centro.';
+      prims = [...vl(t, { fill: '#EFE9FF' }), ...circle(t), seg(t.O, t.B, { color: '#5B3FC0', w: 2.8 }), seg(t.O, t.C, { color: '#5B3FC0', w: 2.8 }), ...angMark(t, 'A', '?'), ...angLabelAt(t.O, t.B, t.C, 24, `${2 * al}°`, 22)];
+    }
+    void Rr;
+  }
+  return { topic: 'Circuncentro', text, svg: svgWrap(prims, 'Triángulo ABC inscrito en una circunferencia de centro O'), ans, unit: unit_, explain, hint, ph };
+}
+
+const TOPICS = [
+  { id: 'bary', name: 'Baricentro y transversales', gen: gBary },
+  { id: 'int', name: 'Ángulos interiores', gen: gInt },
+  { id: 'ext', name: 'Ángulo exterior', gen: gExt },
+  { id: 'iso', name: 'Triángulo isósceles', gen: gIso },
+  { id: 'bis', name: 'Bisectrices e incentro', gen: gBis },
+  { id: 'alt', name: 'Alturas y ortocentro', gen: gAlt },
+  { id: 'cir', name: 'Circuncentro', gen: gCir }
+];
+
+/* ---------- lectura de respuestas ---------- */
+function parseExpr(str) {
+  let s = String(str).toLowerCase().replace(/\s+/g, '').replace(/,/g, '.').replace(/[×·]/g, '*').replace(/[−–—]/g, '-').replace(/÷/g, '/');
+  s = s.replace(/^[a-z]{1,3}=/, '').replace(/(°|º|grados|cm|unidades|u)+$/, '');
+  if (!s) return null;
+  const tk = s.match(/\d+\.?\d*|\.\d+|x|[-+*/^()]/g);
+  if (!tk || tk.join('') !== s) return null;
+  let i = 0;
+  const peek = () => tk[i], eat = () => tk[i++];
+  const isAtomStart = z => z !== undefined && (z === 'x' || z === '(' || /^[\d.]/.test(z));
+  function expr() { let l = term(); while (peek() === '+' || peek() === '-') { const o = eat(), r = term(), L = l; l = o === '+' ? x => L(x) + r(x) : x => L(x) - r(x); } return l; }
+  function term() {
+    let l = unary();
+    for (;;) {
+      const z = peek();
+      if (z === '*' || z === '/') { eat(); const r = unary(), L = l; l = z === '*' ? x => L(x) * r(x) : x => L(x) / r(x); }
+      else if (isAtomStart(z)) { const r = unary(), L = l; l = x => L(x) * r(x); }
+      else return l;
+    }
+  }
+  function unary() { if (peek() === '-') { eat(); const u = unary(); return x => -u(x); } if (peek() === '+') { eat(); return unary(); } return power(); }
+  function power() { const b = atom(); if (peek() === '^') { eat(); const e = unary(); return x => Math.pow(b(x), e(x)); } return b; }
+  function atom() {
+    const z = eat();
+    if (z === undefined) throw new Error('fin');
+    if (z === 'x') return x => x;
+    if (z === '(') { const e = expr(); if (eat() !== ')') throw new Error('par'); return e; }
+    if (/^[\d.]/.test(z)) { const v = parseFloat(z); if (!Number.isFinite(v)) throw new Error('num'); return () => v; }
+    throw new Error('tok');
+  }
+  try { const f = expr(); if (i !== tk.length) return null; return f; } catch (e) { return null; }
+}
+function judge(p, input) {
+  const f = parseExpr(input);
+  if (!f) return 'invalid';
+  const xs = [1, 2, 3.5, -2, 7];
+  if (p.ans.fn) { const ok = xs.every(x => { const v = f(x); return Number.isFinite(v) && Math.abs(v - p.ans.fn(x)) < 1e-6; }); return ok ? 'ok' : 'bad'; }
+  const v1 = f(1), v2 = f(2);
+  if (!Number.isFinite(v1) || Math.abs(v1 - v2) > 1e-9) return 'needsnum';
+  return Math.abs(v1 - p.ans.num) < 1e-6 ? 'ok' : 'bad';
+}
+window.__tri = { TOPICS, judge, parseExpr };
+
+/* ---------- interfaz de desafíos ---------- */
+(function initRetos() {
+  const sel = $('#fTopic');
+  sel.innerHTML = '<option value="all">Todos los temas</option>' + TOPICS.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  let cur = null, last = '';
+  const fb = $('#fb'), hintBox = $('#hintBox'), bSol = $('#bSol');
+  const reveal = el => { try { el.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } catch (_) {} };
+  function setSol(on) {
+    bSol.setAttribute('aria-expanded', String(on)); bSol.textContent = on ? 'Ocultar solución' : 'Ver solución';
+    fb.innerHTML = on ? `<div class="fb ok"><b>Solución</b><span class="why">${cur.explain}</span></div>` : '';
+    if (on) reveal(fb.firstElementChild);
+  }
+  function newProblem() {
+    const lvlSel = +$('#fLevel').value, tid = sel.value;
+    let p, guard = 0;
+    do {
+      const topic = tid === 'all' ? pick(TOPICS) : TOPICS.find(t => t.id === tid), lvl = lvlSel || ri(1, 3);
+      p = topic.gen(lvl); p.level = lvl;
+    } while (p.text === last && ++guard < 8);
+    last = p.text; cur = p;
+    $('#pTopic').textContent = p.topic; $('#pLevel').textContent = ['', 'Nivel fácil', 'Nivel medio', 'Nivel desafío'][p.level];
+    $('#pText').innerHTML = p.text; $('#pDiagram').innerHTML = p.svg;
+    hintBox.innerHTML = ''; setSol(false);
+  }
+  $('#bHint').addEventListener('click', () => { if (cur) { hintBox.innerHTML = `<div class="fb tip">Pista: ${cur.hint}</div>`; reveal(hintBox.firstElementChild); } });
+  bSol.addEventListener('click', () => { if (cur) setSol(bSol.getAttribute('aria-expanded') !== 'true'); });
+  $('#bNext').addEventListener('click', newProblem);
+  $('#fNew').addEventListener('click', newProblem);
+  sel.addEventListener('change', newProblem); $('#fLevel').addEventListener('change', newProblem);
+  window.__tri.newProblem = newProblem; window.__tri.cur = () => cur;
+  window.__tri.ensure = () => { if (!cur) newProblem(); };
+})();
+
+/* =========================================================
+   Pestañas
+   ========================================================= */
+const TABS = ['teoria', 'lineas', 'retos'];
+function showTab(id, focus) {
+  TABS.forEach(t => { const on = t === id; $('#tab-' + t).setAttribute('aria-selected', String(on)); $('#tab-' + t).tabIndex = on ? 0 : -1; $('#p-' + t).hidden = !on; });
+  if (id === 'retos') window.__tri.ensure();
+  refreshAll(); store.set('triangulos-tab', id);
+  if (focus) $('#tab-' + id).focus();
+}
+TABS.forEach(t => $('#tab-' + t).addEventListener('click', () => showTab(t)));
+$('.tabs').addEventListener('keydown', e => {
+  const i = TABS.findIndex(t => $('#tab-' + t).getAttribute('aria-selected') === 'true');
+  if (e.key === 'ArrowRight') { e.preventDefault(); showTab(TABS[(i + 1) % 3], true); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); showTab(TABS[(i + 2) % 3], true); }
+});
+$$('[data-sub]').forEach(b => b.addEventListener('click', () => {
+  $$('[data-sub]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  $('#sub-clas').hidden = b.dataset.sub !== 'clas'; $('#sub-notables').hidden = b.dataset.sub !== 'notables'; refreshAll();
+}));
+$$('#nCard [data-preset]').forEach(b => b.addEventListener('click', () => setTri(PRESETS[b.dataset.preset])));
+showTab(store.get('triangulos-tab', 'teoria'));
+})();
+</script>
+</body>
+</html>
