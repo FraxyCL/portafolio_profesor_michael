@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vence al producto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F1EEFF; --ink:#17123F; --soft:#5E5A86; --card:#FFFFFF; --line:#17123F; --shadow:#17123F;
+  --violet:#5B3DF5; --sun:#FFD23F; --on-sun:#17123F; --hot:#E5383B; --good:#0E9F83;
+  --panel:#FFFFFF; --field:#F6F4FF; --rim:#D6D0F5; --on-violet:#FFFFFF; --on-good:#FFFFFF;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#120F2B; --ink:#F2EFFF; --soft:#A9A4D6; --card:#1E1950; --line:#F2EFFF; --shadow:#05040F;
+    --violet:#8F7BFF; --hot:#FF6B6B; --good:#2ED1AE;
+    --panel:#1A1646; --field:#251F5E; --rim:#3A3380; --on-violet:#120F2B; --on-good:#07201B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#120F2B; --ink:#F2EFFF; --soft:#A9A4D6; --card:#1E1950; --line:#F2EFFF; --shadow:#05040F;
+  --violet:#8F7BFF; --hot:#FF6B6B; --good:#2ED1AE;
+  --panel:#1A1646; --field:#251F5E; --rim:#3A3380; --on-violet:#120F2B; --on-good:#07201B;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'Lexend',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  line-height:1.4; min-height:100vh;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+[hidden]{display:none !important}
+:focus-visible{outline:4px solid var(--violet);outline-offset:3px}
+
+.app{display:grid;grid-template-columns:minmax(0,1fr) 330px;min-height:100vh}
+.app.nopanel{grid-template-columns:minmax(0,1fr)}
+.app.nopanel .settings{display:none}
+@media (max-width:900px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.stage{display:flex;flex-direction:column;gap:clamp(12px,2.2vh,24px);padding:16px clamp(14px,3vw,36px) 28px;min-width:0;min-height:100vh}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-size:clamp(22px,2.8vw,32px);font-weight:800;letter-spacing:-.025em}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{
+  font:inherit;font-weight:700;font-size:16px;color:var(--ink);background:var(--card);
+  border:3px solid var(--line);border-radius:14px;padding:10px 18px;cursor:pointer;
+  box-shadow:3px 3px 0 var(--shadow);
+}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--shadow)}
+.btn.small{font-size:14px;padding:7px 13px;box-shadow:2px 2px 0 var(--shadow)}
+.btn.small:active{transform:translate(2px,2px)}
+.btn.primary{background:var(--violet);color:var(--on-violet)}
+.btn.good{background:var(--good);color:var(--on-good)}
+
+/* temporizador */
+.timerRow{display:flex;align-items:center;gap:14px 18px;flex-wrap:wrap}
+.clock{
+  background:var(--ink);color:var(--sun);border-radius:20px;padding:2px 24px 6px;
+  font-size:clamp(46px,9vmin,100px);font-weight:800;line-height:1.1;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;min-width:2.9em;text-align:center;
+}
+:root[data-theme="dark"] .clock{background:var(--card);border:3px solid var(--line)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .clock{background:var(--card);border:3px solid var(--line)}}
+.clock.hot{color:#fff;background:var(--hot)}
+.bar{flex:1;min-width:140px;height:20px;border:3px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
+.bar i{display:block;height:100%;width:100%;background:var(--violet);transform-origin:left center}
+.bar.hot i{background:var(--hot)}
+.ctrls{display:flex;gap:10px}
+.ctrls .btn{font-size:18px;padding:12px 22px}
+
+/* producto */
+.product{
+  flex:1;min-height:300px;container-type:inline-size;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2vh,22px);
+  background:var(--card);border:3px solid var(--line);border-radius:32px;box-shadow:8px 8px 0 var(--shadow);
+  padding:clamp(16px,3vh,40px) 16px;text-align:center;
+}
+.meta{font-size:15px;font-weight:500;color:var(--soft)}
+.eq{
+  display:flex;align-items:baseline;justify-content:center;gap:.22em;font-weight:800;line-height:1;
+  letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  font-size:min(14vw,30vh);
+}
+@supports (width:1cqw){.eq{font-size:min(17cqw,30vh)}}
+.eq .x{color:var(--violet);font-weight:700}
+.res{
+  font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;
+  font-size:min(7vw,13vh);
+  background:var(--sun);color:var(--on-sun);border:3px solid var(--line);border-radius:999px;padding:.05em .6em .1em;
+}
+@supports (width:1cqw){.res{font-size:min(9cqw,13vh)}}
+.reveal{font-size:clamp(18px,2.6vh,26px);padding:12px 28px;border-style:dashed}
+.next{font-size:clamp(18px,3vh,28px);padding:14px 38px;margin-top:4px}
+
+/* estudiantes */
+.seats{background:var(--card);border:3px solid var(--line);border-radius:24px;box-shadow:5px 5px 0 var(--shadow);padding:16px 20px}
+.seatMain{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.lbl{font-size:15px;font-weight:500;color:var(--soft)}
+.seatNum{display:flex;align-items:baseline;gap:10px}
+.seatNum b{font-size:clamp(40px,7vmin,72px);font-weight:800;line-height:1;color:var(--good);font-variant-numeric:tabular-nums}
+.seatNum span{font-size:clamp(18px,3vmin,28px);font-weight:700;color:var(--soft)}
+.seatBtns{display:flex;gap:10px}
+.seatBtns .btn{font-size:18px;padding:12px 22px}
+.status{margin:8px 0 0;min-height:1.4em;font-weight:700}
+.status.ok{color:var(--good)}
+.chips{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.chips li{font-size:13px;font-weight:500;padding:3px 10px;border:2px solid var(--rim);border-radius:999px;color:var(--soft)}
+.chips li.late{border-style:dashed}
+
+/* ajustes */
+.settings{background:var(--panel);border-left:3px solid var(--line);padding:18px 18px 28px;min-width:0}
+@media (max-width:900px){.settings{border-left:0;border-top:3px solid var(--line)}}
+.settings h2{margin:20px 0 8px;font-size:17px;font-weight:800}
+.settings h2:first-child{margin-top:0}
+.settings label,.lab{display:block;font-size:14px;font-weight:500;margin:10px 0 5px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=number]{
+  font:inherit;font-weight:500;color:var(--ink);background:var(--field);border:2px solid var(--rim);
+  border-radius:10px;padding:8px 10px;width:100%;
+}
+.settings .check{display:flex;align-items:center;gap:9px;margin:12px 0 0;font-size:14px;font-weight:400;cursor:pointer}
+.check input{accent-color:var(--violet);width:18px;height:18px;margin:0}
+.hint{font-size:13px;color:var(--soft);margin:6px 0 0}
+.keys{margin:0;padding:0;list-style:none;font-size:13px;color:var(--soft);display:grid;gap:4px}
+kbd{font:inherit;font-weight:700;color:var(--ink);background:var(--field);border:2px solid var(--rim);border-radius:6px;padding:0 6px}
+
+@media (prefers-reduced-motion:no-preference){
+  .pop{animation:pop .18s ease-out}
+  @keyframes pop{from{transform:scale(.94);opacity:.5}to{transform:scale(1);opacity:1}}
+  .clock.hot.on{animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{50%{transform:scale(1.04)}}
+  .bar i{transition:transform .1s linear}
+}
+@media (max-width:560px){
+  .stage{padding:12px 12px 24px}
+  .ctrls{width:100%}.ctrls .btn{flex:1}
+  .seatBtns{width:100%}.seatBtns .btn:last-child{flex:1}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <main class="stage">
+    <header class="top">
+      <h1>Vence al producto</h1>
+      <div class="top-actions">
+        <button class="btn small" type="button" id="fs">Pantalla completa</button>
+        <button class="btn small" type="button" id="panelBtn" aria-expanded="true" aria-controls="settings">Ocultar ajustes</button>
+      </div>
+    </header>
+
+    <section class="timerRow" aria-label="Temporizador">
+      <div class="clock" id="clock" role="timer">1:00</div>
+      <div class="bar" id="bar" aria-hidden="true"><i id="barFill"></i></div>
+      <div class="ctrls">
+        <button class="btn primary" type="button" id="go">Iniciar</button>
+        <button class="btn" type="button" id="reset">Reiniciar</button>
+      </div>
+    </section>
+
+    <section class="product" id="product" aria-label="Producto">
+      <div class="meta" id="pnum">Producto 1</div>
+      <div class="eq" id="eq"><span id="pa">0</span><span class="x">×</span><span id="pb">0</span></div>
+      <div class="res" id="res">= 0</div>
+      <button class="btn reveal" type="button" id="reveal" hidden>Mostrar resultado</button>
+      <button class="btn primary next" type="button" id="next">Otro producto</button>
+    </section>
+
+    <section class="seats" aria-label="Estudiantes sentadas">
+      <div class="seatMain">
+        <div>
+          <div class="lbl">Sentadas a tiempo</div>
+          <div class="seatNum"><b id="seatNum">0</b><span id="seatOf"></span></div>
+        </div>
+        <div class="seatBtns">
+          <button class="btn" type="button" id="unsit" aria-label="Quitar una sentada">−</button>
+          <button class="btn good" type="button" id="sit">+ Se sentó</button>
+        </div>
+      </div>
+      <p class="status" id="status" aria-live="polite"></p>
+      <ul class="chips" id="chips" aria-label="Tiempo de cada estudiante"></ul>
+    </section>
+  </main>
+
+  <aside class="settings" id="settings" aria-label="Ajustes">
+    <h2>Productos</h2>
+    <span class="lab" style="margin-top:0">Primer factor (a)</span>
+    <div class="row2">
+      <div><label for="a0">Desde</label><input id="a0" type="number" min="0" max="99" inputmode="numeric"></div>
+      <div><label for="a1">Hasta</label><input id="a1" type="number" min="0" max="99" inputmode="numeric"></div>
+    </div>
+    <span class="lab">Segundo factor (b)</span>
+    <div class="row2">
+      <div><label for="b0">Desde</label><input id="b0" type="number" min="0" max="99" inputmode="numeric"></div>
+      <div><label for="b1">Hasta</label><input id="b1" type="number" min="0" max="99" inputmode="numeric"></div>
+    </div>
+    <label class="check"><input type="checkbox" id="skip">Evitar productos por 0 y por 1</label>
+    <label class="check"><input type="checkbox" id="hide">Ocultar el resultado hasta mostrarlo</label>
+    <p class="hint" id="poolHint"></p>
+
+    <h2>Temporizador</h2>
+    <div class="row2">
+      <div><label for="tMin">Minutos</label><input id="tMin" type="number" min="0" max="59" inputmode="numeric"></div>
+      <div><label for="tSec">Segundos</label><input id="tSec" type="number" min="0" max="59" inputmode="numeric"></div>
+    </div>
+    <label class="check"><input type="checkbox" id="sound">Sonido al terminar</label>
+
+    <h2>Curso</h2>
+    <label for="nStu" style="margin-top:0">Estudiantes de pie</label>
+    <input id="nStu" type="number" min="0" max="200" inputmode="numeric">
+    <p class="hint">Con 0 no se cuenta el total. Si todas se sientan antes de que termine, el tiempo se detiene.</p>
+
+    <h2>Atajos</h2>
+    <ul class="keys">
+      <li><kbd>Espacio</kbd> otro producto</li>
+      <li><kbd>R</kbd> mostrar resultado</li>
+      <li><kbd>T</kbd> iniciar o pausar</li>
+      <li><kbd>S</kbd> se sentó una &nbsp; <kbd>B</kbd> quitar una</li>
+      <li><kbd>F</kbd> pantalla completa</li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rand = n => Math.floor(Math.random() * n);
+const int = (el, d) => { const v = parseInt(el.value, 10); return Number.isFinite(v) ? v : d; };
+const KEY = 'vence-al-producto-v1';
+
+const DEF = { a0: 0, a1: 9, b0: 0, b1: 9, min: 1, sec: 0, total: 0, skip: false, hide: false, sound: true, panel: true };
+const S = Object.assign({}, DEF);
+try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}') || {}); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+/* ---------- estado ---------- */
+let cur = null, nProd = 0, revealed = false;
+let state = 'idle';            // idle | running | paused | done
+let remaining = 0, endAt = 0, tick = null;
+let seats = [], allAt = null;
+const dur = () => (S.min * 60 + S.sec) * 1000;
+
+/* ---------- ajustes ---------- */
+function readSettings(changed) {
+  S.a0 = clamp(int($('#a0'), 0), 0, 99); S.a1 = clamp(int($('#a1'), 9), 0, 99);
+  S.b0 = clamp(int($('#b0'), 0), 0, 99); S.b1 = clamp(int($('#b1'), 9), 0, 99);
+  if (S.a0 > S.a1) { if (changed === 'a1') S.a0 = S.a1; else if (changed === 'a0') S.a1 = S.a0; else [S.a0, S.a1] = [S.a1, S.a0]; }
+  if (S.b0 > S.b1) { if (changed === 'b1') S.b0 = S.b1; else if (changed === 'b0') S.b1 = S.b0; else [S.b0, S.b1] = [S.b1, S.b0]; }
+  S.min = clamp(int($('#tMin'), 1), 0, 59); S.sec = clamp(int($('#tSec'), 0), 0, 59);
+  if (S.min === 0 && S.sec < 5) S.sec = 5;
+  S.total = clamp(int($('#nStu'), 0), 0, 200);
+  S.skip = $('#skip').checked; S.hide = $('#hide').checked; S.sound = $('#sound').checked;
+}
+function writeSettings() {
+  $('#a0').value = S.a0; $('#a1').value = S.a1; $('#b0').value = S.b0; $('#b1').value = S.b1;
+  $('#tMin').value = S.min; $('#tSec').value = S.sec; $('#nStu').value = S.total;
+  $('#skip').checked = S.skip; $('#hide').checked = S.hide; $('#sound').checked = S.sound;
+}
+function pool() {
+  const all = [], list = [];
+  for (let a = S.a0; a <= S.a1; a++) for (let b = S.b0; b <= S.b1; b++) {
+    all.push([a, b]);
+    if (!S.skip || (a > 1 && b > 1)) list.push([a, b]);
+  }
+  return list.length ? { list, relaxed: false } : { list: all, relaxed: true };
+}
+function renderHint() {
+  const p = pool();
+  $('#poolHint').textContent = p.relaxed
+    ? `Con ese rango no quedan productos sin 0 ni 1, así que se permiten. Hay ${p.list.length} posibles.`
+    : `Hay ${p.list.length} producto${p.list.length === 1 ? '' : 's'} posible${p.list.length === 1 ? '' : 's'}.`;
+}
+
+/* ---------- producto ---------- */
+function newProduct() {
+  const { list } = pool();
+  let pick;
+  if (list.length > 1 && cur) { do { pick = list[rand(list.length)]; } while (pick[0] === cur.a && pick[1] === cur.b); }
+  else pick = list[rand(list.length)];
+  cur = { a: pick[0], b: pick[1] };
+  nProd++; revealed = false;
+  renderProduct(true);
+}
+function renderProduct(anim) {
+  if (!cur) return;
+  $('#pa').textContent = cur.a; $('#pb').textContent = cur.b;
+  $('#pnum').textContent = 'Producto ' + nProd;
+  const show = !S.hide || revealed;
+  $('#res').hidden = !show; $('#reveal').hidden = show;
+  $('#res').textContent = '= ' + (cur.a * cur.b);
+  if (anim) {
+    const el = $('#product');
+    el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  }
+}
+function reveal() { if (!revealed) { revealed = true; renderProduct(false); } }
+
+/* ---------- temporizador ---------- */
+const fmt = ms => { const t = Math.ceil(ms / 1000); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
+function elapsed() { return state === 'running' ? dur() - Math.max(0, endAt - performance.now()) : dur() - remaining; }
+function renderTimer() {
+  $('#clock').textContent = fmt(remaining);
+  const hot = state === 'running' && remaining <= 10000;
+  $('#clock').classList.toggle('hot', hot || (state === 'done' && remaining === 0 && allAt === null));
+  $('#clock').classList.toggle('on', hot);
+  $('#bar').classList.toggle('hot', hot);
+  $('#barFill').style.transform = `scaleX(${dur() ? clamp(remaining / dur(), 0, 1) : 0})`;
+  $('#go').textContent = { idle: 'Iniciar', running: 'Pausar', paused: 'Seguir', done: 'Nueva ronda' }[state];
+}
+function update() {
+  remaining = Math.max(0, endAt - performance.now());
+  if (remaining <= 0) { finish(false); return; }
+  renderTimer();
+}
+function finish(all) {
+  clearInterval(tick); tick = null;
+  state = 'done';
+  if (all) { allAt = elapsed(); remaining = dur() - allAt; }
+  else { remaining = 0; beep(); }
+  renderTimer(); renderSeats();
+}
+function resetRound() {
+  clearInterval(tick); tick = null;
+  state = 'idle'; remaining = dur(); seats = []; allAt = null;
+  renderTimer(); renderSeats();
+}
+function startPause() {
+  unlockAudio();
+  if (state === 'running') {
+    remaining = Math.max(0, endAt - performance.now());
+    clearInterval(tick); tick = null; state = 'paused';
+  } else {
+    if (state === 'done') resetRound();
+    if (state === 'idle') { remaining = dur(); newProduct(); }
+    endAt = performance.now() + remaining; state = 'running';
+    tick = setInterval(update, 100);
+  }
+  renderTimer(); renderSeats();
+}
+
+/* ---------- sonido ---------- */
+let ac = null;
+function unlockAudio() {
+  try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) {}
+}
+function beep() {
+  if (!S.sound || !ac) return;
+  try {
+    [0, .3, .6].forEach((d, i) => {
+      const t = ac.currentTime + d, o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine'; o.frequency.value = i === 2 ? 880 : 660;
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.3, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .24);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + .26);
+    });
+  } catch (e) {}
+}
+
+/* ---------- estudiantes sentadas ---------- */
+function inTime() { return seats.filter(s => !s.late).length; }
+function sit() {
+  if (state === 'running') seats.push({ t: elapsed(), late: false });
+  else if (state === 'done') seats.push({ t: null, late: true });
+  else seats.push({ t: null, late: false });
+  if (state === 'running' && S.total > 0 && inTime() >= S.total) { finish(true); return; }
+  renderSeats();
+}
+function unsit() {
+  if (!seats.length) return;
+  seats.pop();
+  if (allAt !== null && (S.total === 0 || inTime() < S.total)) allAt = null;
+  renderTimer(); renderSeats();
+}
+function renderSeats() {
+  const c = inTime(), late = seats.length - c;
+  $('#seatNum').textContent = c;
+  $('#seatOf').textContent = S.total > 0 ? 'de ' + S.total : '';
+  const st = $('#status');
+  st.classList.remove('ok');
+  if (state === 'done') {
+    if (allAt !== null) { st.textContent = `¡Todas sentadas en ${Math.round(allAt / 1000)} s!`; st.classList.add('ok'); }
+    else st.textContent = `¡Tiempo! Se sentaron ${c}${S.total > 0 ? ' de ' + S.total : ''}` + (late ? ` y ${late} después de la hora.` : '.');
+  } else if (state === 'idle' && !seats.length) st.textContent = 'Pulsa Iniciar y di el producto en voz alta.';
+  else st.textContent = '';
+  const ul = $('#chips'); ul.textContent = '';
+  seats.forEach((s, i) => {
+    if (s.t === null && !s.late) return;
+    const li = document.createElement('li');
+    if (s.late) { li.className = 'late'; li.textContent = 'tarde'; }
+    else li.textContent = `${i + 1}.ª · ${Math.round(s.t / 1000)} s`;
+    ul.appendChild(li);
+  });
+}
+
+/* ---------- eventos ---------- */
+['a0', 'a1', 'b0', 'b1', 'tMin', 'tSec', 'nStu', 'skip', 'hide', 'sound'].forEach(id => {
+  $('#' + id).addEventListener('change', () => {
+    readSettings(id); writeSettings(); save(); renderHint();
+    if (state === 'idle') { remaining = dur(); renderTimer(); }
+    renderSeats(); renderProduct(false);
+  });
+});
+$('#go').addEventListener('click', startPause);
+$('#reset').addEventListener('click', resetRound);
+$('#next').addEventListener('click', newProduct);
+$('#reveal').addEventListener('click', reveal);
+$('#sit').addEventListener('click', sit);
+$('#unsit').addEventListener('click', unsit);
+
+function applyPanel() {
+  $('#app').classList.toggle('nopanel', !S.panel);
+  $('#panelBtn').textContent = S.panel ? 'Ocultar ajustes' : 'Ajustes';
+  $('#panelBtn').setAttribute('aria-expanded', String(S.panel));
+}
+$('#panelBtn').addEventListener('click', () => { S.panel = !S.panel; applyPanel(); save(); });
+function toggleFs() {
+  try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); } catch (e) {}
+}
+$('#fs').addEventListener('click', toggleFs);
+if (!document.documentElement.requestFullscreen) $('#fs').hidden = true;
+
+const typing = e => ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName);
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || typing(e)) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ' || k === 'arrowright' || k === 'n') { e.preventDefault(); newProduct(); }
+  else if (k === 'r') reveal();
+  else if (k === 't') startPause();
+  else if (k === 's' || k === '+') sit();
+  else if (k === 'b' || k === '-') unsit();
+  else if (k === 'f') toggleFs();
+});
+document.addEventListener('keyup', e => { if (e.key === ' ' && !typing(e)) e.preventDefault(); });
+
+/* ---------- arranque ---------- */
+writeSettings(); readSettings(); writeSettings(); renderHint(); applyPanel();
+remaining = dur();
+newProduct(); renderTimer(); renderSeats();
+})();
+</script>
+</body>
+</html>
