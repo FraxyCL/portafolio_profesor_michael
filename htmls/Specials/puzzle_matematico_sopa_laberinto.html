@@ -145,6 +145,9 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 .keypad .edit-only{display:none}
 .edit-mode .keypad .edit-only{display:block}
 
+.sheet-wrap{background:var(--tile-n);border:1.5px solid var(--panel-line);border-radius:12px;padding:14px;overflow:auto;text-align:center}
+.sheet-wrap canvas{max-width:100%;height:auto;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.25);display:inline-block}
+.sheet-info{font-size:14px;color:var(--ink-soft);margin:12px 0 0}
 .bar-actions select{width:auto;padding:7px 10px;font-size:14px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);z-index:50;opacity:0;pointer-events:none;text-align:center}
 .toast.show{opacity:1}
@@ -169,6 +172,7 @@ input[type=range]{width:100%;accent-color:var(--blue)}
       <div class="tabs" role="tablist" aria-label="Juego">
         <button role="tab" type="button" data-tab="ws" aria-selected="true">Sopa de letras</button>
         <button role="tab" type="button" data-tab="op" aria-selected="false">Operaciones</button>
+        <button role="tab" type="button" data-tab="pr" aria-selected="false">Hoja para imprimir</button>
       </div>
       <button class="btn ghost" id="classToggle" type="button" aria-pressed="false">Ocultar editor</button>
     </div>
@@ -276,6 +280,7 @@ input[type=range]{width:100%;accent-color:var(--blue)}
             <button class="btn play-only" type="button" id="opSol" aria-pressed="false">Ver solución</button>
             <select id="opZoom" aria-label="Tamaño de las casillas"><option value="0">Ajustar a la pantalla</option><option value="24">Casillas pequeñas</option><option value="34">Casillas medianas</option><option value="46">Casillas grandes</option><option value="60">Casillas enormes</option></select>
             <button class="btn" type="button" id="opCopyQuick">Copiar PNG</button>
+            <button class="btn" type="button" id="opToSheet">Hoja para imprimir</button>
           </span>
         </div>
         <div class="board-scroll"><div id="opBoard" class="op-board" aria-label="Operaciones conectadas"></div></div>
@@ -378,6 +383,119 @@ input[type=range]{width:100%;accent-color:var(--blue)}
       </div>
     </aside>
   </section>
+
+  <!-- ================= HOJA PARA IMPRIMIR ================= -->
+  <section id="view-pr" class="layout" aria-label="Hoja para imprimir" hidden>
+    <div class="main">
+      <div class="panel">
+        <div class="bar">
+          <strong id="prCount">Hoja de crucigramas</strong>
+          <span class="bar-actions">
+            <button class="btn" type="button" id="prNew">Generar otros crucigramas</button>
+            <button class="btn primary" type="button" id="prCopyQuick">Copiar PNG</button>
+          </span>
+        </div>
+        <div class="sheet-wrap"><canvas id="prCanvas" aria-label="Vista previa de la hoja"></canvas></div>
+        <p class="sheet-info" id="prInfo" aria-live="polite"></p>
+        <p class="warn" id="prWarn" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="panel">
+        <h2>Hoja</h2>
+        <div class="row2">
+          <div>
+            <label for="prPaper" style="margin-top:0">Papel</label>
+            <select id="prPaper"><option value="letter">Carta</option><option value="legal">Oficio</option></select>
+          </div>
+          <div>
+            <label for="prOrient" style="margin-top:0">Orientación</label>
+            <select id="prOrient"><option value="p">Vertical</option><option value="l">Horizontal</option></select>
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label for="prCountIn">Cantidad</label>
+            <div class="stepper"><button type="button" data-dec="prCountIn" aria-label="Menos">−</button><input id="prCountIn" type="number" min="1" max="60" inputmode="numeric"><button type="button" data-inc="prCountIn" aria-label="Más">+</button></div>
+          </div>
+          <div>
+            <label for="prSize">Lado de cada uno (cm)</label>
+            <input id="prSize" type="number" min="3" max="21" step="0.5" inputmode="decimal">
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:10px"><button class="btn" type="button" id="prFit">Ajustar tamaño a la cantidad</button></div>
+        <div class="row2">
+          <div>
+            <label for="prGap">Espacio entre ellos (mm)</label>
+            <input id="prGap" type="number" min="0" max="30" step="1" inputmode="numeric">
+          </div>
+          <div>
+            <label for="prMargin">Margen de la hoja (mm)</label>
+            <input id="prMargin" type="number" min="0" max="30" step="1" inputmode="numeric">
+          </div>
+        </div>
+        <p class="hint">Carta: 21,6 × 27,9 cm · Oficio: 21,6 × 33 cm. Con 0 mm quedan pegados y comparten el borde; con espacio, cortas por el medio.</p>
+        <div class="row2">
+          <div>
+            <label for="prBorder">Contorno</label>
+            <select id="prBorder"><option value="0">Sin contorno</option><option value="0.3">Fino</option><option value="0.6">Normal</option><option value="1.1">Grueso</option></select>
+          </div>
+          <div>
+            <label for="prContent">Contenido</label>
+            <select id="prContent"><option value="blank">Casillas vacías</option><option value="solution">Con soluciones</option></select>
+          </div>
+        </div>
+        <label for="prTitle">Título de la hoja (opcional)</label>
+        <input id="prTitle" type="text" maxlength="80" autocomplete="off" placeholder="Ej.: Operaciones conectadas">
+        <div class="checks" style="margin-top:12px">
+          <label class="check"><input type="checkbox" id="prNum">Numerar cada uno</label>
+          <label class="check"><input type="checkbox" id="prHl">Casillas vacías en amarillo</label>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h2>Cada crucigrama</h2>
+        <div class="row2">
+          <div>
+            <label for="prGrid" style="margin-top:0">Tamaño del tablero (casillas)</label>
+            <div class="stepper"><button type="button" data-dec="prGrid" aria-label="Menos">−</button><input id="prGrid" type="number" min="5" max="25" inputmode="numeric"><button type="button" data-inc="prGrid" aria-label="Más">+</button></div>
+          </div>
+          <div>
+            <label for="prEqs" style="margin-top:0">Ecuaciones</label>
+            <div class="stepper"><button type="button" data-dec="prEqs" aria-label="Menos">−</button><input id="prEqs" type="number" min="1" max="40" inputmode="numeric"><button type="button" data-inc="prEqs" aria-label="Más">+</button></div>
+          </div>
+        </div>
+        <fieldset>
+          <legend>Operaciones</legend>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="prAdd">+</label>
+            <label class="check"><input type="checkbox" id="prSub">−</label>
+            <label class="check"><input type="checkbox" id="prMul">×</label>
+            <label class="check"><input type="checkbox" id="prDiv">÷</label>
+          </div>
+        </fieldset>
+        <div class="row2">
+          <div>
+            <label for="prMax">Número máximo</label>
+            <input id="prMax" type="number" min="10" max="999" inputmode="numeric">
+          </div>
+          <div>
+            <label for="prPer">Vacías por ecuación</label>
+            <select id="prPer"><option value="1">Una</option><option value="2">Hasta dos</option></select>
+          </div>
+        </div>
+        <label for="prEmpty">Casillas vacías: <span class="range-val" id="prEmptyVal"></span></label>
+        <input type="range" id="prEmpty" min="10" max="100" step="5">
+        <label for="prDpi">Calidad de la imagen</label>
+        <select id="prDpi"><option value="100">Borrador (100 ppp)</option><option value="150">Buena (150 ppp)</option><option value="300">Impresión nítida (300 ppp)</option></select>
+        <div class="btn-row">
+          <button class="btn primary" type="button" id="prCopy">Copiar PNG</button>
+          <button class="btn" type="button" id="prDown">Descargar PNG</button>
+        </div>
+        <p class="hint">La imagen tiene el tamaño exacto de la hoja. Al pegarla en Word, ajústala al ancho de la página (o usa Descargar e insértala: queda a tamaño real).</p>
+      </div>
+    </aside>
+  </section>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -400,7 +518,7 @@ try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) {
 
 const DEFAULT_WORDS = 'SUMA\nRESTA\nPRODUCTO\nCOCIENTE\nFRACCION\nDECIMAL\nENTERO\nECUACION\nPOTENCIA\nRAIZ';
 
-let tab = saved.tab === 'op' ? 'op' : 'ws';
+let tab = (saved.tab === 'op' || saved.tab === 'pr') ? saved.tab : 'ws';
 let classMode = !!saved.classMode;
 let wsCfg = Object.assign({ rows: 12, cols: 12, text: DEFAULT_WORDS, h: true, v: true, d: true, r: true, list: 'full' }, saved.wsCfg || {});
 let wsPuz = saved.wsPuz || null;
@@ -408,9 +526,11 @@ let opCfg = Object.assign({ rows: 15, cols: 15, eqs: 14, max: 20, add: true, sub
 let opPuz = saved.opPuz || null;
 let exp = Object.assign({ wsBg: 'white', wsContent: 'blank', wsList: 'words', wsTitle: '', wsName: false, wsGrid: true, wsScale: 2, opBg: 'white', opContent: 'blank', opTitle: '', opName: false, opHl: true, opScale: 2 }, saved.exp || {});
 const OP_MAX = 60;
+let prCfg = Object.assign({ count: 6, paper: 'letter', orient: 'p', size: 8.5, gap: 0, margin: 10, border: '0.6', content: 'blank', title: '', num: false, hl: true, grid: 9, eqs: 6, add: true, sub: true, mul: true, div: false, max: 20, per: 1, empty: 50, dpi: 150 }, saved.prCfg || {});
+let prPuzzles = [];
 
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify({ tab, classMode, wsCfg, wsPuz, opCfg, opPuz, exp })); } catch (e) {}
+  try { localStorage.setItem(KEY, JSON.stringify({ tab, classMode, wsCfg, wsPuz, opCfg, opPuz, exp, prCfg })); } catch (e) {}
 }
 
 /* =========================================================
@@ -1089,6 +1209,7 @@ function setTab(t) {
   document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
   $('#view-ws').hidden = t !== 'ws';
   $('#view-op').hidden = t !== 'op';
+  $('#view-pr').hidden = t !== 'pr';
   anchor = endPt = null; dragging = false;
   relayout(); save();
 }
@@ -1102,7 +1223,7 @@ function applyClassMode() {
 }
 $('#classToggle').addEventListener('click', () => { classMode = !classMode; applyClassMode(); relayout(); save(); });
 
-function relayout() { if (tab === 'ws') renderWS(); else renderOp(); }
+function relayout() { if (tab === 'ws') renderWS(); else if (tab === 'op') renderOp(); else renderSheet(); }
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(relayout, 120); });
 
 /* =========================================================
@@ -1311,6 +1432,185 @@ $('#wsDown').addEventListener('click', () => doExport('ws', 'down'));
 ['#opCopy', '#opCopyQuick'].forEach(q => $(q).addEventListener('click', () => doExport('op', 'copy')));
 $('#opDown').addEventListener('click', () => doExport('op', 'down'));
 $('#opZoom').addEventListener('change', () => { opCfg.zoom = num($('#opZoom'), 0); save(); renderOp(); });
+
+
+/* =========================================================
+   HOJA PARA IMPRIMIR (varios crucigramas en un solo PNG)
+   ========================================================= */
+const PAPER = { letter: [215.9, 279.4], legal: [215.9, 330.2] };
+function prRead() {
+  const c = prCfg;
+  c.paper = $('#prPaper').value; c.orient = $('#prOrient').value;
+  c.count = clamp(num($('#prCountIn'), 6), 1, 60);
+  c.size = clamp(parseFloat($('#prSize').value) || 9, 3, 21);
+  c.gap = clamp(num($('#prGap'), 0), 0, 30); c.margin = clamp(num($('#prMargin'), 10), 0, 30);
+  c.border = $('#prBorder').value; c.content = $('#prContent').value;
+  c.title = $('#prTitle').value.trim().slice(0, 80); c.num = $('#prNum').checked; c.hl = $('#prHl').checked;
+  c.grid = clamp(num($('#prGrid'), 9), 5, 25); c.eqs = clamp(num($('#prEqs'), 6), 1, 40);
+  c.add = $('#prAdd').checked; c.sub = $('#prSub').checked; c.mul = $('#prMul').checked; c.div = $('#prDiv').checked;
+  c.max = clamp(num($('#prMax'), 20), 10, 999); c.per = num($('#prPer'), 1); c.empty = num($('#prEmpty'), 50);
+  c.dpi = num($('#prDpi'), 150);
+}
+function prWrite() {
+  const c = prCfg;
+  $('#prPaper').value = c.paper; $('#prOrient').value = c.orient; $('#prCountIn').value = c.count; $('#prSize').value = c.size;
+  $('#prGap').value = c.gap; $('#prMargin').value = c.margin; $('#prBorder').value = String(c.border); $('#prContent').value = c.content;
+  $('#prTitle').value = c.title; $('#prNum').checked = c.num; $('#prHl').checked = c.hl;
+  $('#prGrid').value = c.grid; $('#prEqs').value = c.eqs;
+  $('#prAdd').checked = c.add; $('#prSub').checked = c.sub; $('#prMul').checked = c.mul; $('#prDiv').checked = c.div;
+  $('#prMax').value = c.max; $('#prPer').value = String(c.per); $('#prEmpty').value = c.empty; $('#prEmptyVal').textContent = c.empty + ' %';
+  $('#prDpi').value = String(c.dpi);
+}
+function prPage() { const [w, h] = PAPER[prCfg.paper] || PAPER.letter; return prCfg.orient === 'l' ? [h, w] : [w, h]; }
+function prTopOffset() { return prCfg.title ? 14 : 0; }
+/* cuántos caben: columnas, filas (en mm) */
+function prFitCount(sizeCm, gap) {
+  const size = sizeCm * 10;
+  const [W, H] = prPage(), m = prCfg.margin, hh = prTopOffset();
+  const cols = Math.floor((W - 2 * m + gap + 1e-6) / (size + gap)), rows = Math.floor((H - 2 * m - hh + gap + 1e-6) / (size + gap));
+  return { cols: Math.max(0, cols), rows: Math.max(0, rows) };
+}
+function prMakeOne() {
+  const c = prCfg, ops = [];
+  if (c.add) ops.push('+'); if (c.sub) ops.push('-'); if (c.mul) ops.push('×'); if (c.div) ops.push('÷');
+  if (!ops.length) ops.push('+');
+  let best = null;
+  for (let t = 0; t < 14; t++) {
+    const r = attemptOp(c.grid, c.grid, c.eqs, c.max, ops, true);
+    if (!r) continue;
+    const cr = cropCells(r.cells), asp = Math.min(cr.length, cr[0].length) / Math.max(cr.length, cr[0].length);
+    const score = Math.min(r.eqs.length, c.eqs) * 10 + asp;
+    if (!best || score > best.score) best = { r, score };
+    if (r.eqs.length >= c.eqs && asp > .8) break;
+  }
+  if (!best) return null;
+  hideCells(best.r, { empty: c.empty, per: c.per, hideOps: false });
+  return { cells: cropCells(best.r.cells), n: best.r.eqs.length };
+}
+function prEnsure(force) {
+  const need = prCfg.count;
+  if (force) prPuzzles = [];
+  while (prPuzzles.length < need) { const p = prMakeOne(); if (!p) break; prPuzzles.push(p); }
+  if (prPuzzles.length > need) prPuzzles.length = need;
+}
+function prDrawBox(g, p, x, y, side, c) {
+  const rows = p.cells.length, cols = p.cells[0].length;
+  const pad = side * .06, inner = side - 2 * pad, S = Math.max(prDrawBox.S, 1);
+  const step = inner / S, tile = step * .9, gap = step * .1;
+  const gw = cols * step - gap, gh = rows * step - gap;
+  const gx = x + pad + (inner - gw) / 2, gy = y + pad + (inner - gh) / 2;
+  g.font = `700 ${Math.round(tile * .46 * 100) / 100}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  const lw = Math.max(tile * .04, .5), rad = tile * .16;
+  for (let r = 0; r < rows; r++) for (let cc = 0; cc < cols; cc++) {
+    const cell = p.cells[r][cc]; if (!cell) continue;
+    const tx = gx + cc * step, ty = gy + r * step;
+    let txt = sym(cell.v), col = EX.ink;
+    rr(g, tx, ty, tile, tile, rad);
+    if (cell.h) {
+      g.fillStyle = c.hl ? EX.hid : '#fff'; g.fill();
+      g.setLineDash([lw * 2.5, lw * 2]); g.lineWidth = lw; g.strokeStyle = EX.ink; g.stroke(); g.setLineDash([]);
+      if (c.content === 'solution') col = EX.ok; else txt = '';
+    } else if (cell.k === 'n') { g.fillStyle = '#fff'; g.fill(); g.lineWidth = lw; g.strokeStyle = EX.ink; g.stroke(); }
+    else { g.fillStyle = EX.tile; g.fill(); if (cell.k === 'e') col = EX.blue; }
+    if (txt) { g.fillStyle = col; g.fillText(txt, tx + tile / 2, ty + tile / 2 + tile * .02); }
+  }
+}
+async function drawSheetCanvas(dpi) {
+  const c = prCfg, [W, H] = prPage(), px = dpi / 25.4;
+  const { cols, rows } = prFitCount(c.size, c.gap), cap = cols * rows;
+  const n = Math.min(c.count, cap);
+  await fontsReady();
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(W * px); cv.height = Math.round(H * px);
+  const g = cv.getContext('2d');
+  g.scale(px, px);                      /* a partir de aquí todo está en milímetros */
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  const m = c.margin, side = c.size * 10, gap = c.gap;
+  if (c.title) { g.fillStyle = EX.ink; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.font = `700 6px ${FONT}`; g.fillText(c.title, W / 2, m + 7, W - 2 * m); }
+  if (!n) return cv;
+  const usedCols = Math.min(cols, n), usedRows = Math.ceil(n / cols);
+  const gridW = usedCols * side + (usedCols - 1) * gap;
+  const x0 = (W - gridW) / 2, y0 = m + prTopOffset();
+  prDrawBox.S = Math.max(...prPuzzles.slice(0, n).map(p => Math.max(p.cells.length, p.cells[0].length)));
+  const bw = parseFloat(c.border) || 0;
+  for (let i = 0; i < n; i++) {
+    const r = Math.floor(i / cols), k = i % cols, x = x0 + k * (side + gap), y = y0 + r * (side + gap);
+    prDrawBox(g, prPuzzles[i], x, y, side, c);
+    if (c.num) { g.fillStyle = EX.soft; g.font = `700 ${Math.min(4, side * .08)}px ${FONT}`; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText(String(i + 1), x + side * .025 + bw / 2, y + side * .02 + bw / 2); }
+  }
+  if (bw) {
+    g.strokeStyle = '#000'; g.lineWidth = bw; g.lineJoin = 'miter'; g.setLineDash([]);
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(i / cols), k = i % cols;
+      g.strokeRect(x0 + k * (side + gap), y0 + r * (side + gap), side, side);
+    }
+  }
+  return cv;
+}
+let prT = 0;
+function renderSheet() {
+  clearTimeout(prT);
+  const c = prCfg, { cols, rows } = prFitCount(c.size, c.gap), cap = cols * rows;
+  prEnsure(false);
+  const n = Math.min(c.count, cap), warn = $('#prWarn');
+  $('#prCount').textContent = n ? `${n} crucigrama${n === 1 ? '' : 's'} en una hoja` : 'Hoja de crucigramas';
+  const [W, H] = prPage();
+  $('#prInfo').textContent = `${c.paper === 'legal' ? 'Oficio' : 'Carta'} ${c.orient === 'l' ? 'horizontal' : 'vertical'} · ${n ? cols + ' por fila, ' + Math.ceil(n / cols) + ' fila(s) · ' : ''}cada uno de ${String(c.size).replace('.', ',')} × ${String(c.size).replace('.', ',')} cm · caben ${cap} como máximo`;
+  warn.textContent = !cap ? 'Con ese tamaño no cabe ni uno: baja el lado o los márgenes.' : (c.count > cap ? `Con ese tamaño solo caben ${cap}: se muestran ${cap} de ${c.count}. Usa «Ajustar tamaño a la cantidad».` : '');
+  const short = prPuzzles.slice(0, n).filter(p => p.n < c.eqs).length;
+  if (short && !warn.textContent) warn.textContent = `En ${short} crucigrama(s) no cupieron las ${c.eqs} ecuaciones: sube el tamaño del tablero.`;
+  drawSheetCanvas(110).then(cv => {
+    const el = $('#prCanvas'); el.width = cv.width; el.height = cv.height;
+    el.getContext('2d').drawImage(cv, 0, 0);
+  });
+}
+function prChanged() { prRead(); $('#prEmptyVal').textContent = prCfg.empty + ' %'; save(); clearTimeout(prT); prT = setTimeout(renderSheet, 80); }
+function prRegen() { prRead(); save(); prEnsure(true); renderSheet(); }
+/* PNG con densidad (pHYs) para que Word lo inserte a tamaño real */
+function crc32(b) { let c, crc = -1; for (let n = 0; n < b.length; n++) { c = (crc ^ b[n]) & 255; for (let k = 0; k < 8; k++) c = c & 1 ? (c >>> 1) ^ 0xEDB88320 : c >>> 1; crc = (crc >>> 8) ^ c; } return (crc ^ -1) >>> 0; }
+async function withDpi(blob, dpi) {
+  const buf = new Uint8Array(await blob.arrayBuffer()), ppm = Math.round(dpi / .0254);
+  const chunk = new Uint8Array(21), dv = new DataView(chunk.buffer);
+  dv.setUint32(0, 9); chunk.set([0x70, 0x48, 0x59, 0x73], 4); dv.setUint32(8, ppm); dv.setUint32(12, ppm); chunk[16] = 1;
+  dv.setUint32(17, crc32(chunk.subarray(4, 17)));
+  const at = 33; /* tras la firma (8) y el bloque IHDR (25) */
+  const out = new Uint8Array(buf.length + 21); out.set(buf.subarray(0, at)); out.set(chunk, at); out.set(buf.subarray(at), at + 21);
+  return new Blob([out], { type: 'image/png' });
+}
+function prExport(action) {
+  prRead(); save(); prEnsure(false);
+  toast('Preparando la hoja…');
+  const dpi = prCfg.dpi;
+  const blobP = (async () => {
+    const cv = await drawSheetCanvas(dpi);
+    const b = await new Promise(res => cv.toBlob(res, 'image/png'));
+    if (!b) throw new Error('sin imagen');
+    try { return await withDpi(b, dpi); } catch (e) { return b; }
+  })();
+  const failed = () => toast('No se pudo crear la imagen.');
+  const download = msg => blobP.then(b => { saveBlob(b, 'crucigramas-hoja.png'); toast(msg); }).catch(failed);
+  if (action === 'copy' && navigator.clipboard && window.ClipboardItem) {
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })])
+      .then(() => toast('Hoja copiada. Pégala en Word y ajústala al ancho de la página.'))
+      .catch(() => download('Este navegador no deja copiar imágenes desde aquí; se descargó el PNG.'));
+  } else download(action === 'copy' ? 'Este navegador no permite copiar imágenes; se descargó el PNG.' : 'PNG descargado.');
+}
+$('#view-pr').addEventListener('input', e => { if (e.target.closest('.side')) prChanged(); });
+$('#view-pr').addEventListener('change', e => { if (e.target.closest('.side')) prChanged(); });
+['#prGrid', '#prEqs', '#prMax', '#prPer', '#prEmpty', '#prAdd', '#prSub', '#prMul', '#prDiv'].forEach(q => $(q).addEventListener('change', () => { prRegen(); }));
+$('#prEmpty').addEventListener('input', () => { prRead(); $('#prEmptyVal').textContent = prCfg.empty + ' %'; });
+$('#prNew').addEventListener('click', prRegen);
+$('#prFit').addEventListener('click', () => {
+  prRead();
+  const [W, H] = prPage(), max = Math.min(W - 2 * prCfg.margin, H - 2 * prCfg.margin - prTopOffset()) / 10;
+  let best = 3;
+  for (let s = Math.floor(max * 2) / 2; s >= 3; s -= .5) { const f = prFitCount(s, prCfg.gap); if (f.cols * f.rows >= prCfg.count) { best = s; break; } }
+  prCfg.size = best; $('#prSize').value = best; save(); renderSheet();
+});
+['#prCopy', '#prCopyQuick'].forEach(q => $(q).addEventListener('click', () => prExport('copy')));
+$('#prDown').addEventListener('click', () => prExport('down'));
+$('#opToSheet').addEventListener('click', () => setTab('pr'));
+prWrite();
 
 /* --- arranque --- */
 writeWsCfg(); writeOpCfg(); writeExp(); updateWsHint(); applyClassMode();
